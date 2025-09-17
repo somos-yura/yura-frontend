@@ -1,1 +1,1 @@
-# Backend for Miniworker
+# Frontend for Miniworker
