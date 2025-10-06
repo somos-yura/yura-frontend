@@ -4,26 +4,34 @@ import { useNavigate } from "react-router-dom"
 import { InputField } from "../components/InputField"
 import { MessageAlert } from "../components/MessageAlert"
 import { Footer } from "../components/Footer"
-import { useAuthValidation } from "../hooks/useAuthValidation"
+import { useAuth } from "../hooks/useAuth"
+import { useFormNavigation } from "../hooks/useFormNavigation"
 import type { LoginForm } from "../types/auth"
 
 const Login: React.FC = () => {
     const navigate = useNavigate()
     const [form, setForm] = useState<LoginForm>({ email: "", password: "" })
     const [showPassword, setShowPassword] = useState(false)
-    const { state, validateLogin, setSuccess } = useAuthValidation()
+    const { login, error, success, clearError } = useAuth()
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
+        clearError()
 
-        if (validateLogin(form)) {
-            setSuccess("¡Inicio de sesión exitoso!")
+        try {
+            await login(form)
+        } catch (error) {
+            console.error('Login error:', error)
         }
     }
 
+    const { handleKeyDown } = useFormNavigation(handleSubmit)
+
     const handleInputChange = (field: keyof LoginForm) => (value: string) => {
         setForm(prev => ({ ...prev, [field]: value }))
+        if (error) clearError()
     }
+
 
     return (
         <div className="min-h-screen bg-white flex items-center justify-center p-4 font-roboto">
@@ -37,8 +45,8 @@ const Login: React.FC = () => {
                         Inicio de Sesión
                     </h2>
 
-                    {state.error && <MessageAlert type="error" message={state.error} />}
-                    {state.success && <MessageAlert type="success" message={state.success} />}
+                    {error && <MessageAlert type="error" message={error} />}
+                    {success && <MessageAlert type="success" message={success} />}
 
                     <form onSubmit={handleSubmit} className="space-y-5">
                         <InputField
@@ -48,6 +56,7 @@ const Login: React.FC = () => {
                             onChange={handleInputChange('email')}
                             placeholder="tu@email.com"
                             label="Email"
+                            onKeyDown={(e) => handleKeyDown(e, 'password')}
                             icon={
                                 <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path
@@ -80,6 +89,7 @@ const Login: React.FC = () => {
                                     type={showPassword ? 'text' : 'password'}
                                     value={form.password}
                                     onChange={(e) => handleInputChange('password')(e.target.value)}
+                                    onKeyDown={(e) => handleKeyDown(e)}
                                     placeholder="••••••••"
                                     className="w-full pl-10 pr-12 py-3 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-electricBlue focus:border-transparent transition-all placeholder-gray-400"
                                 />

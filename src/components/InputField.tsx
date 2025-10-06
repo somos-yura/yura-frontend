@@ -9,6 +9,7 @@ interface InputFieldProps {
     label: string
     icon: React.ReactNode
     focusColor?: string
+    onKeyDown?: (e: React.KeyboardEvent) => void
 }
 
 export const InputField: React.FC<InputFieldProps> = ({
@@ -19,7 +20,8 @@ export const InputField: React.FC<InputFieldProps> = ({
     placeholder,
     label,
     icon,
-    focusColor = 'electricBlue'
+    focusColor = 'electricBlue',
+    onKeyDown
 }) => (
     <div>
         <label htmlFor={id} className="block text-sm font-medium text-darkGray mb-2 font-montserrat">
@@ -34,6 +36,7 @@ export const InputField: React.FC<InputFieldProps> = ({
                 type={type}
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
+                onKeyDown={onKeyDown}
                 placeholder={placeholder}
                 className={`w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-${focusColor} focus:border-transparent transition-all placeholder-gray-400`}
             />
