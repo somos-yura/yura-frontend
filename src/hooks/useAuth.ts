@@ -31,16 +31,17 @@ export const useAuth = () => {
         const emailError = validateEmail(form.email)
         if (emailError) return emailError
 
-        if ('confirmPassword' in form) {
-            const passwordError = validatePasswordRegister(form.password)
-            if (passwordError) return passwordError
-
-            const confirmError = validatePasswordMatch(form.password, form.confirmPassword)
-            if (confirmError) return confirmError
-        } else {
+        if (!('confirmPassword' in form)) {
             const passwordError = validatePassword(form.password)
             if (passwordError) return passwordError
+            return null
         }
+
+        const passwordError = validatePasswordRegister(form.password)
+        if (passwordError) return passwordError
+
+        const confirmError = validatePasswordMatch(form.password, form.confirmPassword)
+        if (confirmError) return confirmError
 
         return null
     }
