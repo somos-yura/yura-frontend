@@ -4,7 +4,9 @@ import { useNavigate } from "react-router-dom"
 import { InputField } from "../components/InputField"
 import { MessageAlert } from "../components/MessageAlert"
 import { Footer } from "../components/Footer"
-import { useAuthValidation } from "../hooks/useAuthValidation"
+import { PasswordRequirements } from "../components/PasswordRequirements"
+import { useAuth } from "../hooks/useAuth"
+import { useFormNavigation } from "../hooks/useFormNavigation"
 import type { RegisterForm } from "../types/auth"
 
 const Register: React.FC = () => {
@@ -12,18 +14,24 @@ const Register: React.FC = () => {
     const [form, setForm] = useState<RegisterForm>({ email: "", password: "", confirmPassword: "" })
     const [showPassword, setShowPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-    const { state, validateRegister, setSuccess } = useAuthValidation()
+    const { register, error, success, clearError } = useAuth()
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
+        clearError()
 
-        if (validateRegister(form)) {
-            setSuccess("¡Cuenta creada exitosamente!")
+        try {
+            await register(form)
+        } catch (error) {
+            console.error('Register error:', error)
         }
     }
 
+    const { handleKeyDown } = useFormNavigation(handleSubmit)
+
     const handleInputChange = (field: keyof RegisterForm) => (value: string) => {
         setForm(prev => ({ ...prev, [field]: value }))
+        if (error) clearError()
     }
 
     return (
@@ -37,8 +45,8 @@ const Register: React.FC = () => {
                     <h2 className="text-center text-2xl font-bold text-darkGray font-montserrat mb-6">
                         Crea tu cuenta
                     </h2>
-                    {state.error && <MessageAlert type="error" message={state.error} />}
-                    {state.success && <MessageAlert type="success" message={state.success} />}
+                    {error && <MessageAlert type="error" message={error} />}
+                    {success && <MessageAlert type="success" message={success} />}
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <InputField
                             id="email"
@@ -48,6 +56,7 @@ const Register: React.FC = () => {
                             placeholder="tu@email.com"
                             label="Email"
                             focusColor="vibrantOrange"
+                            onKeyDown={(e) => handleKeyDown(e, 'password')}
                             icon={
                                 <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path
@@ -79,6 +88,7 @@ const Register: React.FC = () => {
                                     type={showPassword ? 'text' : 'password'}
                                     value={form.password}
                                     onChange={(e) => handleInputChange('password')(e.target.value)}
+                                    onKeyDown={(e) => handleKeyDown(e, 'confirmPassword')}
                                     placeholder="Mínimo 8 caracteres"
                                     className="w-full pl-10 pr-12 py-3 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-vibrantOrange focus:border-transparent transition-all placeholder-gray-400"
                                 />
@@ -100,6 +110,7 @@ const Register: React.FC = () => {
                                 </button>
                             </div>
                         </div>
+                        <PasswordRequirements password={form.password} />
                         <div>
                             <label htmlFor="confirmPassword" className="block text-sm font-medium text-darkGray mb-2 font-montserrat">
                                 Confirmar contraseña
@@ -120,6 +131,7 @@ const Register: React.FC = () => {
                                     type={showConfirmPassword ? 'text' : 'password'}
                                     value={form.confirmPassword}
                                     onChange={(e) => handleInputChange('confirmPassword')(e.target.value)}
+                                    onKeyDown={(e) => handleKeyDown(e)}
                                     placeholder="Repite tu contraseña"
                                     className="w-full pl-10 pr-12 py-3 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-vibrantOrange focus:border-transparent transition-all placeholder-gray-400"
                                 />
