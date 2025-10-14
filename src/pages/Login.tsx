@@ -1,10 +1,10 @@
 import type React from "react"
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { InputField } from "../components/InputField"
-import { MessageAlert } from "../components/MessageAlert"
-import { Footer } from "../components/Footer"
-import { useAuth } from "../hooks/useAuth"
+import { InputField } from "../components/ui/InputField"
+import { MessageAlert } from "../components/ui/MessageAlert"
+import { Footer } from "../components/layout/Footer"
+import { useAuthContext } from "../contexts/AuthContext"
 import { useFormNavigation } from "../hooks/useFormNavigation"
 import type { LoginForm } from "../types/auth"
 
@@ -12,7 +12,7 @@ const Login: React.FC = () => {
     const navigate = useNavigate()
     const [form, setForm] = useState<LoginForm>({ email: "", password: "" })
     const [showPassword, setShowPassword] = useState(false)
-    const { login, error, success, clearError } = useAuth()
+    const { login, error, success, clearError } = useAuthContext()
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()

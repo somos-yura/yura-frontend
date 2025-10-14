@@ -2,7 +2,7 @@
 
 ## Resumen del Proyecto
 
-MiniWorker Academy es una plataforma de aprendizaje construida con React + TypeScript + Tailwind CSS. El proyecto implementa un sistema de autenticación completo con pantallas de Login y Registro siguiendo principios de diseño modernos y arquitectura escalable.
+MiniWorker Academy es una plataforma de aprendizaje construida con React + TypeScript + Tailwind CSS.
 
 ## Stack Tecnológico
 
@@ -17,52 +17,84 @@ MiniWorker Academy es una plataforma de aprendizaje construida con React + TypeS
 
 ```
 src/
-├── components/          # Componentes reutilizables
-│   ├── Footer.tsx
-│   ├── InputField.tsx
-│   ├── MessageAlert.tsx
-│   └── PasswordRequirements.tsx
-├── config/             # Configuración de la aplicación
-│   └── api.ts
-├── hooks/              # Custom hooks
-│   ├── useAuth.ts
-│   └── useFormNavigation.ts
-├── pages/              # Páginas principales
+├── components/            # Componentes reutilizables
+│   ├── ui/               # Componentes base
+│   │   ├── InputField.tsx
+│   │   ├── MessageAlert.tsx
+│   │   └── PasswordRequirements.tsx
+│   ├── layout/           # Componentes de layout
+│   │   ├── Header.tsx
+│   │   ├── Footer.tsx
+│   │   ├── Layout.tsx
+│   │   ├── SideBar.tsx
+│   │   └── navigationItems.ts
+│   ├── ChallengeCard.tsx # Componentes específicos
+│   ├── ProtectedRoute.tsx
+│   └── PublicRoute.tsx
+├── pages/                # Páginas principales
 │   ├── Login.tsx
-│   └── Register.tsx
-├── services/           # Servicios de API
-│   └── authApi.ts
-├── types/              # Definiciones de TypeScript
-│   └── auth.ts
-├── utils/              # Utilidades
+│   ├── Register.tsx
+│   └── Dashboard.tsx
+├── hooks/                # Custom hooks
+│   ├── useAuth.ts
+│   ├── useChallenges.ts
+│   ├── useCategories.ts
+│   ├── useDashboardFilters.ts
+│   └── useFormNavigation.ts
+├── services/             # Servicios de API
+│   ├── authApi.ts
+│   ├── challengesApi.ts
+│   └── categoriesApi.ts
+├── contexts/             # Contextos globales
+│   └── AuthContext.tsx
+├── types/                # Tipos TypeScript
+│   ├── auth.ts
+│   ├── challenge.ts
+│   ├── components.ts
+│   └── css.d.ts
+├── utils/                # Utilidades
 │   └── validation.ts
-├── App.tsx             # Componente raíz
-├── main.tsx            # Punto de entrada
-└── index.css           # Estilos globales
+├── config/               # Configuración
+│   └── api.ts
+├── App.tsx               # Componente raíz
+├── router.tsx            # Configuración de rutas
+├── main.tsx              # Punto de entrada
+└── index.css             # Estilos globales
 ```
 
 ## Principios de Arquitectura
 
-### 1. Separación de Responsabilidades
+### 1. Arquitectura Simplificada
 
-- **Pages**: Componentes de página que manejan la lógica de presentación
-- **Components**: Componentes reutilizables sin lógica de negocio
-- **Hooks**: Lógica de estado y efectos secundarios
-- **Services**: Comunicación con APIs externas
+- **Components**: Componentes reutilizables organizados por tipo (ui, layout)
+- **Pages**: Páginas principales de la aplicación
+- **Hooks**: Custom hooks para lógica reutilizable
+- **Services**: Servicios de API organizados por dominio
 - **Types**: Definiciones de tipos TypeScript
-- **Utils**: Funciones puras y utilidades
+- **Contexts**: Estado global compartido
+- **Utils**: Utilidades y helpers
 
-### 2. Patrones de Diseño
+### 2. Separación de Responsabilidades
 
-- **Custom Hooks**: Para lógica reutilizable (`useAuth`, `useFormNavigation`)
+- **Components**: Componentes reutilizables organizados por tipo (ui, layout)
+- **Hooks**: Lógica de estado y efectos secundarios centralizada
+- **Services**: Comunicación con APIs externas por dominio
+- **Types**: Definiciones de tipos TypeScript organizadas por contexto
+- **Contexts**: Estado global compartido entre componentes
+
+### 3. Patrones de Diseño
+
+- **Context Provider**: Para estado global de autenticación
+- **Protected Routes**: Para rutas que requieren autenticación
+- **Custom Hooks**: Para lógica reutilizable por feature
 - **Composition**: Componentes compuestos por otros componentes más pequeños
-- **Props Interface**: Interfaces TypeScript para todas las props
 - **Error Boundaries**: Manejo centralizado de errores
 
-### 3. Gestión de Estado
+### 4. Gestión de Estado
 
+- **Global State**: React Context para autenticación
 - **Local State**: useState para estado local de componentes
-- **Global State**: Custom hooks para estado compartido
+- **Custom Hooks**: Hooks centralizados para lógica reutilizable
 - **Persistence**: localStorage para persistencia de sesión
 - **Validation**: Validación en tiempo real con feedback visual
 
@@ -100,7 +132,7 @@ export const config = {
 }
 ```
 
-### 2. Manejo de Respuestas
+### 4. Manejo de Respuestas
 
 ```typescript
 const handleResponse = async (response: Response): Promise<AuthResponse> => {
@@ -172,6 +204,6 @@ npm run lint
 ### 2. Variables de Entorno
 
 ```env
-VITE_API_BASE_URL=http://localhost:8000
-VITE_API_VERSION=v1
+API_BASE_URL=http://localhost:8000
+API_VERSION=v1
 ```
