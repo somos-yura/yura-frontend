@@ -5,6 +5,8 @@ import { PublicRoute } from "./components/PublicRoute"
 import Login from "./pages/Login"
 import Register from "./pages/Register"
 import Dashboard from "./pages/Dashboard"
+import ChallengeDetail from "./pages/ChallengeDetail"
+import ChallengeChat from "./pages/ChallengeChat"
 
 export function AppRouter() {
     return (
@@ -33,6 +35,22 @@ export function AppRouter() {
                         element={
                             <ProtectedRoute>
                                 <Dashboard />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/challenge/:id"
+                        element={
+                            <ProtectedRoute>
+                                <ChallengeDetail />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/challenge/:id/chat"
+                        element={
+                            <ProtectedRoute>
+                                <ChallengeChat />
                             </ProtectedRoute>
                         }
                     />

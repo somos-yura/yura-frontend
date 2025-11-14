@@ -6,10 +6,12 @@ import { Footer } from "./Footer"
 
 interface LayoutProps {
   children: React.ReactNode
+  hideFooter?: boolean
 }
 
-export const Layout: React.FC<LayoutProps> = ({ 
+export const Layout: React.FC<LayoutProps> = ({
   children,
+  hideFooter = false,
 }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
 
@@ -24,7 +26,6 @@ export const Layout: React.FC<LayoutProps> = ({
 
     checkScreenSize()
     window.addEventListener('resize', checkScreenSize)
-    
     return () => window.removeEventListener('resize', checkScreenSize)
   }, [])
 
@@ -38,25 +39,25 @@ export const Layout: React.FC<LayoutProps> = ({
       <div className={`transition-all duration-300 ${isSidebarOpen ? 'w-64' : 'w-0'} overflow-hidden fixed md:relative z-50 h-full`}>
         <AppSidebar />
       </div>
-      
+
       {/* Overlay for mobile */}
       {isSidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
           onClick={toggleSidebar}
         />
       )}
-      
+
       {/* Main content */}
       <div className="flex flex-1 flex-col overflow-hidden">
-        <Header 
+        <Header
           onToggleSidebar={toggleSidebar}
           isSidebarOpen={isSidebarOpen}
         />
         <main className="flex-1 overflow-auto p-6">
           {children}
         </main>
-        <Footer />
+        {!hideFooter && <Footer />}
       </div>
     </div>
   )

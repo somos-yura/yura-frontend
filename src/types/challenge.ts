@@ -1,9 +1,28 @@
 export interface Challenge {
-    id: number
+    id: string
     title: string
-    category: string
+    category: string[]
     description: string
-    image: string
+    career_types: string[]
+    sources: string[]
+    images: string[]
+    created_at: string
+    updated_at: string
+}
+
+export interface SimulatedPerson {
+    first_name: string
+    last_name: string
+    personality_traits: string[]
+    expertise_areas: string[]
+    age: number
+    bio: string
+}
+
+export interface SimulatedPersonsApiResponse {
+    success: boolean
+    message: string
+    data: SimulatedPerson[]
 }
 
 export interface ChallengeFilters {
@@ -11,8 +30,11 @@ export interface ChallengeFilters {
     selectedCategory: string
 }
 
-export interface ChallengeApiResponse {
+export interface SocialProblemsApiResponse {
     success: boolean
-    data: Challenge[]
-    message?: string
+    message: string
+    data: {
+        problems: Challenge[]
+        total: number
+    }
 }
