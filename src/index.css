@@ -12,3 +12,50 @@ body {
   background-color: #FFFFFF;
   color: #2E2E2E;
 }
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+@layer components {
+  .career-type-purple {
+    background-color: #faf5ff;
+    border-color: #e9d5ff;
+  }
+  
+  .career-type-purple-icon {
+    color: #9333ea;
+  }
+  
+  .career-type-green {
+    background-color: #f0fdf4;
+    border-color: #bbf7d0;
+  }
+  
+  .career-type-green-icon {
+    color: #16a34a;
+  }
+  
+  .career-type-blue {
+    background-color: #eff6ff;
+    border-color: #bfdbfe;
+  }
+  
+  .career-type-blue-icon {
+    color: #2563eb;
+  }
+  
+  .career-type-orange {
+    background-color: #fff7ed;
+    border-color: #fed7aa;
+  }
+  
+  .career-type-orange-icon {
+    color: #ea580c;
+  }
+}

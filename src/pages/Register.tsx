@@ -1,11 +1,11 @@
 import type React from "react"
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { InputField } from "../components/InputField"
-import { MessageAlert } from "../components/MessageAlert"
-import { Footer } from "../components/Footer"
-import { PasswordRequirements } from "../components/PasswordRequirements"
-import { useAuth } from "../hooks/useAuth"
+import { InputField } from "../components/ui/InputField"
+import { MessageAlert } from "../components/ui/MessageAlert"
+import { Footer } from "../components/layout/Footer"
+import { PasswordRequirements } from "../components/ui/PasswordRequirements"
+import { useAuthContext } from "../contexts/AuthContext"
 import { useFormNavigation } from "../hooks/useFormNavigation"
 import type { RegisterForm } from "../types/auth"
 
@@ -14,7 +14,7 @@ const Register: React.FC = () => {
     const [form, setForm] = useState<RegisterForm>({ email: "", password: "", confirmPassword: "" })
     const [showPassword, setShowPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-    const { register, error, success, clearError } = useAuth()
+    const { register, error, success, clearError } = useAuthContext()
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()

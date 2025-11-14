@@ -11,7 +11,7 @@ export const useAuth = () => {
         token: null,
         isAuthenticated: false
     })
-    const [loading, setLoading] = useState(false)
+    const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [success, setSuccess] = useState<string | null>(null)
 
@@ -25,6 +25,7 @@ export const useAuth = () => {
                 localStorage.removeItem(AUTH_STORAGE_KEY)
             }
         }
+        setLoading(false)
     }, [])
 
     const validateForm = (form: LoginForm | RegisterForm): string | null => {
