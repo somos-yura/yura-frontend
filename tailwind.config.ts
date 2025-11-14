@@ -11,6 +11,7 @@ export default {
                 roboto: ['Roboto', 'sans-serif'],
             },
             colors: {
+                lightGray: "#F5F5F5",
                 electricBlue: "#1E90FF",
                 limeGreen: "#7CFC00",
                 darkGray: "#2E2E2E",

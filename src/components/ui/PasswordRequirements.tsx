@@ -1,5 +1,5 @@
 import type React from "react"
-import { getPasswordRequirements } from "../utils/validation"
+import { getPasswordRequirements } from "../../utils/validation"
 
 interface PasswordRequirementsProps {
     password: string
