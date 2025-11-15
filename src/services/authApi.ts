@@ -1,84 +1,39 @@
-import { getApiUrl, config } from '../config/api'
+import { apiClient, ApiError } from '../lib/apiClient'
+import { config } from '../config/api'
 import type { LoginForm, RegisterForm, AuthResponse } from '../types/auth'
-
-class ApiError extends Error {
-    status: number
-    details?: any
-
-    constructor(message: string, status: number, details?: any) {
-        super(message)
-        this.name = 'ApiError'
-        this.status = status
-        this.details = details
-    }
-}
-
-const handleResponse = async (response: Response): Promise<AuthResponse> => {
-    const data = await response.json()
-
-    if (data.success === true) {
-        return data
-    }
-
-    if (data.translation) {
-        throw new ApiError(data.translation, response.status, data)
-    }
-
-    if (data.message) {
-        throw new ApiError(data.message, response.status, data)
-    }
-
-    throw new ApiError('Error', response.status, data)
-}
-
 
 export const authApi = {
     async login(credentials: LoginForm): Promise<AuthResponse> {
         try {
-            const response = await fetch(getApiUrl(config.API_ENDPOINTS.LOGIN), {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({
+            return await apiClient.post<AuthResponse['data']>(
+                config.API_ENDPOINTS.LOGIN,
+                {
                     email: credentials.email,
                     password: credentials.password
-                })
-            })
-
-            return handleResponse(response)
+                }
+            ) as AuthResponse
         } catch (error) {
             if (error instanceof ApiError) {
                 throw error
             }
-
-
-            throw new ApiError('Usuario no encontrado', 404)
+            throw new ApiError('Error al iniciar sesión', 500, error)
         }
     },
 
     async register(userData: RegisterForm): Promise<AuthResponse> {
         try {
-            const response = await fetch(getApiUrl(config.API_ENDPOINTS.REGISTER), {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({
+            return await apiClient.post<AuthResponse['data']>(
+                config.API_ENDPOINTS.REGISTER,
+                {
                     email: userData.email,
                     password: userData.password
-                })
-            })
-
-            return handleResponse(response)
+                }
+            ) as AuthResponse
         } catch (error) {
             if (error instanceof ApiError) {
                 throw error
             }
-
-            throw new ApiError('El usuario ya existe', 409)
+            throw new ApiError('Error al registrar usuario', 500, error)
         }
     }
 }

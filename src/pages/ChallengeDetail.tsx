@@ -2,18 +2,29 @@ import type React from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { ArrowLeft, Briefcase, CheckCircle2, ArrowRight } from "lucide-react"
 import { Layout } from "../components/layout/Layout"
-import { useState, useEffect } from "react"
-import { challengesApi } from "../services/challengesApi"
-import type { Challenge, SimulatedPerson } from "../types/challenge"
+import { useState, useEffect, useMemo, useRef } from "react"
+import { challengesApi, ChallengeApiError } from "../services/challengesApi"
+import type { Challenge, SimulatedPerson, ChallengeAssignment } from "../types/challenge"
+import { ConfirmationModal } from "../components/ui/ConfirmationModal"
+import { ContactLoadingModal } from "../components/ui/ContactLoadingModal"
+import { MessageAlert } from "../components/ui/MessageAlert"
+import { useAuthContext } from "../contexts/AuthContext"
 
 const ChallengeDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>()
     const navigate = useNavigate()
+    const { user, token } = useAuthContext()
     const [challenge, setChallenge] = useState<Challenge | null>(null)
     const [simulatedPersons, setSimulatedPersons] = useState<SimulatedPerson[]>([])
+    const [currentAssignment, setCurrentAssignment] = useState<ChallengeAssignment | null>(null)
     const [loading, setLoading] = useState(true)
     const [loadingPersons, setLoadingPersons] = useState(false)
     const [error, setError] = useState<string | null>(null)
+    const [assignmentError, setAssignmentError] = useState<string | null>(null)
+    const [showConfirmationModal, setShowConfirmationModal] = useState(false)
+    const [showLoadingModal, setShowLoadingModal] = useState(false)
+    const [selectedPerson, setSelectedPerson] = useState<SimulatedPerson | null>(null)
+    const timeoutRef = useRef<number | null>(null)
 
     useEffect(() => {
         const fetchChallenge = async () => {
@@ -27,13 +38,29 @@ const ChallengeDetail: React.FC = () => {
                 if (problem) {
                     setChallenge(problem)
                     
+                    if (user?.id) {
+                        try {
+                            const assignmentsResponse = await challengesApi.getStudentAssignments(user.id)
+                            const assignment = assignmentsResponse.data.assignments.find(
+                                (a: ChallengeAssignment) => String(a.social_problem_id) === String(id)
+                            )
+                            if (assignment) {
+                                setCurrentAssignment(assignment)
+                            }
+                        } catch (err) {
+                            if (err instanceof ChallengeApiError) {
+                                setError(err.message)
+                            }
+                        }
+                    }
+                    
                     if (problem.category && problem.category.length > 0) {
                         setLoadingPersons(true)
                         try {
                             const personsResponse = await challengesApi.getSimulatedPersons(problem.category[0])
                             setSimulatedPersons(personsResponse.data.slice(0, 4))
                         } catch (err) {
-                            console.error('Error al cargar personas simuladas:', err)
+                            setError('Error al cargar las personas simuladas')
                         } finally {
                             setLoadingPersons(false)
                         }
@@ -49,21 +76,92 @@ const ChallengeDetail: React.FC = () => {
         }
 
         fetchChallenge()
-    }, [id])
+    }, [id, user?.id])
 
-    const getRandomImage = () => {
+    const challengeImage = useMemo(() => {
         if (challenge?.images && challenge.images.length > 0) {
             const randomIndex = Math.floor(Math.random() * challenge.images.length)
             return challenge.images[randomIndex]
         }
         return "/photo.png"
-    }
+    }, [challenge?.images])
 
     const getCategoryDisplay = () => {
         if (challenge?.category && challenge.category.length > 0) {
             return challenge.category[0]
         }
         return "Sin categoría"
+    }
+
+    const handleContactClick = (person: SimulatedPerson) => {
+        if (currentAssignment) {
+            navigate(`/challenge/${challenge?.id}/chat?person_id=${currentAssignment.simulated_person_id}`)
+            return
+        }
+        setSelectedPerson(person)
+        setAssignmentError(null)
+        setShowConfirmationModal(true)
+    }
+
+    const isPersonAssigned = (personId: string): boolean => {
+        return currentAssignment?.simulated_person_id === personId
+    }
+
+    const isPersonDisabled = (personId: string): boolean => {
+        return currentAssignment !== null && !isPersonAssigned(personId)
+    }
+
+    const handleConfirmContact = async () => {
+        if (!challenge || !selectedPerson || !user || !token) {
+            setAssignmentError('Faltan datos necesarios para realizar el contacto')
+            setShowConfirmationModal(false)
+            return
+        }
+
+        setShowConfirmationModal(false)
+        setShowLoadingModal(true)
+        setAssignmentError(null)
+
+        try {
+            const assignmentResponse = await challengesApi.createAssignment({
+                simulated_person_id: selectedPerson.id,
+                social_problem_id: challenge.id,
+                student_id: user.id
+            }, token)
+
+            setCurrentAssignment(assignmentResponse.data)
+
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current)
+            }
+
+            timeoutRef.current = window.setTimeout(() => {
+                setShowLoadingModal(false)
+                navigate(`/challenge/${challenge.id}/chat?person_id=${selectedPerson.id}`)
+            }, 2500)
+        } catch (err) {
+            setShowLoadingModal(false)
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current)
+            }
+            const errorMessage = err instanceof ChallengeApiError
+                ? err.message
+                : 'Error al crear la asignación del reto'
+            setAssignmentError(errorMessage)
+        }
+    }
+
+    useEffect(() => {
+        return () => {
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current)
+            }
+        }
+    }, [])
+
+    const handleCancelContact = () => {
+        setShowConfirmationModal(false)
+        setSelectedPerson(null)
     }
 
     if (loading) {
@@ -139,7 +237,7 @@ const ChallengeDetail: React.FC = () => {
             <div className="w-full">
                 <div className="relative h-[300px] md:h-[400px] overflow-hidden rounded-none md:rounded-xl mb-8">
                     <img
-                        src={getRandomImage()}
+                        src={challengeImage}
                         alt={challenge.title}
                         className="w-full h-full object-cover"
                     />
@@ -243,6 +341,11 @@ const ChallengeDetail: React.FC = () => {
                             <p className="text-muted-foreground mb-6 text-sm">
                                 Comunícate con los stakeholders para unirte y comenzar a colaborar.
                             </p>
+                            {assignmentError && (
+                                <div className="mb-6">
+                                    <MessageAlert type="error" message={assignmentError} />
+                                </div>
+                            )}
                             {loadingPersons ? (
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                     {[1, 2, 3, 4].map((i) => (
@@ -258,8 +361,8 @@ const ChallengeDetail: React.FC = () => {
                                 </div>
                             ) : simulatedPersons.length > 0 ? (
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    {simulatedPersons.map((person, index) => (
-                                        <div key={index} className="bg-white border border-border rounded-xl p-6 hover:shadow-lg transition-all flex flex-col h-full">
+                                    {simulatedPersons.map((person) => (
+                                        <div key={person.id} className="bg-white border border-border rounded-xl p-6 hover:shadow-lg transition-all flex flex-col h-full">
                                             <div className="flex flex-col flex-1">
                                                 <div className="mb-4">
                                                     <h3 className="text-xl font-bold text-foreground mb-2 font-montserrat line-clamp-2">
@@ -286,13 +389,24 @@ const ChallengeDetail: React.FC = () => {
                                                     </p>
                                                 </div>
                                                 <div className="flex justify-end mt-auto">
-                                                    <button
-                                                        onClick={() => navigate(`/challenge/${challenge.id}/chat`)}
-                                                        className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-electricBlue text-white rounded-xl font-semibold shadow-md hover:bg-[#1873CC] hover:shadow-lg hover:scale-105 active:scale-100 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-electricBlue focus:ring-offset-2"
-                                                    >
-                                                        <span>Contactarse</span>
-                                                        <ArrowRight className="w-5 h-5" />
-                                                    </button>
+                                                    {isPersonAssigned(person.id) ? (
+                                                        <button
+                                                            onClick={() => handleContactClick(person)}
+                                                            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-electricBlue text-white rounded-xl font-semibold shadow-md hover:bg-[#1873CC] hover:shadow-lg hover:scale-105 active:scale-100 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-electricBlue focus:ring-offset-2"
+                                                        >
+                                                            <span>Ir a chat</span>
+                                                            <ArrowRight className="w-5 h-5" />
+                                                        </button>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => handleContactClick(person)}
+                                                            disabled={isPersonDisabled(person.id)}
+                                                            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-electricBlue text-white rounded-xl font-semibold shadow-md hover:bg-[#1873CC] hover:shadow-lg hover:scale-105 active:scale-100 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-electricBlue focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-electricBlue disabled:hover:scale-100"
+                                                        >
+                                                            <span>Contactarse</span>
+                                                            <ArrowRight className="w-5 h-5" />
+                                                        </button>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
@@ -307,6 +421,19 @@ const ChallengeDetail: React.FC = () => {
                     </div>
                 </div>
             </div>
+            <ConfirmationModal
+                isOpen={showConfirmationModal}
+                onClose={handleCancelContact}
+                onConfirm={handleConfirmContact}
+                title="Confirmar contacto"
+                message={selectedPerson ? `¿Estás seguro de que deseas contactarte con ${selectedPerson.first_name} ${selectedPerson.last_name} para llevar a cabo este proyecto?` : "¿Estás seguro de que deseas contactarte para llevar a cabo este proyecto?"}
+                confirmText="Sí, contactar"
+                cancelText="Cancelar"
+            />
+            <ContactLoadingModal
+                isOpen={showLoadingModal}
+                personName={selectedPerson ? `${selectedPerson.first_name} ${selectedPerson.last_name}` : ""}
+            />
         </Layout>
     )
 }
