@@ -21,7 +21,10 @@ src/
 │   ├── ui/               # Componentes base
 │   │   ├── InputField.tsx
 │   │   ├── MessageAlert.tsx
-│   │   └── PasswordRequirements.tsx
+│   │   ├── PasswordRequirements.tsx
+│   │   ├── ConfirmationModal.tsx
+│   │   ├── ContactLoadingModal.tsx
+│   │   └── LoadingSpinner.tsx
 │   ├── layout/           # Componentes de layout
 │   │   ├── Header.tsx
 │   │   ├── Footer.tsx
@@ -34,17 +37,22 @@ src/
 ├── pages/                # Páginas principales
 │   ├── Login.tsx
 │   ├── Register.tsx
-│   └── Dashboard.tsx
+│   ├── Dashboard.tsx
+│   ├── ChallengeDetail.tsx
+│   └── ChallengeChat.tsx
 ├── hooks/                # Custom hooks
 │   ├── useAuth.ts
 │   ├── useChallenges.ts
 │   ├── useCategories.ts
+│   ├── useChat.ts
 │   ├── useDashboardFilters.ts
 │   └── useFormNavigation.ts
 ├── services/             # Servicios de API
 │   ├── authApi.ts
 │   ├── challengesApi.ts
 │   └── categoriesApi.ts
+├── lib/                  # Librerías y utilidades core
+│   └── apiClient.ts      # Cliente HTTP centralizado
 ├── contexts/             # Contextos globales
 │   └── AuthContext.tsx
 ├── types/                # Tipos TypeScript
@@ -52,8 +60,11 @@ src/
 │   ├── challenge.ts
 │   ├── components.ts
 │   └── css.d.ts
+├── constants/            # Constantes de la aplicación
+│   └── chat.ts
 ├── utils/                # Utilidades
-│   └── validation.ts
+│   ├── validation.ts
+│   └── chatHelpers.ts
 ├── config/               # Configuración
 │   └── api.ts
 ├── App.tsx               # Componente raíz
@@ -70,9 +81,11 @@ src/
 - **Pages**: Páginas principales de la aplicación
 - **Hooks**: Custom hooks para lógica reutilizable
 - **Services**: Servicios de API organizados por dominio
+- **Lib**: Librerías core y utilidades compartidas (cliente HTTP, etc.)
 - **Types**: Definiciones de tipos TypeScript
 - **Contexts**: Estado global compartido
 - **Utils**: Utilidades y helpers
+- **Constants**: Constantes de la aplicación
 
 ### 2. Separación de Responsabilidades
 
@@ -89,6 +102,22 @@ src/
 - **Custom Hooks**: Para lógica reutilizable por feature
 - **Composition**: Componentes compuestos por otros componentes más pequeños
 - **Error Boundaries**: Manejo centralizado de errores
+
+## Rutas de la Aplicación
+
+### Rutas Públicas
+- `/login` - Página de inicio de sesión
+- `/register` - Página de registro
+
+### Rutas Protegidas (requieren autenticación)
+- `/` - Redirige a `/dashboard`
+- `/dashboard` - Dashboard principal con lista de challenges
+- `/challenge/:id` - Detalle de un challenge específico
+- `/challenge/:id/chat` - Chat con la persona simulada asignada al challenge
+
+### Componentes de Rutas
+- `ProtectedRoute`: Verifica autenticación antes de renderizar
+- `PublicRoute`: Redirige a dashboard si el usuario ya está autenticado
 
 ### 4. Gestión de Estado
 
@@ -119,12 +148,30 @@ colors: {
 
 ## API y Servicios
 
-### 1. Configuración de API
+### 1. Cliente HTTP Centralizado
+
+El proyecto utiliza un cliente HTTP centralizado (`src/lib/apiClient.ts`) que proporciona:
+
+- Manejo unificado de headers y autenticación
+- Manejo consistente de errores
+- Métodos HTTP (GET, POST, PUT, DELETE)
+- Soporte para autenticación con tokens
+- Clase base `ApiError` para manejo de errores
+
+```typescript
+import { apiClient, ApiError } from '../lib/apiClient'
+
+// Ejemplo de uso
+const response = await apiClient.get<Data>('/endpoint')
+const response = await apiClient.post<Data>('/endpoint', body, { requireAuth: true, token })
+```
+
+### 2. Configuración de API
 
 ```typescript
 export const config = {
-    API_BASE_URL: import.meta.env?.VITE_API_BASE_URL || 'http://localhost:8000',
-    API_VERSION: import.meta.env?.VITE_API_VERSION || 'v1',
+    API_BASE_URL: (import.meta as any).env?.API_BASE_URL || 'http://localhost:8000',
+    API_VERSION: (import.meta as any).env?.API_VERSION || 'v1',
     API_ENDPOINTS: {
         LOGIN: '/api/v1/users/login',
         REGISTER: '/api/v1/users/register'
@@ -132,23 +179,20 @@ export const config = {
 }
 ```
 
-### 4. Manejo de Respuestas
+### 3. Servicios de API
 
-```typescript
-const handleResponse = async (response: Response): Promise<AuthResponse> => {
-    const data = await response.json()
-    
-    if (data.success === true) {
-        return data
-    }
-    
-    if (data.translation) {
-        throw new ApiError(data.translation, response.status, data)
-    }
-    
-    throw new ApiError('Error', response.status, data)
-}
-```
+Los servicios (`authApi`, `challengesApi`, `categoriesApi`) utilizan el cliente HTTP centralizado y extienden la clase `ApiError` para errores específicos:
+
+- `ApiError`: Clase base para todos los errores de API
+- `ChallengeApiError`: Errores específicos de challenges
+- `CategoryApiError`: Errores específicos de categorías
+
+### 4. Manejo de Errores
+
+Todos los servicios utilizan el manejo de errores centralizado del `apiClient`, que:
+- Extrae mensajes de error del servidor
+- Maneja errores de red
+- Proporciona información estructurada (status, details)
 
 ## Prompt Base para IA
 

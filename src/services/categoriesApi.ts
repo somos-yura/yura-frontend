@@ -1,4 +1,4 @@
-// import { getApiUrl, config } from '../config/api' // Descomentar cuando se use endpoint real
+import { ApiError } from '../lib/apiClient'
 
 export interface Category {
     id: number
@@ -13,15 +13,10 @@ export interface CategoryApiResponse {
     message?: string
 }
 
-class CategoryApiError extends Error {
-    status: number
-    details?: any
-
+export class CategoryApiError extends ApiError {
     constructor(message: string, status: number, details?: any) {
-        super(message)
+        super(message, status, details)
         this.name = 'CategoryApiError'
-        this.status = status
-        this.details = details
     }
 }
 
@@ -69,9 +64,10 @@ export const categoriesApi = {
             return data
             */
         } catch (error) {
+            if (error instanceof ApiError) {
+                throw new CategoryApiError(error.message, error.status, error.details)
+            }
             throw new CategoryApiError('Error al obtener las categorías', 500, error)
         }
     }
 }
-
-export { CategoryApiError }
