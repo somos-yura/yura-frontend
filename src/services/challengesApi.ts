@@ -1,32 +1,11 @@
-import { getApiUrl } from '../config/api'
-import type { Challenge, SocialProblemsApiResponse, SimulatedPersonsApiResponse } from '../types/challenge'
+import { apiClient, ApiError } from '../lib/apiClient'
+import type { Challenge, SocialProblemsApiResponse, SimulatedPersonsApiResponse, ChallengeAssignmentRequest, ChallengeAssignmentResponse, SimulatedPerson, StudentAssignmentsApiResponse } from '../types/challenge'
 
-class ChallengeApiError extends Error {
-    status: number
-    details?: any
-
+export class ChallengeApiError extends ApiError {
     constructor(message: string, status: number, details?: any) {
-        super(message)
+        super(message, status, details)
         this.name = 'ChallengeApiError'
-        this.status = status
-        this.details = details
     }
-}
-
-
-const handleResponse = async (response: Response): Promise<SocialProblemsApiResponse> => {
-    const data = await response.json()
-
-    if (!response.ok) {
-        const errorMessage = data.message || data.translation || 'Error al obtener los problemas sociales'
-        throw new ChallengeApiError(errorMessage, response.status, data)
-    }
-
-    if (data.success === true) {
-        return data
-    }
-
-    throw new ChallengeApiError('Error en la respuesta del servidor', response.status, data)
 }
 
 export interface GetSocialProblemsParams {
@@ -50,16 +29,11 @@ export const challengesApi = {
             const queryString = queryParams.toString()
             const endpoint = `/api/v1/social-problems${queryString ? `?${queryString}` : ''}`
 
-            const response = await fetch(getApiUrl(endpoint), {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                }
-            })
-
-            return handleResponse(response)
+            return await apiClient.get<SocialProblemsApiResponse['data']>(endpoint) as SocialProblemsApiResponse
         } catch (error) {
+            if (error instanceof ApiError) {
+                throw new ChallengeApiError(error.message, error.status, error.details)
+            }
             throw new ChallengeApiError('Error al obtener los problemas sociales', 500, error)
         }
     },
@@ -84,30 +58,56 @@ export const challengesApi = {
 
             const endpoint = `/api/v1/simulated-persons?${queryParams.toString()}`
 
-            const response = await fetch(getApiUrl(endpoint), {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                }
-            })
-
-            const data = await response.json()
-
-            if (!response.ok) {
-                const errorMessage = data.message || data.translation || 'Error al obtener las personas simuladas'
-                throw new ChallengeApiError(errorMessage, response.status, data)
-            }
-
-            if (data.success === true) {
-                return data
-            }
-
-            throw new ChallengeApiError('Error en la respuesta del servidor', response.status, data)
+            return await apiClient.get<SimulatedPersonsApiResponse['data']>(endpoint) as SimulatedPersonsApiResponse
         } catch (error) {
+            if (error instanceof ApiError) {
+                throw new ChallengeApiError(error.message, error.status, error.details)
+            }
             throw new ChallengeApiError('Error al obtener las personas simuladas', 500, error)
+        }
+    },
+
+    async createAssignment(request: ChallengeAssignmentRequest, token: string): Promise<ChallengeAssignmentResponse> {
+        try {
+            const endpoint = `/api/v1/challenges/assignments`
+
+            return await apiClient.post<ChallengeAssignmentResponse['data']>(
+                endpoint,
+                request,
+                { requireAuth: true, token }
+            ) as ChallengeAssignmentResponse
+        } catch (error) {
+            if (error instanceof ApiError) {
+                throw new ChallengeApiError(error.message, error.status, error.details)
+            }
+            throw new ChallengeApiError('Error al crear la asignación del reto', 500, error)
+        }
+    },
+
+    async getSimulatedPersonById(personId: string): Promise<SimulatedPerson> {
+        try {
+            const endpoint = `/api/v1/simulated-persons/${personId}`
+
+            const response = await apiClient.get<SimulatedPerson>(endpoint)
+            return response.data
+        } catch (error) {
+            if (error instanceof ApiError) {
+                throw new ChallengeApiError(error.message, error.status, error.details)
+            }
+            throw new ChallengeApiError('Error al obtener la persona simulada', 500, error)
+        }
+    },
+
+    async getStudentAssignments(studentId: string): Promise<StudentAssignmentsApiResponse> {
+        try {
+            const endpoint = `/api/v1/challenges/assignments/student/${studentId}`
+
+            return await apiClient.get<StudentAssignmentsApiResponse['data']>(endpoint) as StudentAssignmentsApiResponse
+        } catch (error) {
+            if (error instanceof ApiError) {
+                throw new ChallengeApiError(error.message, error.status, error.details)
+            }
+            throw new ChallengeApiError('Error al obtener las asignaciones del estudiante', 500, error)
         }
     }
 }
-
-export { ChallengeApiError }

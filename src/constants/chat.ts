@@ -28,7 +28,7 @@ export const CHAT_CONFIG = {
 } as const
 
 export const CHAT_MESSAGES = {
-    GREETING: "Hola, gracias por tu interés en nuestro reto",
+    GREETING: "Hola, gracias por tu interés",
     NOT_FOUND: "El reto que buscas no existe o ha sido eliminado",
     LOADING_ERROR: "Error al cargar",
     BACK_TO_DASHBOARD: "Volver al Dashboard",
