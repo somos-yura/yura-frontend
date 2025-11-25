@@ -8,12 +8,14 @@ interface AuthContextType {
   user: User | null
   token: string | null
   isAuthenticated: boolean
+  onboardingCompleted: boolean
   loading: boolean
   error: string | null
   success: string | null
   login: (credentials: any) => Promise<any>
   register: (userData: any) => Promise<any>
   logout: () => void
+  markOnboardingComplete: () => void
   clearError: () => void
 }
 
