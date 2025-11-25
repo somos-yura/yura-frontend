@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { authApi, ApiError } from '../services/authApi'
+import { studentsApi } from '../services/studentsApi'
 import { validateEmail, validatePassword, validatePasswordRegister, validatePasswordMatch } from '../utils/validation'
 import type { LoginForm, RegisterForm, AuthState, User } from '../types/auth'
 
@@ -9,23 +10,44 @@ export const useAuth = () => {
     const [authState, setAuthState] = useState<AuthState>({
         user: null,
         token: null,
-        isAuthenticated: false
+        isAuthenticated: false,
+        onboardingCompleted: false
     })
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [success, setSuccess] = useState<string | null>(null)
 
-    useEffect(() => {
-        const savedAuth = localStorage.getItem(AUTH_STORAGE_KEY)
-        if (savedAuth) {
-            try {
-                const { user, token } = JSON.parse(savedAuth)
-                setAuthState({ user, token, isAuthenticated: true })
-            } catch {
-                localStorage.removeItem(AUTH_STORAGE_KEY)
+    const checkOnboardingStatus = async (token: string) => {
+        try {
+            const summary = await studentsApi.getProfileSummary(token)
+            return summary.onboarding_completed
+        } catch (error: any) {
+            // If 404, profile doesn't exist, so onboarding is not completed
+            if (error.status === 404) {
+                return false
             }
+            // For other errors, we might want to log them but default to false to be safe
+            console.error('Error checking onboarding status:', error)
+            return false
         }
-        setLoading(false)
+    }
+
+    useEffect(() => {
+        const initAuth = async () => {
+            const savedAuth = localStorage.getItem(AUTH_STORAGE_KEY)
+            if (savedAuth) {
+                try {
+                    const { user, token } = JSON.parse(savedAuth)
+                    // Verify token validity by checking onboarding status (doubles as auth check)
+                    const onboardingCompleted = await checkOnboardingStatus(token)
+                    setAuthState({ user, token, isAuthenticated: true, onboardingCompleted })
+                } catch {
+                    localStorage.removeItem(AUTH_STORAGE_KEY)
+                }
+            }
+            setLoading(false)
+        }
+        initAuth()
     }, [])
 
     const validateForm = (form: LoginForm | RegisterForm): string | null => {
@@ -47,14 +69,14 @@ export const useAuth = () => {
         return null
     }
 
-    const saveAuth = (user: User, token: string) => {
+    const saveAuth = (user: User, token: string, onboardingCompleted: boolean) => {
         localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({ user, token }))
-        setAuthState({ user, token, isAuthenticated: true })
+        setAuthState({ user, token, isAuthenticated: true, onboardingCompleted })
     }
 
     const clearAuth = () => {
         localStorage.removeItem(AUTH_STORAGE_KEY)
-        setAuthState({ user: null, token: null, isAuthenticated: false })
+        setAuthState({ user: null, token: null, isAuthenticated: false, onboardingCompleted: false })
     }
 
     const handleAuth = async (form: LoginForm | RegisterForm, isLogin: boolean) => {
@@ -74,7 +96,14 @@ export const useAuth = () => {
                 ? await authApi.login(form as LoginForm)
                 : await authApi.register(form as RegisterForm)
 
-            saveAuth(response.data.user, response.data.access_token)
+            const token = response.data.access_token
+            let onboardingCompleted = false
+
+            if (isLogin) {
+                onboardingCompleted = await checkOnboardingStatus(token)
+            }
+
+            saveAuth(response.data.user, token, onboardingCompleted)
             setSuccess(isLogin ? "¡Inicio de sesión exitoso!" : "¡Cuenta creada exitosamente!")
             return response
         } catch (err) {
@@ -97,6 +126,12 @@ export const useAuth = () => {
         setSuccess(null)
     }
 
+    const markOnboardingComplete = () => {
+        if (authState.user && authState.token) {
+            saveAuth(authState.user, authState.token, true)
+        }
+    }
+
     return {
         ...authState,
         loading,
@@ -105,6 +140,7 @@ export const useAuth = () => {
         login,
         register,
         logout,
+        markOnboardingComplete,
         clearError: () => setError(null)
     }
 }

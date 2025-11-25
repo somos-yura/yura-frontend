@@ -7,6 +7,7 @@ import Register from "./pages/Register"
 import Dashboard from "./pages/Dashboard"
 import ChallengeDetail from "./pages/ChallengeDetail"
 import ChallengeChat from "./pages/ChallengeChat"
+import Onboarding from "./pages/Onboarding"
 
 export function AppRouter() {
     return (
@@ -28,6 +29,14 @@ export function AppRouter() {
                             <PublicRoute>
                                 <Register />
                             </PublicRoute>
+                        }
+                    />
+                    <Route
+                        path="/onboarding"
+                        element={
+                            <ProtectedRoute>
+                                <Onboarding />
+                            </ProtectedRoute>
                         }
                     />
                     <Route
