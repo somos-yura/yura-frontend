@@ -341,31 +341,37 @@ const Onboarding: React.FC = () => {
 								<h2 className="text-2xl font-bold text-[#2E2E2E] font-montserrat">
 									Experiencia & Objetivos
 								</h2>
-								<p className="text-gray-600 mt-2">Dilemos sobre tu viaje hasta ahora</p>
+								<p className="text-gray-600 mt-2">Cuéntanos sobre tu viaje hasta ahora</p>
 							</div>
 
 							<div className="grid grid-cols-2 gap-4">
 								<div>
-									<label className="block text-sm font-semibold text-[#2E2E2E] mb-3">
-										Experiencia de proyecto *
+									<label className="block text-sm font-semibold text-[#2E2E2E] mb-1">
+										Experiencia con proyectos *
 									</label>
+									<p className="text-xs text-gray-500 mb-3">
+										Indica el tipo de proyectos en los que has trabajado.
+									</p>
 									<select
 										value={formData.project_experience}
 										onChange={(e) => setFormData(prev => ({ ...prev, project_experience: e.target.value as ProjectExperience }))}
 										className="w-full p-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E90FF]"
 									>
 										<option value="">Selecciona...</option>
-										<option value="none">No proyectos</option>
-										<option value="academic_only">Proyectos académicos</option>
-										<option value="personal_projects">Proyectos personales</option>
-										<option value="professional">Experiencia profesional</option>
+										<option value="none">Ninguno</option>
+										<option value="academic_only">Académicos</option>
+										<option value="personal_projects">Personales</option>
+										<option value="professional">Profesionales</option>
 									</select>
 								</div>
 
 								<div>
-									<label className="block text-sm font-semibold text-[#2E2E2E] mb-3">
-										Experiencia de equipo *
+									<label className="block text-sm font-semibold text-[#2E2E2E] mb-1">
+										Experiencia con equipos *
 									</label>
+									<p className="text-xs text-gray-500 mb-3">
+										Indica el tipo de equipos con los que has trabajado.
+									</p>
 									<select
 										value={formData.team_experience}
 										onChange={(e) => setFormData(prev => ({ ...prev, team_experience: e.target.value as TeamExperience }))}
@@ -496,18 +502,18 @@ const Onboarding: React.FC = () => {
 
 							<div>
 								<label className="block text-sm font-semibold text-[#2E2E2E] mb-3">
-									Focus Areas (Select up to 5) *
+									Áreas de enfoque (Selecciona hasta 5) *
 								</label>
 								<div className="grid grid-cols-2 gap-2">
 									{[
-										{ value: 'technical_problem_solving', label: 'Problem Solving' },
-										{ value: 'system_design', label: 'System Design' },
-										{ value: 'code_quality', label: 'Code Quality' },
-										{ value: 'communication', label: 'Communication' },
-										{ value: 'debugging', label: 'Debugging' },
-										{ value: 'team_collaboration', label: 'Team Collaboration' },
+										{ value: 'technical_problem_solving', label: 'Resolución de problemas técnicos' },
+										{ value: 'system_design', label: 'Diseño de sistemas' },
+										{ value: 'code_quality', label: 'Calidad del código' },
+										{ value: 'communication', label: 'Comunicación' },
+										{ value: 'debugging', label: 'Depuración' },
+										{ value: 'team_collaboration', label: 'Colaboración en equipo' },
 										{ value: 'testing', label: 'Testing' },
-										{ value: 'performance_optimization', label: 'Performance' }
+										{ value: 'performance_optimization', label: 'Optimización de rendimiento' }
 									].map(option => (
 										<button
 											key={option.value}
@@ -526,28 +532,28 @@ const Onboarding: React.FC = () => {
 
 							<div>
 								<label className="block text-sm font-semibold text-[#2E2E2E] mb-3">
-									Learning Time Horizon *
+									Horizonte de aprendizaje *
 								</label>
 								<select
 									value={formData.time_horizon}
 									onChange={(e) => setFormData(prev => ({ ...prev, time_horizon: e.target.value as TimeHorizon }))}
 									className="w-full p-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E90FF]"
 								>
-									<option value="">Select...</option>
-									<option value="short_term">Short-term (3 months)</option>
-									<option value="medium_term">Medium-term (6 months)</option>
-									<option value="long_term">Long-term (1+ year)</option>
+									<option value="">Selecciona...</option>
+									<option value="short_term">Corto plazo (3 meses)</option>
+									<option value="medium_term">Medio plazo (6 meses)</option>
+									<option value="long_term">Largo plazo (1+ año)</option>
 								</select>
 							</div>
 
 							<div>
 								<label className="block text-sm font-semibold text-[#2E2E2E] mb-3">
-									Additional Notes (Optional)
+									Notas adicionales (Opcional)
 								</label>
 								<textarea
 									value={formData.experience_notes}
 									onChange={(e) => setFormData(prev => ({ ...prev, experience_notes: e.target.value.slice(0, 500) }))}
-									placeholder="Any additional context about your experience or goals..."
+									placeholder="Cualquier contexto adicional sobre tu experiencia o metas..."
 									rows={3}
 									maxLength={500}
 									className="w-full p-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E90FF] resize-none"
