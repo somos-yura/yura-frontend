@@ -22,6 +22,10 @@ export const useAuth = () => {
             const summary = await studentsApi.getProfileSummary(token)
             return summary.onboarding_completed
         } catch (error: any) {
+            // If 401, token is invalid/expired, throw error to trigger logout in initAuth
+            if (error.status === 401) {
+                throw error
+            }
             // If 404, profile doesn't exist, so onboarding is not completed
             if (error.status === 404) {
                 return false

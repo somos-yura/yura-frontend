@@ -30,8 +30,9 @@ export const YearsOfExperience = {
 export type YearsOfExperience = typeof YearsOfExperience[keyof typeof YearsOfExperience];
 
 export const LearningStyle = {
-    STRUCTURED: "structured",
-    OPEN_ENDED: "open_ended"
+    VISUAL: "visual",
+    READING_WRITING: "reading_writing",
+    PRACTICAL: "practical"
 } as const;
 export type LearningStyle = typeof LearningStyle[keyof typeof LearningStyle];
 
