@@ -1,8 +1,8 @@
-import type React from "react"
-import { createContext, useContext } from "react"
-import type { ReactNode } from "react"
-import { useAuth } from "../hooks/useAuth"
-import type { User } from "../types/auth"
+import type React from 'react'
+import { createContext, useContext } from 'react'
+import type { ReactNode } from 'react'
+import { useAuth } from '../hooks/useAuth'
+import type { User } from '../types/auth'
 
 interface AuthContextType {
   user: User | null
@@ -12,8 +12,8 @@ interface AuthContextType {
   loading: boolean
   error: string | null
   success: string | null
-  login: (credentials: any) => Promise<any>
-  register: (userData: any) => Promise<any>
+  login: (credentials: unknown) => Promise<unknown>
+  register: (userData: unknown) => Promise<unknown>
   logout: () => void
   markOnboardingComplete: () => void
   clearError: () => void
@@ -28,11 +28,7 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const auth = useAuth()
 
-  return (
-    <AuthContext.Provider value={auth}>
-      {children}
-    </AuthContext.Provider>
-  )
+  return <AuthContext.Provider value={auth}>{children}</AuthContext.Provider>
 }
 
 export const useAuthContext = (): AuthContextType => {

@@ -1,11 +1,10 @@
-import { Home } from "lucide-react"
+import { Home } from 'lucide-react'
 
 export const navigationItems = [
-    {
-        title: "Home",
-        url: "/",
-        icon: Home,
-        isActive: true,
-    },
+  {
+    title: 'Home',
+    url: '/',
+    icon: Home,
+    isActive: true,
+  },
 ]
-
