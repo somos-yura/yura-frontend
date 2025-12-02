@@ -53,7 +53,7 @@ export const Layout: React.FC<LayoutProps> = ({
       {/* Main content */}
       <div className="flex flex-1 flex-col overflow-hidden">
         <Header onToggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} />
-        <main className="flex-1 overflow-auto p-6">{children}</main>
+        <main className="flex-1 overflow-auto p-6 bg-gray-50">{children}</main>
         {!hideFooter && <Footer />}
       </div>
     </div>
