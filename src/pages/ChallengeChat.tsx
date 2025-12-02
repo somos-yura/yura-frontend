@@ -1,23 +1,39 @@
 import type React from "react"
 import { useRef, useEffect, useState } from "react"
-import { useParams, useNavigate, useSearchParams } from "react-router-dom"
+import { useParams, useNavigate } from "react-router-dom"
 import { Send, User, ArrowLeft } from "lucide-react"
 import { Layout } from "../components/layout/Layout"
 import { useChat } from "../hooks/useChat"
 import { challengesApi, ChallengeApiError } from "../services/challengesApi"
-import type { Challenge, SimulatedPerson } from "../types/challenge"
+import { useAuthContext } from "../contexts/AuthContext"
+import type { Challenge, SimulatedPerson, ChallengeAssignment } from "../types/challenge"
 import { SUGGESTED_PROMPTS, CHAT_MESSAGES } from "../constants/chat"
 import { handleKeyPress, formatTime, scrollToBottom } from "../utils/chatHelpers"
 
 const ChallengeChat: React.FC = () => {
     const { id } = useParams<{ id: string }>()
     const navigate = useNavigate()
-    const [searchParams] = useSearchParams()
+    const { user, token } = useAuthContext()
     const [challenge, setChallenge] = useState<Challenge | null>(null)
     const [simulatedPerson, setSimulatedPerson] = useState<SimulatedPerson | null>(null)
+    const [challengeAssignment, setChallengeAssignment] = useState<ChallengeAssignment | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
+    const [chatError, setChatError] = useState<string | null>(null)
     const messagesEndRef = useRef<HTMLDivElement>(null)
+
+    // Generate or retrieve session ID
+    const getSessionId = (): string => {
+        const storageKey = `chat_session_${id}`
+        let sessionId = localStorage.getItem(storageKey)
+        if (!sessionId) {
+            sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+            localStorage.setItem(storageKey, sessionId)
+        }
+        return sessionId
+    }
+
+    const sessionId = getSessionId()
 
     const getAvatarInitials = (person: SimulatedPerson | null): string => {
         if (!person) return "?"
@@ -36,32 +52,69 @@ const ChallengeChat: React.FC = () => {
         inputValue,
         setInputValue,
         isTyping,
+        hasMoreMessages,
         handleSendMessage,
         handleSuggestedPrompt,
-    } = useChat()
+        loadMoreMessages,
+    } = useChat({
+        challengeAssignmentId: challengeAssignment?.id || null,
+        sessionId,
+        token: token || null,
+        onError: (errorMessage) => {
+            setChatError(errorMessage)
+            setTimeout(() => setChatError(null), 5000)
+        },
+    })
 
     useEffect(() => {
         const fetchData = async () => {
-            if (!id) return
-            
+            if (!id || !user?.id) return
+
             setLoading(true)
             setError(null)
-            
+            setChatError(null)
+
             try {
+                // Fetch challenge
                 const problem = await challengesApi.getSocialProblemById(id)
+                if (!problem) {
+                    setError('Problema social no encontrado')
+                    setLoading(false)
+                    return
+                }
                 setChallenge(problem)
 
-                const personId = searchParams.get('person_id')
-                if (personId) {
+                // Fetch user's assignments to find the challenge assignment
+                try {
+                    const assignmentsResponse = await challengesApi.getStudentAssignments(user.id)
+                    const assignment = assignmentsResponse.data.assignments.find(
+                        (a: ChallengeAssignment) => String(a.social_problem_id) === String(id)
+                    )
+
+                    if (!assignment) {
+                        setError('No tienes una asignación para este reto. Por favor, crea una asignación primero.')
+                        setLoading(false)
+                        return
+                    }
+
+                    setChallengeAssignment(assignment)
+
+                    // Fetch simulated person
                     try {
-                        const person = await challengesApi.getSimulatedPersonById(personId)
+                        const person = await challengesApi.getSimulatedPersonById(assignment.simulated_person_id)
                         setSimulatedPerson(person)
                     } catch (err) {
                         if (err instanceof ChallengeApiError) {
                             setError(err.message)
                         } else {
-                            setError('Error al cargar los datos de la persona')
+                            setError('Error al cargar los datos de la persona simulada')
                         }
+                    }
+                } catch (err) {
+                    if (err instanceof ChallengeApiError) {
+                        setError(err.message)
+                    } else {
+                        setError('Error al cargar las asignaciones')
                     }
                 }
             } catch (err) {
@@ -71,7 +124,7 @@ const ChallengeChat: React.FC = () => {
             }
         }
         fetchData()
-    }, [id, searchParams])
+    }, [id, user?.id])
 
     useEffect(() => {
         scrollToBottom(messagesEndRef)
@@ -162,6 +215,11 @@ const ChallengeChat: React.FC = () => {
                     </div>
                     <div className="flex-1 overflow-y-auto relative z-10 bg-gray-50">
                         <div className="w-full max-w-4xl mx-auto px-4 py-6">
+                            {chatError && (
+                                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                                    <p className="text-sm text-red-600">{chatError}</p>
+                                </div>
+                            )}
                             {messages.length === 0 && (
                                 <div className="mb-6">
                                     <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
@@ -210,11 +268,21 @@ const ChallengeChat: React.FC = () => {
                             )}
                             {messages.length > 0 && (
                                 <div className="space-y-4">
+                                    {hasMoreMessages && (
+                                        <div className="flex justify-center py-2">
+                                            <button
+                                                onClick={loadMoreMessages}
+                                                className="px-4 py-2 text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                                            >
+                                                Cargar más
+                                            </button>
+                                        </div>
+                                    )}
                                     {messages.map((message, index) => {
                                         const isUser = message.role === "user"
                                         const showAvatar = !isUser && (index === 0 || messages[index - 1].role === "user")
                                         const isConsecutive = index > 0 && messages[index - 1].role === message.role
-                                        
+
                                         return (
                                             <div
                                                 key={message.id}
@@ -237,11 +305,10 @@ const ChallengeChat: React.FC = () => {
                                                     className={`flex-1 max-w-[70%] ${isUser ? "items-end" : "items-start"} flex flex-col`}
                                                 >
                                                     <div
-                                                        className={`rounded-2xl px-4 py-2.5 shadow-sm ${
-                                                            isUser
-                                                                ? "bg-blue-500 text-white rounded-tr-sm"
-                                                                : "bg-white border border-gray-200 text-gray-900 rounded-tl-sm"
-                                                        }`}
+                                                        className={`rounded-2xl px-4 py-2.5 shadow-sm ${isUser
+                                                            ? "bg-blue-500 text-white rounded-tr-sm"
+                                                            : "bg-white border border-gray-200 text-gray-900 rounded-tl-sm"
+                                                            }`}
                                                     >
                                                         <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
                                                             {message.content}
@@ -275,7 +342,7 @@ const ChallengeChat: React.FC = () => {
                             )}
                         </div>
                     </div>
-                    <div className="border-t border-gray-200 bg-white sticky bottom-0 shadow-lg relative z-10">
+                    <div className="border-t border-gray-200 bg-white sticky bottom-0 shadow-lg z-10">
                         <div className="w-full max-w-4xl mx-auto px-4 py-3">
                             <div className="bg-gray-100 rounded-3xl border border-gray-200 shadow-sm">
                                 <div className="flex items-end gap-2 p-2">
@@ -284,15 +351,16 @@ const ChallengeChat: React.FC = () => {
                                             value={inputValue}
                                             onChange={(e) => setInputValue(e.target.value)}
                                             onKeyPress={(e) => handleKeyPress(e, handleSendMessage)}
-                                            placeholder={CHAT_MESSAGES.WRITE_MESSAGE}
+                                            placeholder={challengeAssignment ? CHAT_MESSAGES.WRITE_MESSAGE : "Cargando asignación..."}
                                             rows={1}
-                                            className="w-full px-4 py-2.5 bg-transparent border-0 resize-none focus:outline-none text-sm leading-relaxed max-h-32 placeholder:text-gray-400 text-gray-900"
+                                            disabled={!challengeAssignment || isTyping}
+                                            className="w-full px-4 py-2.5 bg-transparent border-0 resize-none focus:outline-none text-sm leading-relaxed max-h-32 placeholder:text-gray-400 text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
                                             style={{ minHeight: "44px" }}
                                         />
                                     </div>
                                     <button
                                         onClick={handleSendMessage}
-                                        disabled={!inputValue.trim()}
+                                        disabled={!inputValue.trim() || isTyping || !challengeAssignment}
                                         className="p-2.5 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-blue-500 flex-shrink-0 shadow-sm"
                                     >
                                         <Send className="w-5 h-5" />
