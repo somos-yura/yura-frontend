@@ -41,7 +41,7 @@ const handleApiResponse = async <T>(response: Response): Promise<ApiResponse<T>>
     const data = await response.json()
 
     if (!response.ok) {
-        const errorMessage = data.translation || data.message || 'Error en la petición'
+        const errorMessage = data.translation || data.message || data.detail || 'Error en la petición'
         throw new ApiError(errorMessage, response.status, data)
     }
 

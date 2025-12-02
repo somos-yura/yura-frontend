@@ -3,9 +3,10 @@ import type React from "react"
 interface MessageAlertProps {
     type: 'error' | 'success'
     message: string
+    className?: string
 }
 
-export const MessageAlert: React.FC<MessageAlertProps> = ({ type, message }) => {
+export const MessageAlert: React.FC<MessageAlertProps> = ({ type, message, className = '' }) => {
     const isError = type === 'error'
 
     const icon = isError ? (
@@ -24,7 +25,7 @@ export const MessageAlert: React.FC<MessageAlertProps> = ({ type, message }) => 
 
     if (isError) {
         return (
-            <div className="mb-4 p-3 bg-[#FF8C00] bg-opacity-10 border border-[#FF8C00] rounded-lg text-[#FF8C00] text-sm flex items-center gap-2">
+            <div className={`mb-4 p-3 bg-[#FF8C00] bg-opacity-10 border border-[#FF8C00] rounded-lg text-[#FF8C00] text-sm flex items-center gap-2 ${className}`}>
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                     {icon}
                 </svg>
@@ -34,7 +35,7 @@ export const MessageAlert: React.FC<MessageAlertProps> = ({ type, message }) => 
     }
 
     return (
-        <div className="mb-4 p-3 bg-[#7CFC00] bg-opacity-10 border border-[#7CFC00] rounded-lg text-green-700 text-sm flex items-center gap-2">
+        <div className={`mb-4 p-3 bg-[#7CFC00] bg-opacity-10 border border-[#7CFC00] rounded-lg text-green-700 text-sm flex items-center gap-2 ${className}`}>
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 {icon}
             </svg>
