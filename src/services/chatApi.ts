@@ -13,6 +13,13 @@ export interface ChatRequest {
   session_id: string
 }
 
+export interface Diagram {
+  id: string
+  code: string
+  description: string
+  created_at: string
+}
+
 export interface ChatResponse {
   ai_response: string
   conversation_id: string
@@ -25,6 +32,7 @@ export interface ChatResponse {
     total_tokens: number
     estimated_cost_usd: number
   }
+  diagrams?: Diagram[]
 }
 
 export interface ChatApiResponse {
@@ -50,6 +58,14 @@ export interface MessageHistoryApiResponse {
   success: boolean
   message?: string
   data: MessageHistoryResponse
+}
+
+export interface DiagramsApiResponse {
+  success: boolean
+  message?: string
+  data: {
+    diagrams: Diagram[]
+  }
 }
 
 export const chatApi = {
@@ -102,6 +118,24 @@ export const chatApi = {
         throw new ChatApiError(error.message, error.status, error.details)
       }
       throw new ChatApiError('Error al obtener los mensajes', 500, error)
+    }
+  },
+
+  async getDiagrams(
+    challengeAssignmentId: string,
+    token: string
+  ): Promise<DiagramsApiResponse> {
+    try {
+      const endpoint = `/api/v1/ai/chat/diagrams/${challengeAssignmentId}`
+      return (await apiClient.get<{ diagrams: Diagram[] }>(endpoint, {
+        requireAuth: true,
+        token,
+      })) as DiagramsApiResponse
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw new ChatApiError(error.message, error.status, error.details)
+      }
+      throw new ChatApiError('Error al obtener los diagramas', 500, error)
     }
   },
 }

@@ -1,10 +1,21 @@
 import type React from 'react'
 import { useRef, useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Send, User, ArrowLeft } from 'lucide-react'
+import {
+  Send,
+  User,
+  ArrowLeft,
+  FileText,
+  X,
+  Users,
+  FolderOpen,
+  Image as ImageIcon,
+  Link as LinkIcon,
+} from 'lucide-react'
 import { Layout } from '../components/layout/Layout'
 import { useChat } from '../hooks/useChat'
 import { challengesApi, ChallengeApiError } from '../services/challengesApi'
+import { chatApi, type Diagram } from '../services/chatApi'
 import { useAuthContext } from '../contexts/AuthContext'
 import type {
   Challenge,
@@ -17,6 +28,11 @@ import {
   formatTime,
   scrollToBottom,
 } from '../utils/chatHelpers'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+import { Mermaid } from '../components/ui/Mermaid'
+
+type TabType = 'chat' | 'files' | 'participants'
 
 const ChallengeChat: React.FC = () => {
   const { id } = useParams<{ id: string }>()
@@ -30,14 +46,17 @@ const ChallengeChat: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [chatError, setChatError] = useState<string | null>(null)
+  const [diagrams, setDiagrams] = useState<Diagram[]>([])
+  const [activeTab, setActiveTab] = useState<TabType>('chat')
+  const [showRightSidebar, setShowRightSidebar] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   // Generate or retrieve session ID
   const getSessionId = (): string => {
-    const storageKey = `chat_session_${id}`
+    const storageKey = `chat_session_${id} `
     let sessionId = localStorage.getItem(storageKey)
     if (!sessionId) {
-      sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)} `
       localStorage.setItem(storageKey, sessionId)
     }
     return sessionId
@@ -54,7 +73,14 @@ const ChallengeChat: React.FC = () => {
 
   const getFullName = (person: SimulatedPerson | null): string => {
     if (!person) return 'Persona'
-    return `${person.first_name} ${person.last_name}`.trim() || 'Persona'
+    return `${person.first_name} ${person.last_name} `.trim() || 'Persona'
+  }
+
+  const cleanDiagramDescriptions = (content: string): string => {
+    return content.replace(
+      /(```mermaid\n[\s\S]*?\n```)\s*\n\s*\[([^\]]+)\]/g,
+      '$1'
+    )
   }
 
   const {
@@ -74,7 +100,31 @@ const ChallengeChat: React.FC = () => {
       setChatError(errorMessage)
       setTimeout(() => setChatError(null), 5000)
     },
+    onMessageSent: (data) => {
+      const newDiagrams = data.diagrams
+      if (newDiagrams && newDiagrams.length > 0) {
+        setDiagrams((prev) => [...newDiagrams, ...prev])
+      }
+    },
   })
+
+  useEffect(() => {
+    const fetchDiagrams = async () => {
+      if (!challengeAssignment || !token) return
+      try {
+        const response = await chatApi.getDiagrams(
+          challengeAssignment.id,
+          token
+        )
+        if (response.data && response.data.diagrams) {
+          setDiagrams(response.data.diagrams)
+        }
+      } catch (err) {
+        console.error('Error fetching diagrams:', err)
+      }
+    }
+    fetchDiagrams()
+  }, [challengeAssignment, token])
 
   useEffect(() => {
     const fetchData = async () => {
@@ -212,45 +262,106 @@ const ChallengeChat: React.FC = () => {
   }
 
   return (
-    <Layout hideFooter={true}>
-      <div className="w-full h-full bg-gray-50">
-        <div className="flex flex-col h-full bg-white relative overflow-hidden">
-          <div className="relative z-10 border-b border-gray-200 bg-white shadow-sm">
-            <div className="w-full px-4 py-3 flex items-center gap-3">
-              <button
-                onClick={() => navigate(`/challenge/${challenge.id}`)}
-                className="inline-flex items-center justify-center w-9 h-9 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-all"
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </button>
-              <div className="flex items-center gap-3 flex-1 min-w-0">
-                <div className="relative">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold text-sm shadow-sm">
+    <Layout noPadding={true} hideFooter={true}>
+      <div className="w-full h-full bg-gradient-to-br from-gray-50 to-blue-50/30 flex">
+        <div className="flex-1 flex flex-col min-w-0 bg-white">
+          <div className="border-b border-gray-200 bg-white shadow-sm">
+            <div className="px-6 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-4 flex-1 min-w-0">
+                <button
+                  onClick={() => navigate(`/challenge/${challenge.id}`)}
+                  className="inline-flex items-center justify-center w-8 h-8 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-all"
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                </button>
+                <div className="relative flex-shrink-0">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold text-base shadow-md">
                     {getAvatarInitials(simulatedPerson)}
                   </div>
-                  <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
+                  <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></div>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h1 className="text-base font-semibold text-gray-900 truncate">
+                  <h1 className="text-lg font-bold text-gray-900 truncate leading-tight">
                     {getFullName(simulatedPerson)}
                   </h1>
-                  <p className="text-xs text-gray-500 truncate">
+                  <p className="text-sm text-gray-500 truncate">
                     {challenge.title}
                   </p>
                 </div>
               </div>
             </div>
+
+            {/* Tabs */}
+            <div className="px-6 flex items-center gap-6 overflow-x-auto no-scrollbar">
+              <button
+                onClick={() => {
+                  setActiveTab('chat')
+                  setShowRightSidebar(false)
+                }}
+                className={`pb-3 text-sm font-medium transition-all relative whitespace-nowrap ${
+                  activeTab === 'chat'
+                    ? 'text-blue-600'
+                    : 'text-gray-500 hover:text-gray-800'
+                }`}
+              >
+                Chat
+                {activeTab === 'chat' && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-t-full"></div>
+                )}
+              </button>
+              <button
+                onClick={() => {
+                  setActiveTab('files')
+                  setShowRightSidebar(true)
+                }}
+                className={`pb-3 text-sm font-medium transition-all relative flex items-center gap-2 whitespace-nowrap ${
+                  activeTab === 'files'
+                    ? 'text-blue-600'
+                    : 'text-gray-500 hover:text-gray-800'
+                }`}
+              >
+                <FolderOpen className="w-4 h-4" />
+                Archivos Compartidos
+                {diagrams.length > 0 && (
+                  <span className="flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">
+                    {diagrams.length}
+                  </span>
+                )}
+                {activeTab === 'files' && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-t-full"></div>
+                )}
+              </button>
+              <button
+                onClick={() => {
+                  setActiveTab('participants')
+                  setShowRightSidebar(true)
+                }}
+                className={`pb-3 text-sm font-medium transition-all relative flex items-center gap-2 whitespace-nowrap ${
+                  activeTab === 'participants'
+                    ? 'text-blue-600'
+                    : 'text-gray-500 hover:text-gray-800'
+                }`}
+              >
+                <Users className="w-4 h-4" />
+                Participantes
+                {activeTab === 'participants' && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-t-full"></div>
+                )}
+              </button>
+            </div>
           </div>
-          <div className="flex-1 overflow-y-auto relative z-10 bg-gray-50">
-            <div className="w-full max-w-4xl mx-auto px-4 py-6">
+
+          {/* Chat Messages Area */}
+          <div className="flex-1 overflow-y-auto bg-gradient-to-br from-gray-50/50 to-white">
+            <div className="w-full max-w-4xl mx-auto px-6 py-6">
               {chatError && (
-                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl">
                   <p className="text-sm text-red-600">{chatError}</p>
                 </div>
               )}
               {messages.length === 0 && (
                 <div className="mb-6">
-                  <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
+                  <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
                     <h3 className="text-sm font-semibold text-gray-900 mb-2">
                       {CHAT_MESSAGES.DESCRIPTION}
                     </h3>
@@ -262,8 +373,8 @@ const ChallengeChat: React.FC = () => {
               )}
               {messages.length === 0 && (
                 <div className="flex flex-col items-center justify-center space-y-8 py-8">
-                  <div className="text-center space-y-2">
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold text-xl mx-auto shadow-lg mb-3">
+                  <div className="text-center space-y-3">
+                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold text-2xl mx-auto shadow-lg mb-4">
                       {getAvatarInitials(simulatedPerson)}
                     </div>
                     <h1 className="text-2xl font-semibold text-gray-900">
@@ -278,10 +389,10 @@ const ChallengeChat: React.FC = () => {
                       <button
                         key={index}
                         onClick={() => handleSuggestedPrompt(prompt.prompt)}
-                        className="group bg-white border border-gray-200 rounded-xl p-4 hover:border-blue-300 hover:shadow-md transition-all duration-200 text-left"
+                        className="group bg-white border border-gray-200 rounded-xl p-4 hover:border-blue-300 hover:shadow-lg transition-all duration-200 text-left"
                       >
                         <div className="space-y-2">
-                          <div className="p-2 bg-blue-50 rounded-lg w-fit group-hover:bg-blue-100 transition-colors">
+                          <div className="p-2.5 bg-blue-50 rounded-lg w-fit group-hover:bg-blue-100 transition-colors">
                             <prompt.icon className="w-5 h-5 text-blue-600" />
                           </div>
                           <div>
@@ -312,62 +423,149 @@ const ChallengeChat: React.FC = () => {
                   )}
                   {messages.map((message, index) => {
                     const isUser = message.role === 'user'
-                    const showAvatar =
-                      !isUser &&
-                      (index === 0 || messages[index - 1].role === 'user')
                     const isConsecutive =
                       index > 0 && messages[index - 1].role === message.role
 
                     return (
                       <div
                         key={message.id}
-                        className={`flex gap-2 ${isUser ? 'flex-row-reverse' : 'flex-row'} ${isConsecutive ? 'mt-1' : 'mt-4'}`}
+                        className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-2`}
                       >
-                        <div className="flex-shrink-0 w-8">
-                          {showAvatar && !isUser ? (
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold text-xs shadow-sm">
+                        <div
+                          className={`flex max-w-[85%] md:max-w-[75%] ${isUser ? 'flex-row-reverse' : 'flex-row'} items-end gap-2`}
+                        >
+                          {/* Avatar */}
+                          {!isUser && !isConsecutive ? (
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold text-xs shadow-sm flex-shrink-0 mb-1">
                               {getAvatarInitials(simulatedPerson)}
                             </div>
-                          ) : isUser ? (
-                            <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-                              <User className="w-4 h-4 text-gray-600" />
+                          ) : isUser && !isConsecutive ? (
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold text-xs shadow-sm flex-shrink-0 mb-1">
+                              <User className="w-4 h-4" />
                             </div>
                           ) : (
-                            <div className="w-8"></div>
+                            <div className="w-8 flex-shrink-0" />
                           )}
-                        </div>
-                        <div
-                          className={`flex-1 max-w-[70%] ${isUser ? 'items-end' : 'items-start'} flex flex-col`}
-                        >
+
                           <div
-                            className={`rounded-2xl px-4 py-2.5 shadow-sm ${
-                              isUser
-                                ? 'bg-blue-500 text-white rounded-tr-sm'
-                                : 'bg-white border border-gray-200 text-gray-900 rounded-tl-sm'
-                            }`}
+                            className={`flex flex-col ${isUser ? 'items-end' : 'items-start'}`}
                           >
-                            <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
-                              {message.content}
-                            </p>
-                          </div>
-                          {!isConsecutive && (
-                            <span
-                              className={`text-xs text-gray-400 mt-1 px-1 ${isUser ? 'text-right' : 'text-left'}`}
+                            {/* Message Bubble */}
+                            <div
+                              className={`relative px-4 py-2.5 shadow-sm w-fit ${
+                                isUser
+                                  ? 'bg-blue-600 text-white rounded-2xl rounded-tr-sm'
+                                  : 'bg-white border border-gray-100 text-gray-800 rounded-2xl rounded-tl-sm'
+                              }`}
+                            >
+                              <div className="text-sm leading-relaxed break-words markdown-content">
+                                <ReactMarkdown
+                                  remarkPlugins={[remarkGfm]}
+                                  components={{
+                                    code: ({
+                                      inline,
+                                      className,
+                                      children,
+                                      ...props
+                                    }: React.ComponentPropsWithoutRef<'code'> & {
+                                      inline?: boolean
+                                    }) => {
+                                      const match = /language-(\w+)/.exec(
+                                        className || ''
+                                      )
+                                      // Check if it's a mermaid diagram
+                                      if (
+                                        !inline &&
+                                        match &&
+                                        match[1] === 'mermaid'
+                                      ) {
+                                        return (
+                                          <div className="my-4 overflow-hidden rounded-lg bg-white p-2 shadow-sm border border-gray-100">
+                                            <Mermaid
+                                              chart={String(children).replace(
+                                                /\n$/,
+                                                ''
+                                              )}
+                                            />
+                                          </div>
+                                        )
+                                      }
+
+                                      return !inline && match ? (
+                                        <div className="rounded-lg bg-gray-900 p-3 my-2 overflow-x-auto">
+                                          <code
+                                            className={className}
+                                            {...props}
+                                          >
+                                            {children}
+                                          </code>
+                                        </div>
+                                      ) : (
+                                        <code
+                                          className={`${className} ${
+                                            isUser
+                                              ? 'bg-blue-700/30 text-white'
+                                              : 'bg-gray-100 text-gray-800'
+                                          } px-1.5 py-0.5 rounded text-xs font-mono`}
+                                          {...props}
+                                        >
+                                          {children}
+                                        </code>
+                                      )
+                                    },
+                                    p: ({ children }) => (
+                                      <p className="mb-1 last:mb-0">
+                                        {children}
+                                      </p>
+                                    ),
+                                    ul: ({ children }) => (
+                                      <ul className="list-disc ml-4 mb-2">
+                                        {children}
+                                      </ul>
+                                    ),
+                                    ol: ({ children }) => (
+                                      <ol className="list-decimal ml-4 mb-2">
+                                        {children}
+                                      </ol>
+                                    ),
+                                    li: ({ children }) => (
+                                      <li className="mb-1">{children}</li>
+                                    ),
+                                    a: ({ href, children }) => (
+                                      <a
+                                        href={href}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className={`underline ${isUser ? 'text-white' : 'text-blue-600'} hover:opacity-80`}
+                                      >
+                                        {children}
+                                      </a>
+                                    ),
+                                  }}
+                                >
+                                  {cleanDiagramDescriptions(message.content)}
+                                </ReactMarkdown>
+                              </div>
+                            </div>
+
+                            {/* Timestamp below bubble */}
+                            <div
+                              className={`text-[10px] text-gray-400 mt-1 ${isUser ? 'mr-1' : 'ml-1'}`}
                             >
                               {formatTime(message.timestamp)}
-                            </span>
-                          )}
+                            </div>
+                          </div>
                         </div>
                       </div>
                     )
                   })}
                   {isTyping && (
-                    <div className="flex gap-2">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold text-xs shadow-sm flex-shrink-0">
+                    <div className="flex gap-3">
+                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold text-xs shadow-md flex-shrink-0">
                         {getAvatarInitials(simulatedPerson)}
                       </div>
-                      <div className="bg-white border border-gray-200 rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm">
-                        <div className="flex gap-1">
+                      <div className="bg-white border border-gray-100 rounded-2xl rounded-tl-md px-5 py-3.5 shadow-sm">
+                        <div className="flex gap-1.5">
                           <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]" />
                           <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]" />
                           <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
@@ -380,10 +578,11 @@ const ChallengeChat: React.FC = () => {
               )}
             </div>
           </div>
-          <div className="border-t border-gray-200 bg-white sticky bottom-0 shadow-lg z-10">
-            <div className="w-full max-w-4xl mx-auto px-4 py-3">
-              <div className="bg-gray-100 rounded-3xl border border-gray-200 shadow-sm">
-                <div className="flex items-end gap-2 p-2">
+
+          <div className="border-t border-gray-200 bg-white sticky bottom-0 shadow-lg">
+            <div className="w-full max-w-4xl mx-auto px-6 py-2">
+              <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-3xl border border-gray-200 shadow-sm">
+                <div className="flex items-end gap-2.5 p-2.5">
                   <div className="flex-1 min-w-0">
                     <textarea
                       value={inputValue}
@@ -396,7 +595,7 @@ const ChallengeChat: React.FC = () => {
                       }
                       rows={1}
                       disabled={!challengeAssignment || isTyping}
-                      className="w-full px-4 py-2.5 bg-transparent border-0 resize-none focus:outline-none text-sm leading-relaxed max-h-32 placeholder:text-gray-400 text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full px-4 py-3 bg-transparent border-0 resize-none focus:outline-none text-sm leading-relaxed max-h-32 placeholder:text-gray-400 text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
                       style={{ minHeight: '44px' }}
                     />
                   </div>
@@ -405,7 +604,7 @@ const ChallengeChat: React.FC = () => {
                     disabled={
                       !inputValue.trim() || isTyping || !challengeAssignment
                     }
-                    className="p-2.5 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-blue-500 flex-shrink-0 shadow-sm"
+                    className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full hover:from-blue-600 hover:to-blue-700 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0 shadow-md hover:shadow-lg"
                   >
                     <Send className="w-5 h-5" />
                   </button>
@@ -414,6 +613,246 @@ const ChallengeChat: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* RIGHT SIDEBAR - Dynamic Content Based on Active Tab */}
+        {showRightSidebar && (
+          <div className="w-96 border-l border-gray-200/80 bg-white overflow-y-auto flex flex-col shadow-xl">
+            {/* Sidebar Header */}
+            <div className="px-6 py-4 flex items-center justify-between border-b border-gray-100">
+              <div className="flex items-center gap-2.5">
+                {activeTab === 'files' ? (
+                  <FolderOpen className="w-5 h-5 text-gray-500" />
+                ) : (
+                  <Users className="w-5 h-5 text-gray-500" />
+                )}
+                <span className="text-base font-medium text-gray-700">
+                  {activeTab === 'files'
+                    ? 'Archivos Compartidos'
+                    : 'Participantes'}
+                </span>
+              </div>
+              <button
+                onClick={() => setShowRightSidebar(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors p-1.5 hover:bg-gray-100 rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto p-5">
+              {activeTab === 'files' && (
+                <div className="space-y-4">
+                  {/* File Categories */}
+                  <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-4 border border-blue-100">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="p-2.5 bg-white rounded-lg shadow-sm">
+                        <FileText className="w-5 h-5 text-blue-600" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-sm text-gray-900">
+                          Diagramas
+                        </h4>
+                        <p className="text-xs text-gray-500">
+                          {diagrams.length} archivos
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Diagrams List */}
+                  {diagrams.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-12 text-center">
+                      <div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center mb-3">
+                        <FileText className="w-8 h-8 text-gray-300" />
+                      </div>
+                      <p className="text-sm text-gray-500">
+                        No hay diagramas aún
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {diagrams.map((diagram, index) => (
+                        <div
+                          key={diagram.id}
+                          className="group border border-gray-100 rounded-xl hover:border-blue-200 hover:shadow-md transition-all duration-200 overflow-hidden bg-white"
+                        >
+                          {/* Card Header */}
+                          <div className="px-4 py-2.5 flex items-center justify-between bg-gradient-to-r from-gray-50 to-gray-100/50 border-b border-gray-100">
+                            <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                              Diagrama {diagrams.length - index}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {new Date(diagram.created_at).toLocaleString(
+                                'es-ES',
+                                {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                }
+                              )}
+                            </span>
+                          </div>
+
+                          {/* Diagram Content */}
+                          <div className="p-3">
+                            <div className="rounded-lg border border-gray-200 overflow-hidden bg-gradient-to-br from-gray-50 to-white">
+                              <Mermaid chart={diagram.code} />
+                            </div>
+                          </div>
+
+                          {/* Description */}
+                          {diagram.description && (
+                            <div className="px-4 py-3 border-t border-gray-100 bg-gray-50/50">
+                              <p className="text-xs text-gray-700 leading-relaxed">
+                                {diagram.description}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Additional File Categories - Placeholder */}
+                  <div className="mt-6 space-y-3">
+                    <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-100">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2.5 bg-white rounded-lg shadow-sm">
+                          <ImageIcon className="w-5 h-5 text-purple-600" />
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-sm text-gray-900">
+                            Imágenes
+                          </h4>
+                          <p className="text-xs text-gray-500">0 archivos</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-xl p-4 border border-orange-100">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2.5 bg-white rounded-lg shadow-sm">
+                          <LinkIcon className="w-5 h-5 text-orange-600" />
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-sm text-gray-900">
+                            Enlaces
+                          </h4>
+                          <p className="text-xs text-gray-500">0 archivos</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'participants' && (
+                <div className="space-y-4">
+                  {/* Challenge Info */}
+                  <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-5 border border-blue-100">
+                    <h4 className="font-semibold text-sm text-gray-900 mb-3">
+                      Información del Reto
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      <div>
+                        <span className="text-gray-500">Título:</span>
+                        <p className="text-gray-900 font-medium">
+                          {challenge.title}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Categorías:</span>
+                        <div className="flex flex-wrap gap-1.5 mt-1">
+                          {challenge.category.map((cat, idx) => (
+                            <span
+                              key={idx}
+                              className="px-2 py-0.5 bg-white text-blue-700 text-xs rounded-full border border-blue-200"
+                            >
+                              {cat}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Stakeholder Info */}
+                  <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-sm">
+                    <h4 className="font-semibold text-sm text-gray-900 mb-4 flex items-center gap-2">
+                      <User className="w-4 h-4 text-gray-500" />
+                      Stakeholder Asignado
+                    </h4>
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold text-lg shadow-md">
+                        {getAvatarInitials(simulatedPerson)}
+                      </div>
+                      <div>
+                        <h5 className="font-semibold text-gray-900">
+                          {getFullName(simulatedPerson)}
+                        </h5>
+                        <p className="text-sm text-gray-500">
+                          {simulatedPerson?.age} años
+                        </p>
+                      </div>
+                    </div>
+                    {simulatedPerson?.bio && (
+                      <div className="mb-4">
+                        <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                          Biografía
+                        </span>
+                        <p className="text-sm text-gray-700 mt-1 leading-relaxed">
+                          {simulatedPerson.bio}
+                        </p>
+                      </div>
+                    )}
+                    {simulatedPerson?.expertise_areas &&
+                      simulatedPerson.expertise_areas.length > 0 && (
+                        <div className="mb-4">
+                          <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                            Áreas de Experiencia
+                          </span>
+                          <div className="flex flex-wrap gap-1.5 mt-2">
+                            {simulatedPerson.expertise_areas.map(
+                              (area, idx) => (
+                                <span
+                                  key={idx}
+                                  className="px-2.5 py-1 bg-blue-50 text-blue-700 text-xs rounded-lg border border-blue-100"
+                                >
+                                  {area}
+                                </span>
+                              )
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    {simulatedPerson?.personality_traits &&
+                      simulatedPerson.personality_traits.length > 0 && (
+                        <div>
+                          <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                            Rasgos de Personalidad
+                          </span>
+                          <div className="flex flex-wrap gap-1.5 mt-2">
+                            {simulatedPerson.personality_traits.map(
+                              (trait, idx) => (
+                                <span
+                                  key={idx}
+                                  className="px-2.5 py-1 bg-purple-50 text-purple-700 text-xs rounded-lg border border-purple-100"
+                                >
+                                  {trait}
+                                </span>
+                              )
+                            )}
+                          </div>
+                        </div>
+                      )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </Layout>
   )

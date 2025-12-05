@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
-import { chatApi, ChatApiError } from '../services/chatApi'
+import { chatApi, ChatApiError, type ChatResponse } from '../services/chatApi'
 import type { Message } from '../types/chat'
 
 interface UseChatOptions {
@@ -7,13 +7,15 @@ interface UseChatOptions {
   sessionId: string
   token: string | null
   onError?: (error: string) => void
+  onMessageSent?: (data: ChatResponse) => void
 }
 
 const INITIAL_MESSAGE_LIMIT = 5
 const MESSAGES_PER_LOAD = 5
 
 export const useChat = (options: UseChatOptions) => {
-  const { challengeAssignmentId, sessionId, token, onError } = options
+  const { challengeAssignmentId, sessionId, token, onError, onMessageSent } =
+    options
   const [allMessages, setAllMessages] = useState<Message[]>([])
   const [displayedMessageCount, setDisplayedMessageCount] = useState(
     INITIAL_MESSAGE_LIMIT
@@ -96,6 +98,10 @@ export const useChat = (options: UseChatOptions) => {
       setConversationId(response.data.conversation_id)
       // After sending a new message, show all messages (increment display count)
       setDisplayedMessageCount((prev) => prev + 2) // User message + AI response
+
+      if (onMessageSent && response.data) {
+        onMessageSent(response.data)
+      }
     } catch (error) {
       // Remove the user message on error
       setAllMessages((prev) => prev.filter((msg) => msg.id !== userMessage.id))
@@ -123,6 +129,7 @@ export const useChat = (options: UseChatOptions) => {
     createUserMessage,
     createAIMessage,
     onError,
+    onMessageSent,
   ])
 
   const handleSuggestedPrompt = useCallback((prompt: string) => {

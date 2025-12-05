@@ -7,11 +7,13 @@ import { Footer } from './Footer'
 interface LayoutProps {
   children: React.ReactNode
   hideFooter?: boolean
+  noPadding?: boolean
 }
 
 export const Layout: React.FC<LayoutProps> = ({
   children,
   hideFooter = false,
+  noPadding = false,
 }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
 
@@ -53,7 +55,11 @@ export const Layout: React.FC<LayoutProps> = ({
       {/* Main content */}
       <div className="flex flex-1 flex-col overflow-hidden">
         <Header onToggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} />
-        <main className="flex-1 overflow-auto p-6 bg-gray-50">{children}</main>
+        <main
+          className={`flex-1 overflow-auto ${noPadding ? '' : 'p-6'} bg-gray-50`}
+        >
+          {children}
+        </main>
         {!hideFooter && <Footer />}
       </div>
     </div>
