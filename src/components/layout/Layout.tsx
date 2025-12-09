@@ -1,17 +1,19 @@
-import type React from "react"
-import { useState, useEffect } from "react"
-import { Header } from "./Header"
-import { AppSidebar } from "./SideBar"
-import { Footer } from "./Footer"
+import type React from 'react'
+import { useState, useEffect } from 'react'
+import { Header } from './Header'
+import { AppSidebar } from './SideBar'
+import { Footer } from './Footer'
 
 interface LayoutProps {
   children: React.ReactNode
   hideFooter?: boolean
+  noPadding?: boolean
 }
 
 export const Layout: React.FC<LayoutProps> = ({
   children,
   hideFooter = false,
+  noPadding = false,
 }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
 
@@ -30,13 +32,15 @@ export const Layout: React.FC<LayoutProps> = ({
   }, [])
 
   const toggleSidebar = () => {
-    setIsSidebarOpen(prev => !prev)
+    setIsSidebarOpen((prev) => !prev)
   }
 
   return (
     <div className="flex h-screen bg-background">
       {/* Sidebar */}
-      <div className={`transition-all duration-300 ${isSidebarOpen ? 'w-64' : 'w-0'} overflow-hidden fixed md:relative z-50 h-full`}>
+      <div
+        className={`transition-all duration-300 ${isSidebarOpen ? 'w-64' : 'w-0'} overflow-hidden fixed md:relative z-50 h-full`}
+      >
         <AppSidebar />
       </div>
 
@@ -50,11 +54,10 @@ export const Layout: React.FC<LayoutProps> = ({
 
       {/* Main content */}
       <div className="flex flex-1 flex-col overflow-hidden">
-        <Header
-          onToggleSidebar={toggleSidebar}
-          isSidebarOpen={isSidebarOpen}
-        />
-        <main className="flex-1 overflow-auto p-6">
+        <Header onToggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} />
+        <main
+          className={`flex-1 overflow-auto ${noPadding ? '' : 'p-6'} bg-gray-50`}
+        >
           {children}
         </main>
         {!hideFooter && <Footer />}
