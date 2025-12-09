@@ -37,19 +37,26 @@ const getAuthHeaders = (token?: string): HeadersInit => {
   return headers
 }
 
-const handleApiResponse = async <T>(response: Response): Promise<ApiResponse<T>> => {
-    const data = await response.json()
+const handleApiResponse = async <T>(
+  response: Response
+): Promise<ApiResponse<T>> => {
+  const data = await response.json()
 
-    if (!response.ok) {
-        const errorMessage = data.translation || data.message || data.detail || 'Error en la petición'
-        throw new ApiError(errorMessage, response.status, data)
-    }
+  if (!response.ok) {
+    const errorMessage =
+      data.translation || data.message || data.detail || 'Error en la petición'
+    throw new ApiError(errorMessage, response.status, data)
+  }
 
-    if (data.success === true) {
-        return data
-    }
+  if (data.success === true) {
+    return data
+  }
 
-    throw new ApiError('Error en la respuesta del servidor', response.status, data)
+  throw new ApiError(
+    'Error en la respuesta del servidor',
+    response.status,
+    data
+  )
 }
 
 export const apiClient = {
