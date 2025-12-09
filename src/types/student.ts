@@ -32,11 +32,11 @@ export type YearsOfExperience =
   (typeof YearsOfExperience)[keyof typeof YearsOfExperience]
 
 export const LearningStyle = {
-  VISUAL: 'visual',
-  READING_WRITING: 'reading_writing',
-  PRACTICAL: 'practical',
-} as const
-export type LearningStyle = (typeof LearningStyle)[keyof typeof LearningStyle]
+    VISUAL: "visual",
+    READING_WRITING: "reading_writing",
+    PRACTICAL: "practical"
+} as const;
+export type LearningStyle = typeof LearningStyle[keyof typeof LearningStyle];
 
 export const FeedbackTiming = {
   IMMEDIATE: 'immediate',

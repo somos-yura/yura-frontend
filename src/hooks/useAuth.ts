@@ -56,17 +56,20 @@ export const useAuth = () => {
       const savedAuth = localStorage.getItem(AUTH_STORAGE_KEY)
       if (savedAuth) {
         try {
-          const { user, token } = JSON.parse(savedAuth)
-          // Verify token validity by checking onboarding status (doubles as auth check)
-          const onboardingCompleted = await checkOnboardingStatus(token)
-          setAuthState({
-            user,
-            token,
-            isAuthenticated: true,
-            onboardingCompleted,
-          })
-        } catch {
-          localStorage.removeItem(AUTH_STORAGE_KEY)
+            const summary = await studentsApi.getProfileSummary(token)
+            return summary.onboarding_completed
+        } catch (error: any) {
+            // If 401, token is invalid/expired, throw error to trigger logout in initAuth
+            if (error.status === 401) {
+                throw error
+            }
+            // If 404, profile doesn't exist, so onboarding is not completed
+            if (error.status === 404) {
+                return false
+            }
+            // For other errors, we might want to log them but default to false to be safe
+            console.error('Error checking onboarding status:', error)
+            return false
         }
       }
       setLoading(false)
