@@ -1,5 +1,5 @@
 import type React from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { ArrowLeft, Briefcase, ArrowRight } from 'lucide-react'
 import { Layout } from '../components/layout/Layout'
 import { useState, useEffect, useMemo, useRef } from 'react'
@@ -17,6 +17,12 @@ import { useAuthContext } from '../contexts/AuthContext'
 const ChallengeDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const location = useLocation()
+
+  const getBackPath = () => {
+    const from = (location.state as { from?: string })?.from
+    return from || '/dashboard'
+  }
   const { user, token } = useAuthContext()
   const [challenge, setChallenge] = useState<Challenge | null>(null)
   const [simulatedPersons, setSimulatedPersons] = useState<SimulatedPerson[]>(
@@ -111,7 +117,10 @@ const ChallengeDetail: React.FC = () => {
   const handleContactClick = (person: SimulatedPerson) => {
     if (currentAssignment) {
       navigate(
-        `/challenge/${challenge?.id}/chat?person_id=${currentAssignment.simulated_person_id}`
+        `/challenge/${challenge?.id}/chat?person_id=${currentAssignment.simulated_person_id}`,
+        {
+          state: { from: getBackPath() },
+        }
       )
       return
     }
@@ -124,8 +133,14 @@ const ChallengeDetail: React.FC = () => {
     return currentAssignment?.simulated_person_id === personId
   }
 
-  const isPersonDisabled = (personId: string): boolean => {
-    return currentAssignment !== null && !isPersonAssigned(personId)
+  const getDisplayedPersons = (): SimulatedPerson[] => {
+    if (currentAssignment) {
+      const assignedPerson = simulatedPersons.find(
+        (person) => person.id === currentAssignment.simulated_person_id
+      )
+      return assignedPerson ? [assignedPerson] : []
+    }
+    return simulatedPersons
   }
 
   const handleConfirmContact = async () => {
@@ -158,7 +173,10 @@ const ChallengeDetail: React.FC = () => {
       timeoutRef.current = window.setTimeout(() => {
         setShowLoadingModal(false)
         navigate(
-          `/challenge/${challenge.id}/chat?person_id=${selectedPerson.id}`
+          `/challenge/${challenge.id}/chat?person_id=${selectedPerson.id}`,
+          {
+            state: { from: getBackPath() },
+          }
         )
       }, 2500)
     } catch (err) {
@@ -217,12 +235,12 @@ const ChallengeDetail: React.FC = () => {
               onClick={(e) => {
                 e.preventDefault()
                 e.stopPropagation()
-                navigate('/dashboard', { replace: true })
+                navigate(getBackPath(), { replace: true })
               }}
               className="px-6 py-3 bg-electricBlue text-white rounded-lg font-semibold hover:bg-[#1873CC] transition-colors cursor-pointer"
               type="button"
             >
-              Volver al Dashboard
+              Volver
             </button>
           </div>
         </div>
@@ -248,12 +266,12 @@ const ChallengeDetail: React.FC = () => {
               onClick={(e) => {
                 e.preventDefault()
                 e.stopPropagation()
-                navigate('/dashboard', { replace: true })
+                navigate(getBackPath(), { replace: true })
               }}
               className="px-6 py-3 bg-electricBlue text-white rounded-lg font-semibold hover:bg-[#1873CC] transition-colors cursor-pointer"
               type="button"
             >
-              Volver al Dashboard
+              Volver
             </button>
           </div>
         </div>
@@ -281,14 +299,14 @@ const ChallengeDetail: React.FC = () => {
               onClick={(e) => {
                 e.preventDefault()
                 e.stopPropagation()
-                navigate('/dashboard', { replace: true })
+                navigate(getBackPath(), { replace: true })
               }}
               className="group inline-flex items-center gap-2 text-white/90 hover:text-white bg-white/10 hover:bg-white/20 backdrop-blur-md px-4 py-2 rounded-full transition-all duration-300 border border-white/10"
-              aria-label="Volver al dashboard"
+              aria-label="Volver"
               type="button"
             >
               <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-              <span className="font-medium">Volver al Dashboard</span>
+              <span className="font-medium">Volver</span>
             </button>
           </div>
 
@@ -393,11 +411,10 @@ const ChallengeDetail: React.FC = () => {
                   />
                 ))}
               </div>
-            ) : simulatedPersons.length > 0 ? (
+            ) : getDisplayedPersons().length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {simulatedPersons.map((person) => {
+                {getDisplayedPersons().map((person) => {
                   const isAssigned = isPersonAssigned(person.id)
-                  const isDisabled = isPersonDisabled(person.id)
 
                   return (
                     <div
@@ -409,7 +426,6 @@ const ChallengeDetail: React.FC = () => {
                                                     ? 'border-electricBlue ring-2 ring-electricBlue/20 shadow-xl shadow-electricBlue/10 scale-[1.02]'
                                                     : 'border-border/50 hover:border-electricBlue/30 hover:shadow-xl hover:-translate-y-1'
                                                 }
-                                                ${isDisabled ? 'opacity-60 grayscale-[0.5]' : ''}
                                             `}
                     >
                       <div className="p-6 flex-1 flex flex-col">
@@ -441,7 +457,6 @@ const ChallengeDetail: React.FC = () => {
 
                         <button
                           onClick={() => handleContactClick(person)}
-                          disabled={isDisabled}
                           className={`
                                                         w-full py-3.5 px-6 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all duration-300
                                                         ${
@@ -449,7 +464,6 @@ const ChallengeDetail: React.FC = () => {
                                                             ? 'bg-green-500 text-white hover:bg-green-600 shadow-lg shadow-green-500/25'
                                                             : 'bg-electricBlue text-white hover:bg-[#1873CC] shadow-lg shadow-electricBlue/25'
                                                         }
-                                                        ${isDisabled ? 'cursor-not-allowed opacity-70 shadow-none' : ''}
                                                     `}
                         >
                           {isAssigned ? (

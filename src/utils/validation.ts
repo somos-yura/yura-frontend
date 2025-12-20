@@ -1,12 +1,6 @@
 const PASSWORD_REQUIREMENTS = [
-  { test: (pwd: string) => pwd.length >= 8, text: 'Mínimo 8 caracteres' },
-  { test: (pwd: string) => /[A-Z]/.test(pwd), text: '1 mayúscula' },
-  { test: (pwd: string) => /[a-z]/.test(pwd), text: '1 minúscula' },
-  { test: (pwd: string) => /\d/.test(pwd), text: '1 número' },
-  {
-    test: (pwd: string) => /[!@#$%^&*(),.?":{}|<>]/.test(pwd),
-    text: '1 carácter especial',
-  },
+  { test: (pwd: string) => pwd.length >= 6, text: 'Mínimo 6 caracteres' },
+  { test: (pwd: string) => /\d/.test(pwd), text: 'Al menos 1 número' },
 ]
 
 export const getPasswordRequirements = (password: string) => {

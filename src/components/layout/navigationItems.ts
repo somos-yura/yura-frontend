@@ -1,10 +1,14 @@
-import { Home } from 'lucide-react'
+import { Home, FolderOpen } from 'lucide-react'
 
 export const navigationItems = [
   {
     title: 'Home',
-    url: '/',
+    url: '/dashboard',
     icon: Home,
-    isActive: true,
+  },
+  {
+    title: 'Mis Proyectos',
+    url: '/my-projects',
+    icon: FolderOpen,
   },
 ]

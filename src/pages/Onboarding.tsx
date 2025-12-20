@@ -212,7 +212,11 @@ const Onboarding: React.FC = () => {
             {steps.map((step) => (
               <div
                 key={step.id}
-                className={`flex gap-4 transition-all duration-300 ${currentStep === step.id ? 'opacity-100 translate-x-2' : 'opacity-50'}`}
+                className={`gap-4 transition-all duration-300 ${
+                  currentStep === step.id
+                    ? 'flex opacity-100 translate-x-2'
+                    : 'hidden lg:flex opacity-50'
+                }`}
               >
                 <div className="flex flex-col items-center">
                   <div
@@ -303,7 +307,7 @@ const Onboarding: React.FC = () => {
                     <Check className="w-5 h-5 text-green-600" />
                   </div>
                   <span className="font-medium">
-                    Adaptando el contenido a tu estilo
+                    Analizando la forma en la que aprendes
                   </span>
                 </div>
                 <div className="flex items-center gap-4 text-gray-700">
@@ -311,7 +315,7 @@ const Onboarding: React.FC = () => {
                     <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />
                   </div>
                   <span className="font-medium text-blue-700">
-                    Generando tu primer desafío
+                    Cargando tus primeros desafíos
                   </span>
                 </div>
               </div>
