@@ -39,10 +39,10 @@ const Login: React.FC = () => {
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-100/30 rounded-full blur-3xl -ml-48 -mb-48"></div>
 
       <div className="relative z-10 min-h-screen flex">
-        <div className="hidden lg:flex w-1/2 bg-gradient-to-br from-electricBlue to-blue-600 p-12 flex-col justify-center items-center relative overflow-hidden">
+        <div className="hidden lg:flex w-1/2 bg-gradient-to-br from-[#0D1424] via-[#0F1729] to-[#0D1424] p-12 flex-col justify-center items-center relative overflow-hidden">
           <div className="absolute inset-0 opacity-10">
             <div className="absolute top-20 left-20 w-72 h-72 bg-white rounded-full blur-3xl"></div>
-            <div className="absolute bottom-20 right-20 w-96 h-96 bg-blue-300 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-20 right-20 w-96 h-96 bg-blue-900 rounded-full blur-3xl"></div>
           </div>
           <div className="relative z-10 mb-12">
             <img
@@ -184,7 +184,7 @@ const Login: React.FC = () => {
 
                 <button
                   type="submit"
-                  className="w-full bg-electricBlue text-white font-montserrat font-semibold py-3 px-4 rounded-lg hover:bg-[#1873CC] hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5"
+                  className="w-full bg-[#0D1424] text-white font-montserrat font-semibold py-3 px-4 rounded-lg hover:bg-[#0F1729] hover:shadow-lg transition-all duration-200 transform hover:-translate-y-0.5"
                 >
                   Continuar
                 </button>

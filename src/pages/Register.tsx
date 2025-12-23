@@ -45,44 +45,40 @@ const Register: React.FC = () => {
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-orange-100/30 rounded-full blur-3xl -mr-48 -mb-48"></div>
 
       <div className="relative z-10 min-h-screen flex">
-        <div className="hidden lg:flex w-1/2 bg-gradient-to-br from-vibrantOrange to-orange-600 p-12 flex-col justify-center items-center relative overflow-hidden">
-          <div className="absolute inset-0 opacity-10">
-            <div className="absolute top-20 left-20 w-72 h-72 bg-white rounded-full blur-3xl"></div>
-            <div className="absolute bottom-20 right-20 w-96 h-96 bg-orange-300 rounded-full blur-3xl"></div>
-          </div>
+        <div className="hidden lg:flex w-1/2 bg-white p-12 flex-col justify-center items-center relative overflow-hidden">
           <div className="relative z-10 mb-12">
             <img
               src="/miniworkerlogosinbg.svg"
               alt="MiniWorker Academy"
-              className="w-auto h-32 object-contain filter brightness-0 invert"
+              className="w-auto h-32 object-contain"
             />
           </div>
           <div className="relative z-10 space-y-6 text-center">
-            <h1 className="text-5xl font-bold text-white font-montserrat leading-tight">
+            <h1 className="text-5xl font-bold text-gray-900 font-montserrat leading-tight">
               Únete a nosotros
             </h1>
-            <p className="text-xl text-orange-50 leading-relaxed max-w-md">
+            <p className="text-xl text-gray-600 leading-relaxed max-w-md">
               Crea tu cuenta y comienza a desarrollar tus habilidades
               profesionales
             </p>
           </div>
         </div>
 
-        <div className="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-12 relative z-10">
+        <div className="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-12 relative z-10 bg-gradient-to-br from-[#0D1424] via-[#0F1729] to-[#0D1424]">
           <div className="w-full max-w-md">
             <div className="mb-8 text-center">
-              <h1 className="text-4xl font-bold text-[#2E2E2E] font-montserrat mb-2">
+              <h1 className="text-4xl font-bold text-white font-montserrat mb-2">
                 MiniWorker Academy
               </h1>
-              <div className="w-16 h-1 bg-vibrantOrange mx-auto rounded-full"></div>
+              <div className="w-16 h-1 bg-white mx-auto rounded-full"></div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-lg p-8 md:p-10 border border-gray-100">
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl shadow-lg p-8 md:p-10 border border-white/20">
               <div className="mb-8">
-                <h2 className="text-4xl font-bold text-gray-900 font-montserrat mb-3 text-center">
+                <h2 className="text-4xl font-bold text-white font-montserrat mb-3 text-center">
                   Crea tu cuenta
                 </h2>
-                <p className="text-gray-500 text-lg text-center">
+                <p className="text-gray-300 text-lg text-center">
                   Comienza tu viaje de aprendizaje hoy
                 </p>
               </div>
@@ -105,7 +101,7 @@ const Register: React.FC = () => {
                   onChange={handleInputChange('email')}
                   placeholder="tu@email.com"
                   label="Email"
-                  focusColor="vibrantOrange"
+                  focusColor="white"
                   onKeyDown={(e) => handleKeyDown(e, 'password')}
                   icon={
                     <svg
@@ -126,7 +122,7 @@ const Register: React.FC = () => {
                 <div>
                   <label
                     htmlFor="password"
-                    className="block text-sm font-medium text-darkGray mb-2 font-montserrat"
+                    className="block text-sm font-medium text-gray-200 mb-2 font-montserrat"
                   >
                     Contraseña
                   </label>
@@ -154,8 +150,8 @@ const Register: React.FC = () => {
                         handleInputChange('password')(e.target.value)
                       }
                       onKeyDown={(e) => handleKeyDown(e, 'confirmPassword')}
-                      placeholder="Mínimo 8 caracteres"
-                      className="w-full pl-10 pr-12 py-3 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-vibrantOrange focus:border-transparent transition-all placeholder-gray-400"
+                      placeholder="Mínimo 6 caracteres"
+                      className="w-full pl-10 pr-12 py-3 bg-white/10 border border-white/30 rounded-md focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent transition-all placeholder-gray-400 text-white"
                     />
                     <button
                       type="button"
@@ -204,7 +200,7 @@ const Register: React.FC = () => {
                 <div>
                   <label
                     htmlFor="confirmPassword"
-                    className="block text-sm font-medium text-darkGray mb-2 font-montserrat"
+                    className="block text-sm font-medium text-gray-200 mb-2 font-montserrat"
                   >
                     Confirmar contraseña
                   </label>
@@ -233,7 +229,7 @@ const Register: React.FC = () => {
                       }
                       onKeyDown={(e) => handleKeyDown(e)}
                       placeholder="Repite tu contraseña"
-                      className="w-full pl-10 pr-12 py-3 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-vibrantOrange focus:border-transparent transition-all placeholder-gray-400"
+                      className="w-full pl-10 pr-12 py-3 bg-white/10 border border-white/30 rounded-md focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent transition-all placeholder-gray-400 text-white"
                     />
                     <button
                       type="button"
@@ -282,7 +278,7 @@ const Register: React.FC = () => {
                 </div>
                 <button
                   type="submit"
-                  className="w-full bg-vibrantOrange text-white font-montserrat font-semibold py-4 px-6 rounded-xl hover:bg-[#E67E00] transition-all duration-200 shadow-lg shadow-vibrantOrange/25 hover:shadow-xl hover:shadow-vibrantOrange/40 hover:-translate-y-0.5 mt-6"
+                  className="w-full bg-white text-[#0D1424] font-montserrat font-semibold py-4 px-6 rounded-xl hover:bg-gray-100 transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5 mt-6"
                 >
                   Comenzar
                 </button>
@@ -290,10 +286,10 @@ const Register: React.FC = () => {
               <div className="mt-8 text-center">
                 <button
                   onClick={() => navigate('/login')}
-                  className="text-gray-600 hover:text-vibrantOrange transition-colors text-sm"
+                  className="text-gray-300 hover:text-white transition-colors text-sm"
                 >
                   ¿Ya tienes cuenta?{' '}
-                  <span className="text-vibrantOrange font-semibold">
+                  <span className="text-white font-semibold">
                     Inicia sesión
                   </span>
                 </button>

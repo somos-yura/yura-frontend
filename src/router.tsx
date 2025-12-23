@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard'
 import ChallengeDetail from './pages/ChallengeDetail'
 import ChallengeChat from './pages/ChallengeChat'
 import Onboarding from './pages/Onboarding'
+import MyProjects from './pages/MyProjects'
 
 export function AppRouter() {
   return (
@@ -44,6 +45,14 @@ export function AppRouter() {
             element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/my-projects"
+            element={
+              <ProtectedRoute>
+                <MyProjects />
               </ProtectedRoute>
             }
           />

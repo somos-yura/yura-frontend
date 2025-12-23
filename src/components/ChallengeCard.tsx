@@ -57,10 +57,9 @@ export const ChallengeCard: React.FC<ChallengeCardProps> = ({
             e.stopPropagation()
             handleExplore()
           }}
-          className="w-full bg-gradient-to-r from-blue-600 via-blue-500 to-purple-500 text-white font-montserrat font-bold py-4 px-4 rounded-2xl hover:from-blue-700 hover:via-blue-600 hover:to-purple-600 hover:shadow-2xl hover:shadow-blue-300 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 relative overflow-hidden group/btn"
+          className="w-full bg-gradient-to-r from-sky-500 to-sky-400 text-white font-montserrat font-bold py-4 px-4 rounded-2xl hover:from-sky-600 hover:to-sky-500 hover:shadow-2xl hover:shadow-sky-300 transition-all duration-300 transform hover:-translate-y-1 active:scale-95"
         >
-          <span className="relative z-10">Explorar reto</span>
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300"></div>
+          <span>Explorar reto</span>
         </button>
       </div>
     </div>

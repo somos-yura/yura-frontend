@@ -1,6 +1,6 @@
 import type React from 'react'
 import { useRef, useEffect, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import {
   Send,
   User,
@@ -11,6 +11,8 @@ import {
   FolderOpen,
   Image as ImageIcon,
   Link as LinkIcon,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react'
 import { Layout } from '../components/layout/Layout'
 import { useChat } from '../hooks/useChat'
@@ -34,10 +36,75 @@ import { Mermaid } from '../components/ui/Mermaid'
 
 type TabType = 'chat' | 'files' | 'participants'
 
+const DiagramCard: React.FC<{
+  diagram: Diagram
+  index: number
+  total: number
+}> = ({ diagram, index, total }) => {
+  const [isOpen, setIsOpen] = useState(false)
+
+  return (
+    <div className="group border border-gray-100 rounded-xl hover:border-blue-200 hover:shadow-md transition-all duration-200 overflow-hidden bg-white">
+      {/* Card Header */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full px-4 py-3 flex items-center justify-between bg-gradient-to-r from-gray-50 to-gray-100/50 border-b border-gray-100 hover:bg-gray-100 transition-colors"
+      >
+        <div className="flex items-center gap-3">
+          <div className="p-1.5 bg-white rounded-md shadow-sm border border-gray-100">
+            <FileText className="w-4 h-4 text-blue-600" />
+          </div>
+          <div className="flex flex-col items-start">
+            <span className="text-xs font-bold bg-blue-50 text-blue-600 px-2 py-1 rounded-lg border border-blue-100 uppercase tracking-wide">
+              Diagrama {total - index}
+            </span>
+            <span className="text-xs text-gray-500 mt-1">
+              {new Date(diagram.created_at).toLocaleString('es-ES', {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
+            </span>
+          </div>
+        </div>
+        {isOpen ? (
+          <ChevronUp className="w-4 h-4 text-gray-400" />
+        ) : (
+          <ChevronDown className="w-4 h-4 text-gray-400" />
+        )}
+      </button>
+
+      {/* Diagram Content - Accordion */}
+      {isOpen && (
+        <div className="p-3 animate-in slide-in-from-top-2 duration-200">
+          <div className="rounded-lg border border-gray-200 overflow-hidden bg-gradient-to-br from-gray-50 to-white">
+            <Mermaid chart={diagram.code} />
+          </div>
+          {/* Description */}
+          {diagram.description && (
+            <div className="mt-3 px-1">
+              <p className="text-xs text-gray-700 leading-relaxed">
+                {diagram.description}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 const ChallengeChat: React.FC = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const location = useLocation()
   const { user, token } = useAuthContext()
+
+  const getBackPath = () => {
+    const from = (location.state as { from?: string })?.from
+    return from || `/challenge/${id}`
+  }
   const [challenge, setChallenge] = useState<Challenge | null>(null)
   const [simulatedPerson, setSimulatedPerson] =
     useState<SimulatedPerson | null>(null)
@@ -224,10 +291,10 @@ const ChallengeChat: React.FC = () => {
             </h2>
             <p className="text-muted-foreground mb-6">{error}</p>
             <button
-              onClick={() => navigate('/dashboard', { replace: true })}
+              onClick={() => navigate(getBackPath(), { replace: true })}
               className="px-6 py-3 bg-electricBlue text-white rounded-lg font-semibold hover:bg-[#1873CC] transition-colors"
             >
-              {CHAT_MESSAGES.BACK_TO_DASHBOARD}
+              Volver
             </button>
           </div>
         </div>
@@ -250,10 +317,10 @@ const ChallengeChat: React.FC = () => {
               {CHAT_MESSAGES.NOT_FOUND}
             </p>
             <button
-              onClick={() => navigate('/dashboard', { replace: true })}
+              onClick={() => navigate(getBackPath(), { replace: true })}
               className="px-6 py-3 bg-electricBlue text-white rounded-lg font-semibold hover:bg-[#1873CC] transition-colors"
             >
-              {CHAT_MESSAGES.BACK_TO_DASHBOARD}
+              Volver
             </button>
           </div>
         </div>
@@ -269,13 +336,13 @@ const ChallengeChat: React.FC = () => {
             <div className="px-6 py-4 flex items-center justify-between">
               <div className="flex items-center gap-4 flex-1 min-w-0">
                 <button
-                  onClick={() => navigate(`/challenge/${challenge.id}`)}
+                  onClick={() => navigate(getBackPath())}
                   className="inline-flex items-center justify-center w-8 h-8 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-all"
                 >
                   <ArrowLeft className="w-5 h-5" />
                 </button>
                 <div className="relative flex-shrink-0">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold text-base shadow-md">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center text-blue-700 font-bold text-base shadow-sm ring-2 ring-white border border-blue-100">
                     {getAvatarInitials(simulatedPerson)}
                   </div>
                   <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></div>
@@ -289,65 +356,54 @@ const ChallengeChat: React.FC = () => {
                   </p>
                 </div>
               </div>
-            </div>
 
-            {/* Tabs */}
-            <div className="px-6 flex items-center gap-6 overflow-x-auto no-scrollbar">
-              <button
-                onClick={() => {
-                  setActiveTab('chat')
-                  setShowRightSidebar(false)
-                }}
-                className={`pb-3 text-sm font-medium transition-all relative whitespace-nowrap ${
-                  activeTab === 'chat'
-                    ? 'text-blue-600'
-                    : 'text-gray-500 hover:text-gray-800'
-                }`}
-              >
-                Chat
-                {activeTab === 'chat' && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-t-full"></div>
-                )}
-              </button>
-              <button
-                onClick={() => {
-                  setActiveTab('files')
-                  setShowRightSidebar(true)
-                }}
-                className={`pb-3 text-sm font-medium transition-all relative flex items-center gap-2 whitespace-nowrap ${
-                  activeTab === 'files'
-                    ? 'text-blue-600'
-                    : 'text-gray-500 hover:text-gray-800'
-                }`}
-              >
-                <FolderOpen className="w-4 h-4" />
-                Archivos Compartidos
-                {diagrams.length > 0 && (
-                  <span className="flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">
-                    {diagrams.length}
-                  </span>
-                )}
-                {activeTab === 'files' && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-t-full"></div>
-                )}
-              </button>
-              <button
-                onClick={() => {
-                  setActiveTab('participants')
-                  setShowRightSidebar(true)
-                }}
-                className={`pb-3 text-sm font-medium transition-all relative flex items-center gap-2 whitespace-nowrap ${
-                  activeTab === 'participants'
-                    ? 'text-blue-600'
-                    : 'text-gray-500 hover:text-gray-800'
-                }`}
-              >
-                <Users className="w-4 h-4" />
-                Participantes
-                {activeTab === 'participants' && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-t-full"></div>
-                )}
-              </button>
+              {/* Header Actions */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    if (activeTab === 'files' && showRightSidebar) {
+                      setShowRightSidebar(false)
+                    } else {
+                      setActiveTab('files')
+                      setShowRightSidebar(true)
+                    }
+                  }}
+                  className={`p-2 rounded-lg transition-all ${
+                    activeTab === 'files' && showRightSidebar
+                      ? 'bg-blue-50 text-blue-600'
+                      : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                  title="Archivos Compartidos"
+                >
+                  <div className="relative">
+                    <FolderOpen className="w-5 h-5" />
+                    {diagrams.length > 0 && (
+                      <span className="absolute -top-1.5 -right-1.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white ring-2 ring-white">
+                        {diagrams.length}
+                      </span>
+                    )}
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => {
+                    if (activeTab === 'participants' && showRightSidebar) {
+                      setShowRightSidebar(false)
+                    } else {
+                      setActiveTab('participants')
+                      setShowRightSidebar(true)
+                    }
+                  }}
+                  className={`p-2 rounded-lg transition-all ${
+                    activeTab === 'participants' && showRightSidebar
+                      ? 'bg-blue-50 text-blue-600'
+                      : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                  title="Participantes"
+                >
+                  <Users className="w-5 h-5" />
+                </button>
+              </div>
             </div>
           </div>
 
@@ -374,7 +430,7 @@ const ChallengeChat: React.FC = () => {
               {messages.length === 0 && (
                 <div className="flex flex-col items-center justify-center space-y-8 py-8">
                   <div className="text-center space-y-3">
-                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold text-2xl mx-auto shadow-lg mb-4">
+                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center text-blue-700 font-bold text-2xl mx-auto shadow-sm mb-4 ring-4 ring-white border border-blue-100">
                       {getAvatarInitials(simulatedPerson)}
                     </div>
                     <h1 className="text-2xl font-semibold text-gray-900">
@@ -436,7 +492,7 @@ const ChallengeChat: React.FC = () => {
                         >
                           {/* Avatar */}
                           {!isUser && !isConsecutive ? (
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold text-xs shadow-sm flex-shrink-0 mb-1">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center text-blue-700 font-bold text-xs shadow-sm flex-shrink-0 mb-1 ring-2 ring-white border border-blue-100">
                               {getAvatarInitials(simulatedPerson)}
                             </div>
                           ) : isUser && !isConsecutive ? (
@@ -561,7 +617,7 @@ const ChallengeChat: React.FC = () => {
                   })}
                   {isTyping && (
                     <div className="flex gap-3">
-                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold text-xs shadow-md flex-shrink-0">
+                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center text-blue-700 font-bold text-xs shadow-sm flex-shrink-0 border border-blue-100">
                         {getAvatarInitials(simulatedPerson)}
                       </div>
                       <div className="bg-white border border-gray-100 rounded-2xl rounded-tl-md px-5 py-3.5 shadow-sm">
@@ -579,7 +635,7 @@ const ChallengeChat: React.FC = () => {
             </div>
           </div>
 
-          <div className="border-t border-gray-200 bg-white sticky bottom-0 shadow-lg">
+          <div className="border-t border-gray-200 bg-white shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-20">
             <div className="w-full max-w-4xl mx-auto px-6 py-2">
               <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-3xl border border-gray-200 shadow-sm">
                 <div className="flex items-end gap-2.5 p-2.5">
@@ -595,8 +651,8 @@ const ChallengeChat: React.FC = () => {
                       }
                       rows={1}
                       disabled={!challengeAssignment || isTyping}
-                      className="w-full px-4 py-3 bg-transparent border-0 resize-none focus:outline-none text-sm leading-relaxed max-h-32 placeholder:text-gray-400 text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
-                      style={{ minHeight: '44px' }}
+                      className="w-full px-4 py-4 bg-transparent border-0 resize-none focus:outline-none text-sm leading-relaxed max-h-32 placeholder:text-gray-400 text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                      style={{ minHeight: '56px' }}
                     />
                   </div>
                   <button
@@ -610,13 +666,17 @@ const ChallengeChat: React.FC = () => {
                   </button>
                 </div>
               </div>
+              <p className="text-center text-xs text-gray-400 mt-2 select-none">
+                Estás hablando con un personaje simulado con IA. Puede cometer
+                errores.
+              </p>
             </div>
           </div>
         </div>
 
         {/* RIGHT SIDEBAR - Dynamic Content Based on Active Tab */}
         {showRightSidebar && (
-          <div className="w-96 border-l border-gray-200/80 bg-white overflow-y-auto flex flex-col shadow-xl">
+          <div className="fixed inset-y-0 right-0 z-50 w-full md:w-96 md:relative md:inset-auto md:z-0 border-l border-gray-200/80 bg-white overflow-y-auto flex flex-col shadow-xl transition-all duration-300">
             {/* Sidebar Header */}
             <div className="px-6 py-4 flex items-center justify-between border-b border-gray-100">
               <div className="flex items-center gap-2.5">
@@ -644,20 +704,15 @@ const ChallengeChat: React.FC = () => {
               {activeTab === 'files' && (
                 <div className="space-y-4">
                   {/* File Categories */}
-                  <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-4 border border-blue-100">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="p-2.5 bg-white rounded-lg shadow-sm">
-                        <FileText className="w-5 h-5 text-blue-600" />
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-sm text-gray-900">
-                          Diagramas
-                        </h4>
-                        <p className="text-xs text-gray-500">
-                          {diagrams.length} archivos
-                        </p>
-                      </div>
-                    </div>
+                  {/* File Categories */}
+                  <div className="flex items-center justify-between px-2 mb-3 mt-2">
+                    <h4 className="font-bold text-gray-800 flex items-center gap-2 text-sm">
+                      <FileText className="w-4 h-4 text-blue-600" />
+                      Diagramas
+                    </h4>
+                    <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-medium">
+                      {diagrams.length}
+                    </span>
                   </div>
 
                   {/* Diagrams List */}
@@ -673,75 +728,52 @@ const ChallengeChat: React.FC = () => {
                   ) : (
                     <div className="space-y-3">
                       {diagrams.map((diagram, index) => (
-                        <div
+                        <DiagramCard
                           key={diagram.id}
-                          className="group border border-gray-100 rounded-xl hover:border-blue-200 hover:shadow-md transition-all duration-200 overflow-hidden bg-white"
-                        >
-                          {/* Card Header */}
-                          <div className="px-4 py-2.5 flex items-center justify-between bg-gradient-to-r from-gray-50 to-gray-100/50 border-b border-gray-100">
-                            <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
-                              Diagrama {diagrams.length - index}
-                            </span>
-                            <span className="text-xs text-gray-500">
-                              {new Date(diagram.created_at).toLocaleString(
-                                'es-ES',
-                                {
-                                  month: 'short',
-                                  day: 'numeric',
-                                  hour: '2-digit',
-                                  minute: '2-digit',
-                                }
-                              )}
-                            </span>
-                          </div>
-
-                          {/* Diagram Content */}
-                          <div className="p-3">
-                            <div className="rounded-lg border border-gray-200 overflow-hidden bg-gradient-to-br from-gray-50 to-white">
-                              <Mermaid chart={diagram.code} />
-                            </div>
-                          </div>
-
-                          {/* Description */}
-                          {diagram.description && (
-                            <div className="px-4 py-3 border-t border-gray-100 bg-gray-50/50">
-                              <p className="text-xs text-gray-700 leading-relaxed">
-                                {diagram.description}
-                              </p>
-                            </div>
-                          )}
-                        </div>
+                          diagram={diagram}
+                          index={index}
+                          total={diagrams.length}
+                        />
                       ))}
                     </div>
                   )}
 
                   {/* Additional File Categories - Placeholder */}
-                  <div className="mt-6 space-y-3">
-                    <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-100">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2.5 bg-white rounded-lg shadow-sm">
-                          <ImageIcon className="w-5 h-5 text-purple-600" />
-                        </div>
-                        <div>
-                          <h4 className="font-semibold text-sm text-gray-900">
-                            Imágenes
-                          </h4>
-                          <p className="text-xs text-gray-500">0 archivos</p>
-                        </div>
+                  {/* Additional File Categories - Placeholder */}
+                  <div className="mt-8 space-y-6">
+                    <div>
+                      <div className="flex items-center justify-between px-2 mb-3">
+                        <h4 className="font-bold text-gray-800 flex items-center gap-2 text-sm">
+                          <ImageIcon className="w-4 h-4 text-purple-600" />
+                          Imágenes
+                        </h4>
+                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-medium">
+                          0
+                        </span>
+                      </div>
+                      <div className="px-4 py-8 border border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center text-center">
+                        <ImageIcon className="w-8 h-8 text-gray-200 mb-2" />
+                        <span className="text-xs text-gray-400">
+                          No hay imágenes
+                        </span>
                       </div>
                     </div>
 
-                    <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-xl p-4 border border-orange-100">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2.5 bg-white rounded-lg shadow-sm">
-                          <LinkIcon className="w-5 h-5 text-orange-600" />
-                        </div>
-                        <div>
-                          <h4 className="font-semibold text-sm text-gray-900">
-                            Enlaces
-                          </h4>
-                          <p className="text-xs text-gray-500">0 archivos</p>
-                        </div>
+                    <div>
+                      <div className="flex items-center justify-between px-2 mb-3">
+                        <h4 className="font-bold text-gray-800 flex items-center gap-2 text-sm">
+                          <LinkIcon className="w-4 h-4 text-orange-600" />
+                          Enlaces
+                        </h4>
+                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-medium">
+                          0
+                        </span>
+                      </div>
+                      <div className="px-4 py-8 border border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center text-center">
+                        <LinkIcon className="w-8 h-8 text-gray-200 mb-2" />
+                        <span className="text-xs text-gray-400">
+                          No hay enlaces
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -753,7 +785,7 @@ const ChallengeChat: React.FC = () => {
                   {/* Challenge Info */}
                   <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-5 border border-blue-100">
                     <h4 className="font-semibold text-sm text-gray-900 mb-3">
-                      Información del Reto
+                      INFORMACIÓN DEL RETO
                     </h4>
                     <div className="space-y-2 text-sm">
                       <div>
@@ -785,7 +817,7 @@ const ChallengeChat: React.FC = () => {
                       Stakeholder Asignado
                     </h4>
                     <div className="flex items-center gap-4 mb-4">
-                      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold text-lg shadow-md">
+                      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center text-blue-700 font-bold text-lg shadow-sm ring-2 ring-white border border-blue-100">
                         {getAvatarInitials(simulatedPerson)}
                       </div>
                       <div>

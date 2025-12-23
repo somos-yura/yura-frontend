@@ -1,24 +1,26 @@
-import { Lightbulb, FileText, Target } from 'lucide-react'
+import { Users, Handshake, Lightbulb } from 'lucide-react'
 
 export const SUGGESTED_PROMPTS = [
   {
-    icon: Lightbulb,
-    title: 'Proponer una idea',
-    description: 'Comparte tu propuesta de solución',
-    prompt: 'Me gustaría proponer una idea para resolver este reto...',
-  },
-  {
-    icon: FileText,
-    title: 'Más detalles del proyecto',
-    description: 'Conoce los requisitos específicos',
+    icon: Users,
+    title: 'Situación actual',
+    description: 'Intercambio de conocimientos',
     prompt:
-      '¿Podrías darme más detalles sobre los requisitos específicos del proyecto?',
+      'Hola, me gustaría conocer más sobre tu experiencia trabajando con este problema. ¿Qué has observado o aprendido que podría ser útil?',
   },
   {
-    icon: Target,
-    title: 'Objetivos clave',
-    description: 'Entiende las metas principales',
-    prompt: '¿Cuáles son los objetivos más importantes que debemos alcanzar?',
+    icon: Handshake,
+    title: 'Contexto',
+    description: 'Descubre cómo colaborar mejor juntos',
+    prompt:
+      'Para poder trabajar mejor juntos, ¿podrías contarme qué aspectos del problema consideras más importantes o urgentes de abordar?',
+  },
+  {
+    icon: Lightbulb,
+    title: 'Soluciones',
+    description: 'Trabajemos juntos en ideas',
+    prompt:
+      'He estado analizando este problema y creo que un enfoque prometedor sería empezar por...',
   },
 ] as const
 
