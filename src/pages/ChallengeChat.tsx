@@ -231,13 +231,6 @@ const ChallengeChat: React.FC = () => {
         )
         if (response.success && response.data) {
           setGoogleCalendarLinked(response.data.google_calendar_linked)
-
-          if (
-            response.data.current_agent === 'planner' &&
-            !response.data.google_calendar_linked
-          ) {
-            console.log('Planner active, Google Calendar not linked')
-          }
         }
       } catch (err) {
         console.error('Error fetching status:', err)
