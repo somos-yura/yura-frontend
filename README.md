@@ -29,12 +29,15 @@ cd frontend
 npm install
 ```
 
-3. Configura las variables de entorno (opcional):
+3. Configura las variables de entorno:
 Crea un archivo `.env` en la raíz del proyecto:
 ```env
 API_BASE_URL=http://localhost:8000
 API_VERSION=v1
+PUBLIC_GOOGLE_CLIENT_ID=tu_google_client_id_aqui
 ```
+
+**Nota**: `PUBLIC_GOOGLE_CLIENT_ID` es requerido para la funcionalidad de integración con Google Calendar.
 
 4. Inicia el servidor de desarrollo:
 ```bash
@@ -69,6 +72,7 @@ src/
 │   ├── useAuth.ts
 │   ├── useChallenges.ts
 │   ├── useChat.ts
+│   ├── useGoogleAuth.ts
 │   └── ...
 ├── services/           # Servicios de API
 │   ├── authApi.ts
@@ -82,6 +86,9 @@ src/
 ├── constants/          # Constantes de la aplicación
 ├── utils/              # Utilidades y helpers
 ├── config/             # Configuración
+│   ├── api.ts          # Configuración de API y variables de entorno
+│   ├── endpoints.ts    # Endpoints de la API
+│   └── externalUrls.ts # URLs y configuración de servicios externos (Google OAuth)
 └── router.tsx          # Configuración de rutas
 ```
 
@@ -109,6 +116,34 @@ La aplicación utiliza un sistema de autenticación basado en tokens JWT:
 - Las rutas protegidas requieren autenticación
 - El token se incluye automáticamente en las peticiones que lo requieren
 
+### Integración con Google Calendar
+
+La aplicación permite vincular Google Calendar para sincronizar hitos del proyecto:
+
+- **Hook personalizado**: `useGoogleAuth` maneja todo el flujo de OAuth
+- **Flujo OAuth**: Se abre un popup para autenticación, luego se procesa el código
+- **Callback route**: `/auth/google/callback` recibe la respuesta de Google
+- **Configuración**: Requiere `PUBLIC_GOOGLE_CLIENT_ID` en variables de entorno
+
+**Ejemplo de uso**:
+```typescript
+import { useGoogleAuth } from '../hooks/useGoogleAuth'
+
+const { initiateAuth } = useGoogleAuth({
+  token: userToken,
+  challengeAssignmentId: assignmentId,
+  onSuccess: () => {
+    // Manejar éxito
+  },
+  onError: (error) => {
+    // Manejar error
+  },
+})
+
+// Iniciar autenticación
+initiateAuth()
+```
+
 ## 🌐 Rutas
 
 ### Rutas Públicas
@@ -120,6 +155,7 @@ La aplicación utiliza un sistema de autenticación basado en tokens JWT:
 - `/dashboard` - Dashboard principal con lista de challenges
 - `/challenge/:id` - Detalle de un challenge específico
 - `/challenge/:id/chat` - Chat con la persona simulada asignada
+- `/auth/google/callback` - Callback de OAuth de Google (usado internamente)
 
 ## 🔌 API y Servicios
 
@@ -157,6 +193,9 @@ Componente reutilizable para estados de carga:
 ### ProtectedRoute / PublicRoute
 Componentes para proteger rutas según el estado de autenticación.
 
+### GoogleAuthCallback
+Componente que maneja el callback de OAuth de Google. Se renderiza en un popup y comunica el resultado a la ventana principal mediante `postMessage`.
+
 ## 🛡️ Manejo de Errores
 
 El proyecto utiliza una jerarquía de errores:
@@ -176,6 +215,18 @@ Todos los errores incluyen información estructurada (mensaje, status, details).
 - Componentes funcionales con hooks
 - Separar lógica de negocio en custom hooks
 - Servicios API organizados por dominio
+- No hardcodear valores sensibles (usar variables de entorno)
+- Seguir principios SOLID en la arquitectura
+
+### Custom Hooks
+
+El proyecto utiliza custom hooks para encapsular lógica reutilizable:
+
+- `useAuth`: Manejo de autenticación y sesión
+- `useChallenges`: Gestión de challenges
+- `useChat`: Lógica del chat con IA
+- `useGoogleAuth`: Flujo completo de autenticación OAuth con Google
+- `useCategories`: Gestión de categorías
 
 ### Estructura de Componentes
 

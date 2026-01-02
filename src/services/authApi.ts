@@ -1,12 +1,12 @@
 import { apiClient, ApiError } from '../lib/apiClient'
-import { config } from '../config/api'
+import { ENDPOINTS } from '../config/endpoints'
 import type { LoginForm, RegisterForm, AuthResponse } from '../types/auth'
 
 export const authApi = {
   async login(credentials: LoginForm): Promise<AuthResponse> {
     try {
       return (await apiClient.post<AuthResponse['data']>(
-        config.API_ENDPOINTS.LOGIN,
+        ENDPOINTS.USERS.LOGIN,
         {
           email: credentials.email,
           password: credentials.password,
@@ -23,7 +23,7 @@ export const authApi = {
   async register(userData: RegisterForm): Promise<AuthResponse> {
     try {
       return (await apiClient.post<AuthResponse['data']>(
-        config.API_ENDPOINTS.REGISTER,
+        ENDPOINTS.USERS.REGISTER,
         {
           email: userData.email,
           password: userData.password,

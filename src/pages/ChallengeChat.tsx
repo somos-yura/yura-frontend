@@ -13,7 +13,9 @@ import {
   Link as LinkIcon,
   ChevronDown,
   ChevronUp,
+  Calendar,
 } from 'lucide-react'
+import { useGoogleAuth } from '../hooks/useGoogleAuth'
 import { Layout } from '../components/layout/Layout'
 import { useChat } from '../hooks/useChat'
 import { challengesApi, ChallengeApiError } from '../services/challengesApi'
@@ -33,8 +35,9 @@ import {
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { Mermaid } from '../components/ui/Mermaid'
+import { ProjectMilestones } from '../components/ProjectMilestones'
 
-type TabType = 'chat' | 'files' | 'participants'
+type TabType = 'chat' | 'files' | 'participants' | 'milestones'
 
 const DiagramCard: React.FC<{
   diagram: Diagram
@@ -115,7 +118,10 @@ const ChallengeChat: React.FC = () => {
   const [chatError, setChatError] = useState<string | null>(null)
   const [diagrams, setDiagrams] = useState<Diagram[]>([])
   const [activeTab, setActiveTab] = useState<TabType>('chat')
+  const [isGoogleAuthModalOpen, setIsGoogleAuthModalOpen] = useState(false)
   const [showRightSidebar, setShowRightSidebar] = useState(false)
+  const [googleCalendarLinked, setGoogleCalendarLinked] =
+    useState<boolean>(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   // Generate or retrieve session ID
@@ -130,6 +136,20 @@ const ChallengeChat: React.FC = () => {
   }
 
   const sessionId = getSessionId()
+
+  const { initiateAuth: googleLogin } = useGoogleAuth({
+    token: token || null,
+    challengeAssignmentId: challengeAssignment?.id || null,
+    onSuccess: async () => {
+      await refreshHistory()
+      setGoogleCalendarLinked(true)
+      setIsGoogleAuthModalOpen(false)
+    },
+    onError: (errorMessage) => {
+      setChatError(errorMessage)
+      setTimeout(() => setChatError(null), 5000)
+    },
+  })
 
   const getAvatarInitials = (person: SimulatedPerson | null): string => {
     if (!person) return '?'
@@ -159,6 +179,7 @@ const ChallengeChat: React.FC = () => {
     handleSendMessage,
     handleSuggestedPrompt,
     loadMoreMessages,
+    refreshHistory,
   } = useChat({
     challengeAssignmentId: challengeAssignment?.id || null,
     sessionId,
@@ -171,6 +192,12 @@ const ChallengeChat: React.FC = () => {
       const newDiagrams = data.diagrams
       if (newDiagrams && newDiagrams.length > 0) {
         setDiagrams((prev) => [...newDiagrams, ...prev])
+      }
+      if (data.google_calendar_linked !== undefined) {
+        setGoogleCalendarLinked(data.google_calendar_linked)
+      }
+      if (data.needs_google_auth) {
+        setIsGoogleAuthModalOpen(true)
       }
     },
   })
@@ -192,6 +219,25 @@ const ChallengeChat: React.FC = () => {
     }
     fetchDiagrams()
   }, [challengeAssignment, token])
+
+  useEffect(() => {
+    const fetchStatus = async () => {
+      if (!challengeAssignment || !token) return
+      try {
+        const response = await chatApi.getStatus(
+          challengeAssignment.id,
+          sessionId,
+          token
+        )
+        if (response.success && response.data) {
+          setGoogleCalendarLinked(response.data.google_calendar_linked)
+        }
+      } catch (err) {
+        console.error('Error fetching status:', err)
+      }
+    }
+    fetchStatus()
+  }, [challengeAssignment, token, sessionId])
 
   useEffect(() => {
     const fetchData = async () => {
@@ -336,7 +382,16 @@ const ChallengeChat: React.FC = () => {
             <div className="px-6 py-4 flex items-center justify-between">
               <div className="flex items-center gap-4 flex-1 min-w-0">
                 <button
-                  onClick={() => navigate(getBackPath())}
+                  onClick={() => {
+                    if (
+                      window.history.length > 1 &&
+                      location.key !== 'default'
+                    ) {
+                      navigate(-1)
+                    } else {
+                      navigate(getBackPath())
+                    }
+                  }}
                   className="inline-flex items-center justify-center w-8 h-8 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-all"
                 >
                   <ArrowLeft className="w-5 h-5" />
@@ -402,6 +457,25 @@ const ChallengeChat: React.FC = () => {
                   title="Participantes"
                 >
                   <Users className="w-5 h-5" />
+                </button>
+
+                <button
+                  onClick={() => {
+                    if (activeTab === 'milestones' && showRightSidebar) {
+                      setShowRightSidebar(false)
+                    } else {
+                      setActiveTab('milestones')
+                      setShowRightSidebar(true)
+                    }
+                  }}
+                  className={`p-2 rounded-lg transition-all ${
+                    activeTab === 'milestones' && showRightSidebar
+                      ? 'bg-blue-50 text-blue-600'
+                      : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                  title="Hitos del Proyecto"
+                >
+                  <Calendar className="w-5 h-5" />
                 </button>
               </div>
             </div>
@@ -682,13 +756,17 @@ const ChallengeChat: React.FC = () => {
               <div className="flex items-center gap-2.5">
                 {activeTab === 'files' ? (
                   <FolderOpen className="w-5 h-5 text-gray-500" />
-                ) : (
+                ) : activeTab === 'participants' ? (
                   <Users className="w-5 h-5 text-gray-500" />
+                ) : (
+                  <Calendar className="w-5 h-5 text-gray-500" />
                 )}
                 <span className="text-base font-medium text-gray-700">
                   {activeTab === 'files'
                     ? 'Archivos Compartidos'
-                    : 'Participantes'}
+                    : activeTab === 'participants'
+                      ? 'Participantes'
+                      : 'Hitos del Proyecto'}
                 </span>
               </div>
               <button
@@ -882,6 +960,52 @@ const ChallengeChat: React.FC = () => {
                   </div>
                 </div>
               )}
+
+              {activeTab === 'milestones' && challengeAssignment && (
+                <div className="animate-fade-in">
+                  <ProjectMilestones
+                    challengeAssignmentId={challengeAssignment.id}
+                    onLinkGoogleCalendar={googleLogin}
+                    isGoogleCalendarLinked={googleCalendarLinked}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Google Auth Modal */}
+        {isGoogleAuthModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
+              <div className="flex flex-col items-center text-center">
+                <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-4">
+                  <LinkIcon className="w-8 h-8" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                  ¡Sincroniza tu Calendario!
+                </h3>
+                <p className="text-gray-500 text-sm mb-6">
+                  El Agente Planner está listo para organizar tus hitos.
+                  Vincular con Google Calendar te permitirá ver estas fechas
+                  directamente en tu agenda.
+                </p>
+
+                <div className="flex flex-col gap-3 w-full">
+                  <button
+                    onClick={() => googleLogin()}
+                    className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200"
+                  >
+                    Conectar Google Calendar
+                  </button>
+                  <button
+                    onClick={() => setIsGoogleAuthModalOpen(false)}
+                    className="w-full py-3 text-gray-500 text-sm hover:text-gray-700 transition-all"
+                  >
+                    Continuar sin sincronizar
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         )}
