@@ -45,6 +45,7 @@ src/
 │   ├── useChallenges.ts
 │   ├── useCategories.ts
 │   ├── useChat.ts
+│   ├── useGoogleAuth.ts  # Hook para autenticación OAuth con Google
 │   ├── useDashboardFilters.ts
 │   └── useFormNavigation.ts
 ├── services/             # Servicios de API
@@ -66,7 +67,9 @@ src/
 │   ├── validation.ts
 │   └── chatHelpers.ts
 ├── config/               # Configuración
-│   └── api.ts
+│   ├── api.ts            # Configuración de API y variables de entorno
+│   ├── endpoints.ts      # Endpoints de la API
+│   └── externalUrls.ts   # URLs y configuración de servicios externos
 ├── App.tsx               # Componente raíz
 ├── router.tsx            # Configuración de rutas
 ├── main.tsx              # Punto de entrada
@@ -114,6 +117,7 @@ src/
 - `/dashboard` - Dashboard principal con lista de challenges
 - `/challenge/:id` - Detalle de un challenge específico
 - `/challenge/:id/chat` - Chat con la persona simulada asignada al challenge
+- `/auth/google/callback` - Callback de OAuth de Google (usado internamente en popup)
 
 ### Componentes de Rutas
 - `ProtectedRoute`: Verifica autenticación antes de renderizar
@@ -172,14 +176,52 @@ const response = await apiClient.post<Data>('/endpoint', body, { requireAuth: tr
 export const config = {
     API_BASE_URL: (import.meta as any).env?.API_BASE_URL || 'http://localhost:8000',
     API_VERSION: (import.meta as any).env?.API_VERSION || 'v1',
-    API_ENDPOINTS: {
-        LOGIN: '/api/v1/users/login',
-        REGISTER: '/api/v1/users/register'
-    }
+    GOOGLE_CLIENT_ID: (import.meta.env as any).PUBLIC_GOOGLE_CLIENT_ID || '',
 }
 ```
 
-### 3. Servicios de API
+### 3. Configuración de Servicios Externos
+
+```typescript
+export const EXTERNAL_URLS = {
+    GOOGLE: {
+        CALENDAR: 'https://calendar.google.com',
+        OAUTH_AUTH: 'https://accounts.google.com/o/oauth2/v2/auth',
+        SCOPES: {
+            CALENDAR_EVENTS: 'https://www.googleapis.com/auth/calendar.events',
+        },
+    },
+} as const
+
+export const getGoogleRedirectUri = (): string => {
+    return `${window.location.origin}/auth/google/callback`
+}
+```
+
+### 4. Integración con Google Calendar
+
+La aplicación integra Google Calendar mediante OAuth 2.0:
+
+- **Hook `useGoogleAuth`**: Encapsula todo el flujo de autenticación OAuth
+  - Construye la URL de autorización
+  - Maneja el popup de autenticación
+  - Procesa el callback de Google
+  - Intercambia el código por tokens
+  - Sincroniza hitos con Google Calendar
+  - Limpia recursos automáticamente
+
+- **Flujo OAuth**:
+  1. Usuario inicia autenticación → se abre popup con URL de Google
+  2. Google redirige a `/auth/google/callback` con código
+  3. `GoogleAuthCallback` envía código a ventana principal vía `postMessage`
+  4. Hook procesa código y sincroniza con backend
+  5. Popup se cierra automáticamente
+
+- **Configuración requerida**:
+  - Variable de entorno `PUBLIC_GOOGLE_CLIENT_ID`
+  - Ruta `/auth/google/callback` configurada en router
+
+### 5. Servicios de API
 
 Los servicios (`authApi`, `challengesApi`, `categoriesApi`) utilizan el cliente HTTP centralizado y extienden la clase `ApiError` para errores específicos:
 
@@ -187,7 +229,7 @@ Los servicios (`authApi`, `challengesApi`, `categoriesApi`) utilizan el cliente 
 - `ChallengeApiError`: Errores específicos de challenges
 - `CategoryApiError`: Errores específicos de categorías
 
-### 4. Manejo de Errores
+### 6. Manejo de Errores
 
 Todos los servicios utilizan el manejo de errores centralizado del `apiClient`, que:
 - Extrae mensajes de error del servidor
@@ -250,4 +292,7 @@ npm run lint
 ```env
 API_BASE_URL=http://localhost:8000
 API_VERSION=v1
+PUBLIC_GOOGLE_CLIENT_ID=tu_google_client_id_aqui
 ```
+
+**Nota**: `PUBLIC_GOOGLE_CLIENT_ID` es requerido para la funcionalidad de integración con Google Calendar. Las variables con prefijo `PUBLIC_` son expuestas al cliente por RSBuild.

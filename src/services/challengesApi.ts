@@ -1,4 +1,5 @@
 import { apiClient, ApiError } from '../lib/apiClient'
+import { ENDPOINTS } from '../config/endpoints'
 import type {
   Challenge,
   SocialProblemsApiResponse,
@@ -37,7 +38,7 @@ export const challengesApi = {
       }
 
       const queryString = queryParams.toString()
-      const endpoint = `/api/v1/social-problems${queryString ? `?${queryString}` : ''}`
+      const endpoint = `${ENDPOINTS.CHALLENGES.SOCIAL_PROBLEMS}${queryString ? `?${queryString}` : ''}`
 
       return (await apiClient.get<SocialProblemsApiResponse['data']>(
         endpoint
@@ -78,7 +79,7 @@ export const challengesApi = {
       const queryParams = new URLSearchParams()
       queryParams.append('category', category)
 
-      const endpoint = `/api/v1/simulated-persons?${queryParams.toString()}`
+      const endpoint = `${ENDPOINTS.CHALLENGES.SIMULATED_PERSONS}?${queryParams.toString()}`
 
       return (await apiClient.get<SimulatedPersonsApiResponse['data']>(
         endpoint
@@ -100,7 +101,7 @@ export const challengesApi = {
     token: string
   ): Promise<ChallengeAssignmentResponse> {
     try {
-      const endpoint = `/api/v1/challenges/assignments`
+      const endpoint = ENDPOINTS.CHALLENGES.ASSIGNMENTS
 
       return (await apiClient.post<ChallengeAssignmentResponse['data']>(
         endpoint,
@@ -121,7 +122,7 @@ export const challengesApi = {
 
   async getSimulatedPersonById(personId: string): Promise<SimulatedPerson> {
     try {
-      const endpoint = `/api/v1/simulated-persons/${personId}`
+      const endpoint = `${ENDPOINTS.CHALLENGES.SIMULATED_PERSONS}/${personId}`
 
       const response = await apiClient.get<SimulatedPerson>(endpoint)
       return response.data
@@ -141,7 +142,7 @@ export const challengesApi = {
     studentId: string
   ): Promise<StudentAssignmentsApiResponse> {
     try {
-      const endpoint = `/api/v1/challenges/assignments/student/${studentId}`
+      const endpoint = ENDPOINTS.CHALLENGES.ASSIGNMENTS_BY_STUDENT(studentId)
 
       return (await apiClient.get<StudentAssignmentsApiResponse['data']>(
         endpoint

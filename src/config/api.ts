@@ -4,10 +4,12 @@ export const config = {
     (import.meta as any).env?.API_BASE_URL || 'http://localhost:8000',
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   API_VERSION: (import.meta as any).env?.API_VERSION || 'v1',
-  API_ENDPOINTS: {
-    LOGIN: '/api/v1/users/login',
-    REGISTER: '/api/v1/users/register',
-  },
+  GOOGLE_CLIENT_ID:
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (import.meta.env as any).PUBLIC_GOOGLE_CLIENT_ID ||
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (import.meta as any).env?.PUBLIC_GOOGLE_CLIENT_ID ||
+    '',
 }
 
 export const getApiUrl = (endpoint: string) => {

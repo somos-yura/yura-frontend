@@ -1,4 +1,5 @@
 import { apiClient, ApiError } from '../lib/apiClient'
+import { ENDPOINTS } from '../config/endpoints'
 import type {
   StudentOnboardingData,
   StudentProfile,
@@ -12,7 +13,7 @@ export const studentsApi = {
   ): Promise<StudentProfile> {
     try {
       const response = await apiClient.put<StudentProfile>(
-        '/api/v1/students/profile/onboarding',
+        ENDPOINTS.STUDENTS.ONBOARDING,
         data,
         { requireAuth: true, token }
       )
@@ -28,7 +29,7 @@ export const studentsApi = {
   async getProfile(token: string): Promise<StudentProfile> {
     try {
       const response = await apiClient.get<StudentProfile>(
-        '/api/v1/students/profile',
+        ENDPOINTS.STUDENTS.PROFILE,
         { requireAuth: true, token }
       )
       return response.data
@@ -43,7 +44,7 @@ export const studentsApi = {
   async getProfileSummary(token: string): Promise<StudentProfileSummary> {
     try {
       const response = await apiClient.get<StudentProfileSummary>(
-        '/api/v1/students/profile/summary',
+        ENDPOINTS.STUDENTS.SUMMARY,
         { requireAuth: true, token }
       )
       return response.data
