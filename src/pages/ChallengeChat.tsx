@@ -986,7 +986,6 @@ const ChallengeChat: React.FC = () => {
                   ¡Sincroniza tu Calendario!
                 </h3>
                 <p className="text-gray-500 text-sm mb-6">
-                  El Agente Planner está listo para organizar tus hitos.
                   Vincular con Google Calendar te permitirá ver estas fechas
                   directamente en tu agenda.
                 </p>
