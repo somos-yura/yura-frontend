@@ -50,8 +50,18 @@ export default tseslint.config(
           singleQuote: true,
           printWidth: 80,
           tabWidth: 2,
+          arrowParens: 'always',
+          bracketSpacing: true,
+          endOfLine: 'lf',
+          // Enforce proper template literal formatting
+          singleAttributePerLine: false,
         },
       ],
+      // Template literal formatting rules
+      'prefer-template': 'error',
+      'template-curly-spacing': ['error', 'never'],
+      // Enforce consistent formatting for template literals with expressions
+      'no-multi-str': 'error',
       'react/prop-types': 'off',
       'react/react-in-jsx-scope': 'off',
     },

@@ -21,7 +21,6 @@ export const ENDPOINTS = {
   },
   CHALLENGES: {
     SOCIAL_PROBLEMS: '/api/v1/social-problems',
-    SIMULATED_PERSONS: '/api/v1/simulated-persons',
     ASSIGNMENTS: '/api/v1/challenges/assignments',
     ASSIGNMENTS_BY_STUDENT: (studentId: string) =>
       `/api/v1/challenges/assignments/student/${studentId}`,

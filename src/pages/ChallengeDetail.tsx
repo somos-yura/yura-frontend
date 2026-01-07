@@ -1,14 +1,18 @@
 import type React from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
-import { ArrowLeft, Briefcase, ArrowRight } from 'lucide-react'
+import {
+  ArrowLeft,
+  Briefcase,
+  ArrowRight,
+  User,
+  Sparkles,
+  Award,
+  Heart,
+} from 'lucide-react'
 import { Layout } from '../components/layout/Layout'
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { challengesApi, ChallengeApiError } from '../services/challengesApi'
-import type {
-  Challenge,
-  SimulatedPerson,
-  ChallengeAssignment,
-} from '../types/challenge'
+import type { Challenge, ChallengeAssignment } from '../types/challenge'
 import { ConfirmationModal } from '../components/ui/ConfirmationModal'
 import { ContactLoadingModal } from '../components/ui/ContactLoadingModal'
 import { MessageAlert } from '../components/ui/MessageAlert'
@@ -26,20 +30,13 @@ const ChallengeDetail: React.FC = () => {
   }
   const { user, token } = useAuthContext()
   const [challenge, setChallenge] = useState<Challenge | null>(null)
-  const [simulatedPersons, setSimulatedPersons] = useState<SimulatedPerson[]>(
-    []
-  )
   const [currentAssignment, setCurrentAssignment] =
     useState<ChallengeAssignment | null>(null)
   const [loading, setLoading] = useState(true)
-  const [loadingPersons, setLoadingPersons] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [assignmentError, setAssignmentError] = useState<string | null>(null)
   const [showConfirmationModal, setShowConfirmationModal] = useState(false)
   const [showLoadingModal, setShowLoadingModal] = useState(false)
-  const [selectedPerson, setSelectedPerson] = useState<SimulatedPerson | null>(
-    null
-  )
   const [milestoneCount, setMilestoneCount] = useState<number>(0)
   const timeoutRef = useRef<number | null>(null)
 
@@ -68,20 +65,6 @@ const ChallengeDetail: React.FC = () => {
               }
             } catch {
               // Ignore error if assignment not found
-            }
-          }
-
-          if (problem.category && problem.category.length > 0) {
-            setLoadingPersons(true)
-            try {
-              const personsResponse = await challengesApi.getSimulatedPersons(
-                problem.category[0]
-              )
-              setSimulatedPersons(personsResponse.data.slice(0, 4))
-            } catch {
-              setError('Error al cargar las personas simuladas')
-            } finally {
-              setLoadingPersons(false)
             }
           }
         } else {
@@ -116,37 +99,19 @@ const ChallengeDetail: React.FC = () => {
     return 'Sin categoría'
   }
 
-  const handleContactClick = (person: SimulatedPerson) => {
+  const handleContactClick = () => {
     if (currentAssignment) {
-      navigate(
-        `/challenge/${challenge?.id}/chat?person_id=${currentAssignment.simulated_person_id}`,
-        {
-          state: { from: getBackPath() },
-        }
-      )
+      navigate(`/challenge/${challenge?.id}/chat`, {
+        state: { from: getBackPath() },
+      })
       return
     }
-    setSelectedPerson(person)
     setAssignmentError(null)
     setShowConfirmationModal(true)
   }
 
-  const isPersonAssigned = (personId: string): boolean => {
-    return currentAssignment?.simulated_person_id === personId
-  }
-
-  const getDisplayedPersons = (): SimulatedPerson[] => {
-    if (currentAssignment) {
-      const assignedPerson = simulatedPersons.find(
-        (person) => person.id === currentAssignment.simulated_person_id
-      )
-      return assignedPerson ? [assignedPerson] : []
-    }
-    return simulatedPersons
-  }
-
   const handleConfirmContact = async () => {
-    if (!challenge || !selectedPerson || !user || !token) {
+    if (!challenge || !user || !token) {
       setAssignmentError('Faltan datos necesarios para realizar el contacto')
       setShowConfirmationModal(false)
       return
@@ -159,7 +124,6 @@ const ChallengeDetail: React.FC = () => {
     try {
       const assignmentResponse = await challengesApi.createAssignment(
         {
-          simulated_person_id: selectedPerson.id,
           social_problem_id: challenge.id,
           student_id: user.id,
         },
@@ -174,12 +138,9 @@ const ChallengeDetail: React.FC = () => {
 
       timeoutRef.current = window.setTimeout(() => {
         setShowLoadingModal(false)
-        navigate(
-          `/challenge/${challenge.id}/chat?person_id=${selectedPerson.id}`,
-          {
-            state: { from: getBackPath() },
-          }
-        )
+        navigate(`/challenge/${challenge.id}/chat`, {
+          state: { from: getBackPath() },
+        })
       }, 2500)
     } catch (err) {
       setShowLoadingModal(false)
@@ -204,7 +165,6 @@ const ChallengeDetail: React.FC = () => {
 
   const handleCancelContact = () => {
     setShowConfirmationModal(false)
-    setSelectedPerson(null)
   }
 
   if (loading) {
@@ -282,8 +242,8 @@ const ChallengeDetail: React.FC = () => {
   }
 
   return (
-    <Layout>
-      <div className="w-full bg-gray-50/50 min-h-screen pb-20">
+    <Layout noPadding>
+      <div className="w-full bg-gray-50 min-h-screen pb-20">
         {/* Hero Section */}
         <div className="relative h-[500px] w-full overflow-hidden">
           <div className="absolute inset-0">
@@ -394,105 +354,164 @@ const ChallengeDetail: React.FC = () => {
               )}
 
               {/* Stakeholders Section */}
-              <section className="bg-gradient-to-br from-[#F8FAFC] to-white rounded-3xl p-8 md:p-12 border border-border/50 shadow-lg relative overflow-hidden">
+              <section className="bg-gradient-to-br from-[#F8FAFC] to-white rounded-3xl p-8 md:p-12 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-electricBlue/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
 
                 <div className="relative z-10 mb-10 text-center max-w-2xl mx-auto">
-                  <h2 className="text-3xl font-bold text-foreground mb-4 font-montserrat">
-                    Conecta con un Stakeholder
+                  <h2 className="text-3xl font-bold text-foreground mb-4 font-montserrat flex items-center justify-center gap-3">
+                    <User className="w-8 h-8 text-electricBlue" />
+                    Conecta con el Stakeholder
                   </h2>
                   <p className="text-muted-foreground text-lg">
-                    Selecciona a la persona con la que te gustaría colaborar. Al
+                    Esta es la persona asignada a este problema social. Conoce
+                    más sobre quién trabajarás y cómo podrás ayudarle. Al
                     contactar, iniciarás tu compromiso con este reto.
                   </p>
                 </div>
 
                 {assignmentError && (
-                  <div className="mb-8 max-w-2xl mx-auto">
+                  <div className="mb-8 max-w-3xl mx-auto">
                     <MessageAlert type="error" message={assignmentError} />
                   </div>
                 )}
 
-                {loadingPersons ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {[1, 2].map((i) => (
-                      <div
-                        key={i}
-                        className="bg-white rounded-2xl p-6 h-[400px] animate-pulse border border-border/50"
-                      />
-                    ))}
-                  </div>
-                ) : getDisplayedPersons().length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {getDisplayedPersons().map((person) => {
-                      const isAssigned = isPersonAssigned(person.id)
-
-                      return (
-                        <div
-                          key={person.id}
-                          className={`
-                                                    group relative bg-white rounded-2xl border transition-all duration-300 flex flex-col overflow-hidden
-                                                    ${
-                                                      isAssigned
-                                                        ? 'border-electricBlue ring-2 ring-electricBlue/20 shadow-xl shadow-electricBlue/10 scale-[1.02]'
-                                                        : 'border-border/50 hover:border-electricBlue/30 hover:shadow-xl hover:-translate-y-1'
-                                                    }
-                                                `}
-                        >
-                          <div className="p-6 flex-1 flex flex-col">
-                            <div className="flex items-start justify-between mb-4">
-                              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-2xl shadow-inner">
-                                {person.first_name[0]}
-                                {person.last_name[0]}
+                {challenge ? (
+                  <div className="max-w-full mx-auto">
+                    <div
+                      className={`
+                        group relative bg-white rounded-2xl border transition-all duration-300 flex flex-col overflow-hidden
+                        ${
+                          currentAssignment
+                            ? 'border-electricBlue ring-2 ring-electricBlue/20 shadow-xl shadow-electricBlue/10 scale-[1.02]'
+                            : 'border-border/50 hover:border-electricBlue/30 hover:shadow-xl hover:-translate-y-1'
+                        }
+                      `}
+                    >
+                      <div className="bg-gradient-to-r from-electricBlue/5 via-blue-50/50 to-transparent p-6 border-b border-border/30">
+                        <div className="flex items-start gap-6">
+                          <div className="relative flex-shrink-0">
+                            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-electricBlue to-blue-600 flex items-center justify-center text-2xl font-bold text-white shadow-lg shadow-electricBlue/30">
+                              {challenge.person_first_name[0]}
+                              {challenge.person_last_name[0]}
+                            </div>
+                            {currentAssignment && (
+                              <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-white flex items-center justify-center">
+                                <div className="w-2 h-2 bg-white rounded-full" />
                               </div>
-                              {person.expertise_areas?.[0] && (
-                                <span className="bg-blue-50 text-electricBlue text-xs font-semibold px-3 py-1 rounded-full border border-blue-100">
-                                  {person.expertise_areas[0]}
-                                </span>
-                              )}
-                            </div>
-
-                            <h3 className="text-xl font-bold text-foreground mb-2 font-montserrat">
-                              {person.first_name} {person.last_name}
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-2xl font-bold text-foreground mb-2 font-montserrat">
+                              {challenge.person_first_name}{' '}
+                              {challenge.person_last_name}
                             </h3>
-
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-                              <span>{person.age} años</span>
-                              <span>•</span>
-                              <span className="truncate">Stakeholder</span>
-                            </div>
-
-                            <p className="text-muted-foreground text-sm leading-relaxed line-clamp-4 mb-6 flex-1">
-                              {person.bio}
-                            </p>
-
-                            <button
-                              onClick={() => handleContactClick(person)}
-                              className={`
-                                                            w-full py-3.5 px-6 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all duration-300
-                                                            ${
-                                                              isAssigned
-                                                                ? 'bg-green-500 text-white hover:bg-green-600 shadow-lg shadow-green-500/25'
-                                                                : 'bg-electricBlue text-white hover:bg-[#1873CC] shadow-lg shadow-electricBlue/25'
-                                                            }
-                                                        `}
-                            >
-                              {isAssigned ? (
-                                <>
-                                  <span>Continuar Chat</span>
-                                  <ArrowRight className="w-5 h-5" />
-                                </>
-                              ) : (
-                                <>
-                                  <span>Contactar</span>
-                                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                                </>
+                            <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                              {challenge.person_age && (
+                                <div className="flex items-center gap-1.5">
+                                  <User className="w-4 h-4" />
+                                  <span>{challenge.person_age} años</span>
+                                </div>
                               )}
-                            </button>
+                              <div className="flex items-center gap-1.5">
+                                <Briefcase className="w-4 h-4" />
+                                <span>Stakeholder</span>
+                              </div>
+                            </div>
                           </div>
                         </div>
-                      )
-                    })}
+                      </div>
+
+                      <div className="p-6 space-y-6">
+                        {challenge.person_bio && (
+                          <div>
+                            <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2 uppercase tracking-wide">
+                              <div className="w-1 h-4 bg-electricBlue rounded-full" />
+                              Sobre {challenge.person_first_name}
+                            </h4>
+                            <p className="text-muted-foreground leading-relaxed">
+                              {challenge.person_bio}
+                            </p>
+                          </div>
+                        )}
+
+                        {challenge.person_personality_traits &&
+                          challenge.person_personality_traits.length > 0 && (
+                            <div>
+                              <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2 uppercase tracking-wide">
+                                <Sparkles className="w-4 h-4 text-electricBlue" />
+                                Rasgos de Personalidad
+                              </h4>
+                              <div className="flex flex-wrap gap-2">
+                                {challenge.person_personality_traits.map(
+                                  (trait, index) => (
+                                    <span
+                                      key={index}
+                                      className="inline-flex items-center gap-1.5 bg-purple-50 text-purple-700 px-3 py-1.5 rounded-lg text-sm font-medium border border-purple-100"
+                                    >
+                                      <Heart className="w-3.5 h-3.5" />
+                                      {trait}
+                                    </span>
+                                  )
+                                )}
+                              </div>
+                            </div>
+                          )}
+
+                        {challenge.person_expertise_areas &&
+                          challenge.person_expertise_areas.length > 0 && (
+                            <div>
+                              <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2 uppercase tracking-wide">
+                                <Award className="w-4 h-4 text-electricBlue" />
+                                Áreas de Experiencia
+                              </h4>
+                              <div className="flex flex-wrap gap-2">
+                                {challenge.person_expertise_areas.map(
+                                  (area, index) => (
+                                    <span
+                                      key={index}
+                                      className="inline-flex items-center bg-blue-50 text-electricBlue px-3 py-1.5 rounded-lg text-sm font-semibold border border-blue-100"
+                                    >
+                                      {area}
+                                    </span>
+                                  )
+                                )}
+                              </div>
+                            </div>
+                          )}
+
+                        <div className="pt-4 border-t border-border/30">
+                          <button
+                            onClick={handleContactClick}
+                            className={`
+                              w-full py-4 px-6 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all duration-300 text-base
+                              ${
+                                currentAssignment
+                                  ? 'bg-green-500 text-white hover:bg-green-600 shadow-lg shadow-green-500/25 hover:shadow-green-500/40'
+                                  : 'bg-electricBlue text-white hover:bg-[#1873CC] shadow-lg shadow-electricBlue/25 hover:shadow-electricBlue/40'
+                              }
+                            `}
+                          >
+                            {currentAssignment ? (
+                              <>
+                                <span>Continuar Chat</span>
+                                <ArrowRight className="w-5 h-5" />
+                              </>
+                            ) : (
+                              <>
+                                <span>Iniciar Colaboración</span>
+                                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                              </>
+                            )}
+                          </button>
+                          {!currentAssignment && (
+                            <p className="text-xs text-center text-muted-foreground mt-3">
+                              Al contactar, te comprometerás a trabajar en este
+                              reto social
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 ) : (
                   <div className="text-center py-12 bg-white rounded-2xl border border-border/50">
@@ -500,10 +519,10 @@ const ChallengeDetail: React.FC = () => {
                       <Briefcase className="w-8 h-8 text-gray-400" />
                     </div>
                     <h3 className="text-lg font-semibold text-foreground mb-2">
-                      No hay stakeholders disponibles
+                      No hay stakeholder disponible
                     </h3>
                     <p className="text-muted-foreground">
-                      En este momento no hay personas asignadas a este reto.
+                      En este momento no hay persona asignada a este reto.
                     </p>
                   </div>
                 )}
@@ -540,8 +559,8 @@ const ChallengeDetail: React.FC = () => {
         onConfirm={handleConfirmContact}
         title="Iniciar Colaboración"
         message={
-          selectedPerson
-            ? `¿Deseas contactar a ${selectedPerson.first_name} ${selectedPerson.last_name}? Al hacerlo, te comprometerás a trabajar en este reto social.`
+          challenge
+            ? `¿Deseas contactar a ${challenge.person_first_name} ${challenge.person_last_name}? Al hacerlo, te comprometerás a trabajar en este reto social.`
             : '¿Estás seguro de que deseas contactarte para llevar a cabo este proyecto?'
         }
         confirmText="Sí, contactar"
@@ -551,8 +570,8 @@ const ChallengeDetail: React.FC = () => {
       <ContactLoadingModal
         isOpen={showLoadingModal}
         personName={
-          selectedPerson
-            ? `${selectedPerson.first_name} ${selectedPerson.last_name}`
+          challenge
+            ? `${challenge.person_first_name} ${challenge.person_last_name}`
             : ''
         }
       />

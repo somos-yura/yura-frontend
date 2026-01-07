@@ -21,11 +21,7 @@ import { useChat } from '../hooks/useChat'
 import { challengesApi, ChallengeApiError } from '../services/challengesApi'
 import { chatApi, type Diagram } from '../services/chatApi'
 import { useAuthContext } from '../contexts/AuthContext'
-import type {
-  Challenge,
-  SimulatedPerson,
-  ChallengeAssignment,
-} from '../types/challenge'
+import type { Challenge, ChallengeAssignment } from '../types/challenge'
 import { SUGGESTED_PROMPTS, CHAT_MESSAGES } from '../constants/chat'
 import {
   handleKeyPress,
@@ -109,8 +105,6 @@ const ChallengeChat: React.FC = () => {
     return from || `/challenge/${id}`
   }
   const [challenge, setChallenge] = useState<Challenge | null>(null)
-  const [simulatedPerson, setSimulatedPerson] =
-    useState<SimulatedPerson | null>(null)
   const [challengeAssignment, setChallengeAssignment] =
     useState<ChallengeAssignment | null>(null)
   const [loading, setLoading] = useState(true)
@@ -151,16 +145,19 @@ const ChallengeChat: React.FC = () => {
     },
   })
 
-  const getAvatarInitials = (person: SimulatedPerson | null): string => {
-    if (!person) return '?'
-    const first = person.first_name?.charAt(0).toUpperCase() || ''
-    const last = person.last_name?.charAt(0).toUpperCase() || ''
+  const getAvatarInitials = (challenge: Challenge | null): string => {
+    if (!challenge) return '?'
+    const first = challenge.person_first_name?.charAt(0).toUpperCase() || ''
+    const last = challenge.person_last_name?.charAt(0).toUpperCase() || ''
     return first + last || '?'
   }
 
-  const getFullName = (person: SimulatedPerson | null): string => {
-    if (!person) return 'Persona'
-    return `${person.first_name} ${person.last_name} `.trim() || 'Persona'
+  const getFullName = (challenge: Challenge | null): string => {
+    if (!challenge) return 'Persona'
+    return (
+      `${challenge.person_first_name} ${challenge.person_last_name}`.trim() ||
+      'Persona'
+    )
   }
 
   const cleanDiagramDescriptions = (content: string): string => {
@@ -276,20 +273,6 @@ const ChallengeChat: React.FC = () => {
           }
 
           setChallengeAssignment(assignment)
-
-          // Fetch simulated person
-          try {
-            const person = await challengesApi.getSimulatedPersonById(
-              assignment.simulated_person_id
-            )
-            setSimulatedPerson(person)
-          } catch (err) {
-            if (err instanceof ChallengeApiError) {
-              setError(err.message)
-            } else {
-              setError('Error al cargar los datos de la persona simulada')
-            }
-          }
         } catch (err) {
           if (err instanceof ChallengeApiError) {
             setError(err.message)
@@ -398,13 +381,13 @@ const ChallengeChat: React.FC = () => {
                 </button>
                 <div className="relative flex-shrink-0">
                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center text-blue-700 font-bold text-base shadow-sm ring-2 ring-white border border-blue-100">
-                    {getAvatarInitials(simulatedPerson)}
+                    {getAvatarInitials(challenge)}
                   </div>
                   <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></div>
                 </div>
                 <div className="flex-1 min-w-0">
                   <h1 className="text-lg font-bold text-gray-900 truncate leading-tight">
-                    {getFullName(simulatedPerson)}
+                    {getFullName(challenge)}
                   </h1>
                   <p className="text-sm text-gray-500 truncate">
                     {challenge.title}
@@ -505,7 +488,7 @@ const ChallengeChat: React.FC = () => {
                 <div className="flex flex-col items-center justify-center space-y-8 py-8">
                   <div className="text-center space-y-3">
                     <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center text-blue-700 font-bold text-2xl mx-auto shadow-sm mb-4 ring-4 ring-white border border-blue-100">
-                      {getAvatarInitials(simulatedPerson)}
+                      {getAvatarInitials(challenge)}
                     </div>
                     <h1 className="text-2xl font-semibold text-gray-900">
                       {CHAT_MESSAGES.GREETING}
@@ -567,7 +550,7 @@ const ChallengeChat: React.FC = () => {
                           {/* Avatar */}
                           {!isUser && !isConsecutive ? (
                             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center text-blue-700 font-bold text-xs shadow-sm flex-shrink-0 mb-1 ring-2 ring-white border border-blue-100">
-                              {getAvatarInitials(simulatedPerson)}
+                              {getAvatarInitials(challenge)}
                             </div>
                           ) : isUser && !isConsecutive ? (
                             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold text-xs shadow-sm flex-shrink-0 mb-1">
@@ -692,7 +675,7 @@ const ChallengeChat: React.FC = () => {
                   {isTyping && (
                     <div className="flex gap-3">
                       <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center text-blue-700 font-bold text-xs shadow-sm flex-shrink-0 border border-blue-100">
-                        {getAvatarInitials(simulatedPerson)}
+                        {getAvatarInitials(challenge)}
                       </div>
                       <div className="bg-white border border-gray-100 rounded-2xl rounded-tl-md px-5 py-3.5 shadow-sm">
                         <div className="flex gap-1.5">
@@ -896,35 +879,35 @@ const ChallengeChat: React.FC = () => {
                     </h4>
                     <div className="flex items-center gap-4 mb-4">
                       <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center text-blue-700 font-bold text-lg shadow-sm ring-2 ring-white border border-blue-100">
-                        {getAvatarInitials(simulatedPerson)}
+                        {getAvatarInitials(challenge)}
                       </div>
                       <div>
                         <h5 className="font-semibold text-gray-900">
-                          {getFullName(simulatedPerson)}
+                          {getFullName(challenge)}
                         </h5>
                         <p className="text-sm text-gray-500">
-                          {simulatedPerson?.age} años
+                          {challenge?.person_age} años
                         </p>
                       </div>
                     </div>
-                    {simulatedPerson?.bio && (
+                    {challenge?.person_bio && (
                       <div className="mb-4">
                         <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                           Biografía
                         </span>
                         <p className="text-sm text-gray-700 mt-1 leading-relaxed">
-                          {simulatedPerson.bio}
+                          {challenge.person_bio}
                         </p>
                       </div>
                     )}
-                    {simulatedPerson?.expertise_areas &&
-                      simulatedPerson.expertise_areas.length > 0 && (
+                    {challenge?.person_expertise_areas &&
+                      challenge.person_expertise_areas.length > 0 && (
                         <div className="mb-4">
                           <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                             Áreas de Experiencia
                           </span>
                           <div className="flex flex-wrap gap-1.5 mt-2">
-                            {simulatedPerson.expertise_areas.map(
+                            {challenge.person_expertise_areas.map(
                               (area, idx) => (
                                 <span
                                   key={idx}
@@ -937,14 +920,14 @@ const ChallengeChat: React.FC = () => {
                           </div>
                         </div>
                       )}
-                    {simulatedPerson?.personality_traits &&
-                      simulatedPerson.personality_traits.length > 0 && (
+                    {challenge?.person_personality_traits &&
+                      challenge.person_personality_traits.length > 0 && (
                         <div>
                           <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                             Rasgos de Personalidad
                           </span>
                           <div className="flex flex-wrap gap-1.5 mt-2">
-                            {simulatedPerson.personality_traits.map(
+                            {challenge.person_personality_traits.map(
                               (trait, idx) => (
                                 <span
                                   key={idx}
