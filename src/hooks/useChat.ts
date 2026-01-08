@@ -1,5 +1,10 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
-import { chatApi, ChatApiError, type ChatResponse } from '../services/chatApi'
+import {
+  chatApi,
+  ChatApiError,
+  ErrorCode,
+  type ChatResponse,
+} from '../services/chatApi'
 import type { Message } from '../types/chat'
 
 interface UseChatOptions {
@@ -24,6 +29,10 @@ export const useChat = (options: UseChatOptions) => {
   const [isTyping, setIsTyping] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [conversationId, setConversationId] = useState<string | null>(null)
+  const [errorState, setErrorState] = useState<{
+    type: ErrorCode | null
+    message: string | null
+  }>({ type: null, message: null })
   const abortControllerRef = useRef<AbortController | null>(null)
   const hasLoadedHistory = useRef(false)
 
@@ -65,8 +74,8 @@ export const useChat = (options: UseChatOptions) => {
     setAllMessages((prev) => [...prev, userMessage])
     setInputValue('')
     setIsTyping(true)
+    setErrorState({ type: null, message: null })
 
-    // Cancel any pending request
     if (abortControllerRef.current) {
       abortControllerRef.current.abort()
     }
@@ -96,20 +105,24 @@ export const useChat = (options: UseChatOptions) => {
       console.log('Created AI Message:', aiMessage)
       setAllMessages((prev) => [...prev, aiMessage])
       setConversationId(response.data.conversation_id)
-      // After sending a new message, show all messages (increment display count)
-      setDisplayedMessageCount((prev) => prev + 2) // User message + AI response
+      setDisplayedMessageCount((prev) => prev + 2)
 
       if (onMessageSent && response.data) {
         onMessageSent(response.data)
       }
     } catch (error) {
-      // Remove the user message on error
       setAllMessages((prev) => prev.filter((msg) => msg.id !== userMessage.id))
 
-      const errorMessage =
-        error instanceof ChatApiError
-          ? error.message
-          : 'Error al enviar el mensaje. Por favor, intenta de nuevo.'
+      let errorMessage =
+        'Error al enviar el mensaje. Por favor, intenta de nuevo.'
+      let errorType: ErrorCode = ErrorCode.UNKNOWN
+
+      if (error instanceof ChatApiError) {
+        errorMessage = error.message
+        errorType = error.errorCode || ErrorCode.UNKNOWN
+      }
+
+      setErrorState({ type: errorType, message: errorMessage })
 
       if (onError) {
         onError(errorMessage)
@@ -245,6 +258,7 @@ export const useChat = (options: UseChatOptions) => {
     isLoading,
     conversationId,
     hasMoreMessages,
+    errorState,
     handleSendMessage,
     handleSuggestedPrompt,
     loadMoreMessages,

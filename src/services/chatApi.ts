@@ -1,10 +1,38 @@
 import { apiClient, ApiError } from '../lib/apiClient'
 import { ENDPOINTS } from '../config/endpoints'
 
+export const ResponseStatus = {
+  SUCCESS: 'success',
+  ERROR: 'error',
+  PARTIAL: 'partial',
+} as const
+
+export type ResponseStatus =
+  (typeof ResponseStatus)[keyof typeof ResponseStatus]
+
+export const ErrorCode = {
+  TIMEOUT: 'timeout',
+  LLM_FAIL: 'llm_fail',
+  RAG_FAIL: 'rag_fail',
+  ORCHESTRATION_FAIL: 'orchestration_fail',
+  NETWORK_ERROR: 'network_error',
+  UNKNOWN: 'unknown',
+} as const
+
+export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode]
+
 export class ChatApiError extends ApiError {
-  constructor(message: string, status: number, details?: unknown) {
+  errorCode?: ErrorCode
+
+  constructor(
+    message: string,
+    status: number,
+    details?: unknown,
+    errorCode?: ErrorCode
+  ) {
     super(message, status, details)
     this.name = 'ChatApiError'
+    this.errorCode = errorCode
   }
 }
 
@@ -37,6 +65,9 @@ export interface ChatResponse {
   current_agent?: string
   google_calendar_linked?: boolean
   needs_google_auth?: boolean
+  status?: ResponseStatus
+  error_code?: ErrorCode | null
+  error_message?: string | null
 }
 
 export interface ChatApiResponse {
@@ -128,15 +159,39 @@ export const chatApi = {
   ): Promise<ChatApiResponse> {
     try {
       const endpoint = ENDPOINTS.AI.CHAT.SEND_MESSAGE
-      return (await apiClient.post<ChatResponse>(endpoint, request, {
+      const response = (await apiClient.post<ChatResponse>(endpoint, request, {
         requireAuth: true,
         token,
       })) as ChatApiResponse
-    } catch (error) {
-      if (error instanceof ApiError) {
-        throw new ChatApiError(error.message, error.status, error.details)
+
+      if (response.data.status === ResponseStatus.ERROR) {
+        throw new ChatApiError(
+          response.data.error_message || 'Error al procesar la respuesta',
+          500,
+          response.data,
+          response.data.error_code as ErrorCode | undefined
+        )
       }
-      throw new ChatApiError('Error al enviar el mensaje', 500, error)
+
+      return response
+    } catch (error) {
+      if (error instanceof ChatApiError) {
+        throw error
+      }
+      if (error instanceof ApiError) {
+        throw new ChatApiError(
+          error.message,
+          error.status,
+          error.details,
+          ErrorCode.NETWORK_ERROR
+        )
+      }
+      throw new ChatApiError(
+        'Error de conexión. Por favor, verifica tu red.',
+        0,
+        error,
+        ErrorCode.NETWORK_ERROR
+      )
     }
   },
 
