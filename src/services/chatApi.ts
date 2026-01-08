@@ -4,7 +4,6 @@ import { ENDPOINTS } from '../config/endpoints'
 export const ResponseStatus = {
   SUCCESS: 'success',
   ERROR: 'error',
-  PARTIAL: 'partial',
 } as const
 
 export type ResponseStatus =
@@ -159,36 +158,24 @@ export const chatApi = {
   ): Promise<ChatApiResponse> {
     try {
       const endpoint = ENDPOINTS.AI.CHAT.SEND_MESSAGE
-      const response = (await apiClient.post<ChatResponse>(endpoint, request, {
+      return (await apiClient.post<ChatResponse>(endpoint, request, {
         requireAuth: true,
         token,
       })) as ChatApiResponse
-
-      if (response.data.status === ResponseStatus.ERROR) {
-        throw new ChatApiError(
-          response.data.error_message || 'Error al procesar la respuesta',
-          500,
-          response.data,
-          response.data.error_code as ErrorCode | undefined
-        )
-      }
-
-      return response
     } catch (error) {
-      if (error instanceof ChatApiError) {
-        throw error
-      }
       if (error instanceof ApiError) {
+        // Mapear el error de la API a un ChatApiError para mantener compatibilidad
+        const data = error.details as { error_code?: ErrorCode }
         throw new ChatApiError(
           error.message,
           error.status,
           error.details,
-          ErrorCode.NETWORK_ERROR
+          data?.error_code || ErrorCode.UNKNOWN
         )
       }
       throw new ChatApiError(
         'Error de conexión. Por favor, verifica tu red.',
-        0,
+        -1,
         error,
         ErrorCode.NETWORK_ERROR
       )

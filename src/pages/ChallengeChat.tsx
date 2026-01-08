@@ -721,6 +721,18 @@ const ChallengeChat: React.FC = () => {
 
           <div className="border-t border-gray-200 bg-white shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-20">
             <div className="w-full max-w-4xl mx-auto px-6 py-2">
+              {errorState.type && (
+                <div className="mb-2 p-3 bg-red-50 border border-red-100 rounded-lg flex items-center gap-2 text-sm text-red-600 animate-in slide-in-from-bottom-2 fade-in duration-300">
+                  <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse flex-shrink-0" />
+                  <p>
+                    No se pudo enviar el mensaje. Inténtalo más tarde,{' '}
+                    <span className="font-semibold">
+                      {getFullName(challenge)}
+                    </span>{' '}
+                    está desconectado.
+                  </p>
+                </div>
+              )}
               <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-3xl border border-gray-200 shadow-sm">
                 <div className="flex items-end gap-2.5 p-2.5">
                   <div className="flex-1 min-w-0">

@@ -66,8 +66,16 @@ export const useChat = (options: UseChatOptions) => {
   )
 
   const handleSendMessage = useCallback(async () => {
-    if (!inputValue.trim() || !challengeAssignmentId || !token || isTyping)
+    if (!inputValue.trim() || isTyping) return
+
+    if (!challengeAssignmentId || !token) {
+      const errorMessage = 'No hay conexión. Por favor, verifica tu sesión.'
+      setErrorState({ type: ErrorCode.NETWORK_ERROR, message: errorMessage })
+      if (onError) {
+        onError(errorMessage)
+      }
       return
+    }
 
     const userMessage = createUserMessage(inputValue)
     const messageContent = inputValue.trim()
@@ -111,7 +119,8 @@ export const useChat = (options: UseChatOptions) => {
         onMessageSent(response.data)
       }
     } catch (error) {
-      setAllMessages((prev) => prev.filter((msg) => msg.id !== userMessage.id))
+      setInputValue(messageContent)
+      setAllMessages((prev) => prev.slice(0, -1))
 
       let errorMessage =
         'Error al enviar el mensaje. Por favor, intenta de nuevo.'
