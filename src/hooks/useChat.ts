@@ -206,6 +206,36 @@ export const useChat = (options: UseChatOptions) => {
     }
   }, [])
 
+  const refreshHistory = useCallback(async () => {
+    if (!challengeAssignmentId || !sessionId || !token) return
+
+    setIsLoading(true)
+    try {
+      const response = await chatApi.getMessages(
+        challengeAssignmentId,
+        sessionId,
+        token
+      )
+
+      if (response.data && response.data.messages) {
+        const formattedMessages: Message[] = response.data.messages.map(
+          (msg) => ({
+            id: msg.message_id,
+            role: msg.role as 'user' | 'assistant',
+            content: msg.content,
+            timestamp: new Date(msg.timestamp),
+          })
+        )
+        setAllMessages(formattedMessages)
+        setDisplayedMessageCount(formattedMessages.length)
+      }
+    } catch (error) {
+      console.error('Error refreshing history:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [challengeAssignmentId, sessionId, token])
+
   return {
     messages,
     allMessages,
@@ -218,5 +248,6 @@ export const useChat = (options: UseChatOptions) => {
     handleSendMessage,
     handleSuggestedPrompt,
     loadMoreMessages,
+    refreshHistory,
   }
 }

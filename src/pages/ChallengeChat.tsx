@@ -1,6 +1,6 @@
 import type React from 'react'
 import { useRef, useEffect, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import {
   Send,
   User,
@@ -11,17 +11,17 @@ import {
   FolderOpen,
   Image as ImageIcon,
   Link as LinkIcon,
+  ChevronDown,
+  ChevronUp,
+  Calendar,
 } from 'lucide-react'
+import { useGoogleAuth } from '../hooks/useGoogleAuth'
 import { Layout } from '../components/layout/Layout'
 import { useChat } from '../hooks/useChat'
 import { challengesApi, ChallengeApiError } from '../services/challengesApi'
 import { chatApi, type Diagram } from '../services/chatApi'
 import { useAuthContext } from '../contexts/AuthContext'
-import type {
-  Challenge,
-  SimulatedPerson,
-  ChallengeAssignment,
-} from '../types/challenge'
+import type { Challenge, ChallengeAssignment } from '../types/challenge'
 import { SUGGESTED_PROMPTS, CHAT_MESSAGES } from '../constants/chat'
 import {
   handleKeyPress,
@@ -31,16 +31,80 @@ import {
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { Mermaid } from '../components/ui/Mermaid'
+import { ProjectMilestones } from '../components/ProjectMilestones'
 
-type TabType = 'chat' | 'files' | 'participants'
+type TabType = 'chat' | 'files' | 'participants' | 'milestones'
+
+const DiagramCard: React.FC<{
+  diagram: Diagram
+  index: number
+  total: number
+}> = ({ diagram, index, total }) => {
+  const [isOpen, setIsOpen] = useState(false)
+
+  return (
+    <div className="group border border-gray-100 rounded-xl hover:border-blue-200 hover:shadow-md transition-all duration-200 overflow-hidden bg-white">
+      {/* Card Header */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full px-4 py-3 flex items-center justify-between bg-gradient-to-r from-gray-50 to-gray-100/50 border-b border-gray-100 hover:bg-gray-100 transition-colors"
+      >
+        <div className="flex items-center gap-3">
+          <div className="p-1.5 bg-white rounded-md shadow-sm border border-gray-100">
+            <FileText className="w-4 h-4 text-blue-600" />
+          </div>
+          <div className="flex flex-col items-start">
+            <span className="text-xs font-bold bg-blue-50 text-blue-600 px-2 py-1 rounded-lg border border-blue-100 uppercase tracking-wide">
+              Diagrama {total - index}
+            </span>
+            <span className="text-xs text-gray-500 mt-1">
+              {new Date(diagram.created_at).toLocaleString('es-ES', {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
+            </span>
+          </div>
+        </div>
+        {isOpen ? (
+          <ChevronUp className="w-4 h-4 text-gray-400" />
+        ) : (
+          <ChevronDown className="w-4 h-4 text-gray-400" />
+        )}
+      </button>
+
+      {/* Diagram Content - Accordion */}
+      {isOpen && (
+        <div className="p-3 animate-in slide-in-from-top-2 duration-200">
+          <div className="rounded-lg border border-gray-200 overflow-hidden bg-gradient-to-br from-gray-50 to-white">
+            <Mermaid chart={diagram.code} />
+          </div>
+          {/* Description */}
+          {diagram.description && (
+            <div className="mt-3 px-1">
+              <p className="text-xs text-gray-700 leading-relaxed">
+                {diagram.description}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
 
 const ChallengeChat: React.FC = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const location = useLocation()
   const { user, token } = useAuthContext()
+
+  const getBackPath = () => {
+    const from = (location.state as { from?: string })?.from
+    return from || `/challenge/${id}`
+  }
   const [challenge, setChallenge] = useState<Challenge | null>(null)
-  const [simulatedPerson, setSimulatedPerson] =
-    useState<SimulatedPerson | null>(null)
   const [challengeAssignment, setChallengeAssignment] =
     useState<ChallengeAssignment | null>(null)
   const [loading, setLoading] = useState(true)
@@ -48,7 +112,10 @@ const ChallengeChat: React.FC = () => {
   const [chatError, setChatError] = useState<string | null>(null)
   const [diagrams, setDiagrams] = useState<Diagram[]>([])
   const [activeTab, setActiveTab] = useState<TabType>('chat')
+  const [isGoogleAuthModalOpen, setIsGoogleAuthModalOpen] = useState(false)
   const [showRightSidebar, setShowRightSidebar] = useState(false)
+  const [googleCalendarLinked, setGoogleCalendarLinked] =
+    useState<boolean>(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   // Generate or retrieve session ID
@@ -64,16 +131,33 @@ const ChallengeChat: React.FC = () => {
 
   const sessionId = getSessionId()
 
-  const getAvatarInitials = (person: SimulatedPerson | null): string => {
-    if (!person) return '?'
-    const first = person.first_name?.charAt(0).toUpperCase() || ''
-    const last = person.last_name?.charAt(0).toUpperCase() || ''
+  const { initiateAuth: googleLogin } = useGoogleAuth({
+    token: token || null,
+    challengeAssignmentId: challengeAssignment?.id || null,
+    onSuccess: async () => {
+      await refreshHistory()
+      setGoogleCalendarLinked(true)
+      setIsGoogleAuthModalOpen(false)
+    },
+    onError: (errorMessage) => {
+      setChatError(errorMessage)
+      setTimeout(() => setChatError(null), 5000)
+    },
+  })
+
+  const getAvatarInitials = (challenge: Challenge | null): string => {
+    if (!challenge) return '?'
+    const first = challenge.person_first_name?.charAt(0).toUpperCase() || ''
+    const last = challenge.person_last_name?.charAt(0).toUpperCase() || ''
     return first + last || '?'
   }
 
-  const getFullName = (person: SimulatedPerson | null): string => {
-    if (!person) return 'Persona'
-    return `${person.first_name} ${person.last_name} `.trim() || 'Persona'
+  const getFullName = (challenge: Challenge | null): string => {
+    if (!challenge) return 'Persona'
+    return (
+      `${challenge.person_first_name} ${challenge.person_last_name}`.trim() ||
+      'Persona'
+    )
   }
 
   const cleanDiagramDescriptions = (content: string): string => {
@@ -92,6 +176,7 @@ const ChallengeChat: React.FC = () => {
     handleSendMessage,
     handleSuggestedPrompt,
     loadMoreMessages,
+    refreshHistory,
   } = useChat({
     challengeAssignmentId: challengeAssignment?.id || null,
     sessionId,
@@ -104,6 +189,12 @@ const ChallengeChat: React.FC = () => {
       const newDiagrams = data.diagrams
       if (newDiagrams && newDiagrams.length > 0) {
         setDiagrams((prev) => [...newDiagrams, ...prev])
+      }
+      if (data.google_calendar_linked !== undefined) {
+        setGoogleCalendarLinked(data.google_calendar_linked)
+      }
+      if (data.needs_google_auth) {
+        setIsGoogleAuthModalOpen(true)
       }
     },
   })
@@ -125,6 +216,25 @@ const ChallengeChat: React.FC = () => {
     }
     fetchDiagrams()
   }, [challengeAssignment, token])
+
+  useEffect(() => {
+    const fetchStatus = async () => {
+      if (!challengeAssignment || !token) return
+      try {
+        const response = await chatApi.getStatus(
+          challengeAssignment.id,
+          sessionId,
+          token
+        )
+        if (response.success && response.data) {
+          setGoogleCalendarLinked(response.data.google_calendar_linked)
+        }
+      } catch (err) {
+        console.error('Error fetching status:', err)
+      }
+    }
+    fetchStatus()
+  }, [challengeAssignment, token, sessionId])
 
   useEffect(() => {
     const fetchData = async () => {
@@ -163,20 +273,6 @@ const ChallengeChat: React.FC = () => {
           }
 
           setChallengeAssignment(assignment)
-
-          // Fetch simulated person
-          try {
-            const person = await challengesApi.getSimulatedPersonById(
-              assignment.simulated_person_id
-            )
-            setSimulatedPerson(person)
-          } catch (err) {
-            if (err instanceof ChallengeApiError) {
-              setError(err.message)
-            } else {
-              setError('Error al cargar los datos de la persona simulada')
-            }
-          }
         } catch (err) {
           if (err instanceof ChallengeApiError) {
             setError(err.message)
@@ -224,10 +320,10 @@ const ChallengeChat: React.FC = () => {
             </h2>
             <p className="text-muted-foreground mb-6">{error}</p>
             <button
-              onClick={() => navigate('/dashboard', { replace: true })}
+              onClick={() => navigate(getBackPath(), { replace: true })}
               className="px-6 py-3 bg-electricBlue text-white rounded-lg font-semibold hover:bg-[#1873CC] transition-colors"
             >
-              {CHAT_MESSAGES.BACK_TO_DASHBOARD}
+              Volver
             </button>
           </div>
         </div>
@@ -250,10 +346,10 @@ const ChallengeChat: React.FC = () => {
               {CHAT_MESSAGES.NOT_FOUND}
             </p>
             <button
-              onClick={() => navigate('/dashboard', { replace: true })}
+              onClick={() => navigate(getBackPath(), { replace: true })}
               className="px-6 py-3 bg-electricBlue text-white rounded-lg font-semibold hover:bg-[#1873CC] transition-colors"
             >
-              {CHAT_MESSAGES.BACK_TO_DASHBOARD}
+              Volver
             </button>
           </div>
         </div>
@@ -269,85 +365,102 @@ const ChallengeChat: React.FC = () => {
             <div className="px-6 py-4 flex items-center justify-between">
               <div className="flex items-center gap-4 flex-1 min-w-0">
                 <button
-                  onClick={() => navigate(`/challenge/${challenge.id}`)}
+                  onClick={() => {
+                    if (
+                      window.history.length > 1 &&
+                      location.key !== 'default'
+                    ) {
+                      navigate(-1)
+                    } else {
+                      navigate(getBackPath())
+                    }
+                  }}
                   className="inline-flex items-center justify-center w-8 h-8 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-all"
                 >
                   <ArrowLeft className="w-5 h-5" />
                 </button>
                 <div className="relative flex-shrink-0">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold text-base shadow-md">
-                    {getAvatarInitials(simulatedPerson)}
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center text-blue-700 font-bold text-base shadow-sm ring-2 ring-white border border-blue-100">
+                    {getAvatarInitials(challenge)}
                   </div>
                   <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></div>
                 </div>
                 <div className="flex-1 min-w-0">
                   <h1 className="text-lg font-bold text-gray-900 truncate leading-tight">
-                    {getFullName(simulatedPerson)}
+                    {getFullName(challenge)}
                   </h1>
                   <p className="text-sm text-gray-500 truncate">
                     {challenge.title}
                   </p>
                 </div>
               </div>
-            </div>
 
-            {/* Tabs */}
-            <div className="px-6 flex items-center gap-6 overflow-x-auto no-scrollbar">
-              <button
-                onClick={() => {
-                  setActiveTab('chat')
-                  setShowRightSidebar(false)
-                }}
-                className={`pb-3 text-sm font-medium transition-all relative whitespace-nowrap ${
-                  activeTab === 'chat'
-                    ? 'text-blue-600'
-                    : 'text-gray-500 hover:text-gray-800'
-                }`}
-              >
-                Chat
-                {activeTab === 'chat' && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-t-full"></div>
-                )}
-              </button>
-              <button
-                onClick={() => {
-                  setActiveTab('files')
-                  setShowRightSidebar(true)
-                }}
-                className={`pb-3 text-sm font-medium transition-all relative flex items-center gap-2 whitespace-nowrap ${
-                  activeTab === 'files'
-                    ? 'text-blue-600'
-                    : 'text-gray-500 hover:text-gray-800'
-                }`}
-              >
-                <FolderOpen className="w-4 h-4" />
-                Archivos Compartidos
-                {diagrams.length > 0 && (
-                  <span className="flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">
-                    {diagrams.length}
-                  </span>
-                )}
-                {activeTab === 'files' && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-t-full"></div>
-                )}
-              </button>
-              <button
-                onClick={() => {
-                  setActiveTab('participants')
-                  setShowRightSidebar(true)
-                }}
-                className={`pb-3 text-sm font-medium transition-all relative flex items-center gap-2 whitespace-nowrap ${
-                  activeTab === 'participants'
-                    ? 'text-blue-600'
-                    : 'text-gray-500 hover:text-gray-800'
-                }`}
-              >
-                <Users className="w-4 h-4" />
-                Participantes
-                {activeTab === 'participants' && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-t-full"></div>
-                )}
-              </button>
+              {/* Header Actions */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    if (activeTab === 'files' && showRightSidebar) {
+                      setShowRightSidebar(false)
+                    } else {
+                      setActiveTab('files')
+                      setShowRightSidebar(true)
+                    }
+                  }}
+                  className={`p-2 rounded-lg transition-all ${
+                    activeTab === 'files' && showRightSidebar
+                      ? 'bg-blue-50 text-blue-600'
+                      : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                  title="Archivos Compartidos"
+                >
+                  <div className="relative">
+                    <FolderOpen className="w-5 h-5" />
+                    {diagrams.length > 0 && (
+                      <span className="absolute -top-1.5 -right-1.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white ring-2 ring-white">
+                        {diagrams.length}
+                      </span>
+                    )}
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => {
+                    if (activeTab === 'participants' && showRightSidebar) {
+                      setShowRightSidebar(false)
+                    } else {
+                      setActiveTab('participants')
+                      setShowRightSidebar(true)
+                    }
+                  }}
+                  className={`p-2 rounded-lg transition-all ${
+                    activeTab === 'participants' && showRightSidebar
+                      ? 'bg-blue-50 text-blue-600'
+                      : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                  title="Participantes"
+                >
+                  <Users className="w-5 h-5" />
+                </button>
+
+                <button
+                  onClick={() => {
+                    if (activeTab === 'milestones' && showRightSidebar) {
+                      setShowRightSidebar(false)
+                    } else {
+                      setActiveTab('milestones')
+                      setShowRightSidebar(true)
+                    }
+                  }}
+                  className={`p-2 rounded-lg transition-all ${
+                    activeTab === 'milestones' && showRightSidebar
+                      ? 'bg-blue-50 text-blue-600'
+                      : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                  title="Hitos del Proyecto"
+                >
+                  <Calendar className="w-5 h-5" />
+                </button>
+              </div>
             </div>
           </div>
 
@@ -374,8 +487,8 @@ const ChallengeChat: React.FC = () => {
               {messages.length === 0 && (
                 <div className="flex flex-col items-center justify-center space-y-8 py-8">
                   <div className="text-center space-y-3">
-                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold text-2xl mx-auto shadow-lg mb-4">
-                      {getAvatarInitials(simulatedPerson)}
+                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center text-blue-700 font-bold text-2xl mx-auto shadow-sm mb-4 ring-4 ring-white border border-blue-100">
+                      {getAvatarInitials(challenge)}
                     </div>
                     <h1 className="text-2xl font-semibold text-gray-900">
                       {CHAT_MESSAGES.GREETING}
@@ -436,8 +549,8 @@ const ChallengeChat: React.FC = () => {
                         >
                           {/* Avatar */}
                           {!isUser && !isConsecutive ? (
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold text-xs shadow-sm flex-shrink-0 mb-1">
-                              {getAvatarInitials(simulatedPerson)}
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center text-blue-700 font-bold text-xs shadow-sm flex-shrink-0 mb-1 ring-2 ring-white border border-blue-100">
+                              {getAvatarInitials(challenge)}
                             </div>
                           ) : isUser && !isConsecutive ? (
                             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold text-xs shadow-sm flex-shrink-0 mb-1">
@@ -561,8 +674,8 @@ const ChallengeChat: React.FC = () => {
                   })}
                   {isTyping && (
                     <div className="flex gap-3">
-                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold text-xs shadow-md flex-shrink-0">
-                        {getAvatarInitials(simulatedPerson)}
+                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center text-blue-700 font-bold text-xs shadow-sm flex-shrink-0 border border-blue-100">
+                        {getAvatarInitials(challenge)}
                       </div>
                       <div className="bg-white border border-gray-100 rounded-2xl rounded-tl-md px-5 py-3.5 shadow-sm">
                         <div className="flex gap-1.5">
@@ -579,7 +692,7 @@ const ChallengeChat: React.FC = () => {
             </div>
           </div>
 
-          <div className="border-t border-gray-200 bg-white sticky bottom-0 shadow-lg">
+          <div className="border-t border-gray-200 bg-white shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-20">
             <div className="w-full max-w-4xl mx-auto px-6 py-2">
               <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-3xl border border-gray-200 shadow-sm">
                 <div className="flex items-end gap-2.5 p-2.5">
@@ -595,8 +708,8 @@ const ChallengeChat: React.FC = () => {
                       }
                       rows={1}
                       disabled={!challengeAssignment || isTyping}
-                      className="w-full px-4 py-3 bg-transparent border-0 resize-none focus:outline-none text-sm leading-relaxed max-h-32 placeholder:text-gray-400 text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
-                      style={{ minHeight: '44px' }}
+                      className="w-full px-4 py-4 bg-transparent border-0 resize-none focus:outline-none text-sm leading-relaxed max-h-32 placeholder:text-gray-400 text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                      style={{ minHeight: '56px' }}
                     />
                   </div>
                   <button
@@ -610,25 +723,33 @@ const ChallengeChat: React.FC = () => {
                   </button>
                 </div>
               </div>
+              <p className="text-center text-xs text-gray-400 mt-2 select-none">
+                Estás hablando con un personaje simulado con IA. Puede cometer
+                errores.
+              </p>
             </div>
           </div>
         </div>
 
         {/* RIGHT SIDEBAR - Dynamic Content Based on Active Tab */}
         {showRightSidebar && (
-          <div className="w-96 border-l border-gray-200/80 bg-white overflow-y-auto flex flex-col shadow-xl">
+          <div className="fixed inset-y-0 right-0 z-50 w-full md:w-96 md:relative md:inset-auto md:z-0 border-l border-gray-200/80 bg-white overflow-y-auto flex flex-col shadow-xl transition-all duration-300">
             {/* Sidebar Header */}
             <div className="px-6 py-4 flex items-center justify-between border-b border-gray-100">
               <div className="flex items-center gap-2.5">
                 {activeTab === 'files' ? (
                   <FolderOpen className="w-5 h-5 text-gray-500" />
-                ) : (
+                ) : activeTab === 'participants' ? (
                   <Users className="w-5 h-5 text-gray-500" />
+                ) : (
+                  <Calendar className="w-5 h-5 text-gray-500" />
                 )}
                 <span className="text-base font-medium text-gray-700">
                   {activeTab === 'files'
                     ? 'Archivos Compartidos'
-                    : 'Participantes'}
+                    : activeTab === 'participants'
+                      ? 'Participantes'
+                      : 'Hitos del Proyecto'}
                 </span>
               </div>
               <button
@@ -644,20 +765,15 @@ const ChallengeChat: React.FC = () => {
               {activeTab === 'files' && (
                 <div className="space-y-4">
                   {/* File Categories */}
-                  <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-4 border border-blue-100">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="p-2.5 bg-white rounded-lg shadow-sm">
-                        <FileText className="w-5 h-5 text-blue-600" />
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-sm text-gray-900">
-                          Diagramas
-                        </h4>
-                        <p className="text-xs text-gray-500">
-                          {diagrams.length} archivos
-                        </p>
-                      </div>
-                    </div>
+                  {/* File Categories */}
+                  <div className="flex items-center justify-between px-2 mb-3 mt-2">
+                    <h4 className="font-bold text-gray-800 flex items-center gap-2 text-sm">
+                      <FileText className="w-4 h-4 text-blue-600" />
+                      Diagramas
+                    </h4>
+                    <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-medium">
+                      {diagrams.length}
+                    </span>
                   </div>
 
                   {/* Diagrams List */}
@@ -673,75 +789,52 @@ const ChallengeChat: React.FC = () => {
                   ) : (
                     <div className="space-y-3">
                       {diagrams.map((diagram, index) => (
-                        <div
+                        <DiagramCard
                           key={diagram.id}
-                          className="group border border-gray-100 rounded-xl hover:border-blue-200 hover:shadow-md transition-all duration-200 overflow-hidden bg-white"
-                        >
-                          {/* Card Header */}
-                          <div className="px-4 py-2.5 flex items-center justify-between bg-gradient-to-r from-gray-50 to-gray-100/50 border-b border-gray-100">
-                            <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
-                              Diagrama {diagrams.length - index}
-                            </span>
-                            <span className="text-xs text-gray-500">
-                              {new Date(diagram.created_at).toLocaleString(
-                                'es-ES',
-                                {
-                                  month: 'short',
-                                  day: 'numeric',
-                                  hour: '2-digit',
-                                  minute: '2-digit',
-                                }
-                              )}
-                            </span>
-                          </div>
-
-                          {/* Diagram Content */}
-                          <div className="p-3">
-                            <div className="rounded-lg border border-gray-200 overflow-hidden bg-gradient-to-br from-gray-50 to-white">
-                              <Mermaid chart={diagram.code} />
-                            </div>
-                          </div>
-
-                          {/* Description */}
-                          {diagram.description && (
-                            <div className="px-4 py-3 border-t border-gray-100 bg-gray-50/50">
-                              <p className="text-xs text-gray-700 leading-relaxed">
-                                {diagram.description}
-                              </p>
-                            </div>
-                          )}
-                        </div>
+                          diagram={diagram}
+                          index={index}
+                          total={diagrams.length}
+                        />
                       ))}
                     </div>
                   )}
 
                   {/* Additional File Categories - Placeholder */}
-                  <div className="mt-6 space-y-3">
-                    <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-100">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2.5 bg-white rounded-lg shadow-sm">
-                          <ImageIcon className="w-5 h-5 text-purple-600" />
-                        </div>
-                        <div>
-                          <h4 className="font-semibold text-sm text-gray-900">
-                            Imágenes
-                          </h4>
-                          <p className="text-xs text-gray-500">0 archivos</p>
-                        </div>
+                  {/* Additional File Categories - Placeholder */}
+                  <div className="mt-8 space-y-6">
+                    <div>
+                      <div className="flex items-center justify-between px-2 mb-3">
+                        <h4 className="font-bold text-gray-800 flex items-center gap-2 text-sm">
+                          <ImageIcon className="w-4 h-4 text-purple-600" />
+                          Imágenes
+                        </h4>
+                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-medium">
+                          0
+                        </span>
+                      </div>
+                      <div className="px-4 py-8 border border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center text-center">
+                        <ImageIcon className="w-8 h-8 text-gray-200 mb-2" />
+                        <span className="text-xs text-gray-400">
+                          No hay imágenes
+                        </span>
                       </div>
                     </div>
 
-                    <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-xl p-4 border border-orange-100">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2.5 bg-white rounded-lg shadow-sm">
-                          <LinkIcon className="w-5 h-5 text-orange-600" />
-                        </div>
-                        <div>
-                          <h4 className="font-semibold text-sm text-gray-900">
-                            Enlaces
-                          </h4>
-                          <p className="text-xs text-gray-500">0 archivos</p>
-                        </div>
+                    <div>
+                      <div className="flex items-center justify-between px-2 mb-3">
+                        <h4 className="font-bold text-gray-800 flex items-center gap-2 text-sm">
+                          <LinkIcon className="w-4 h-4 text-orange-600" />
+                          Enlaces
+                        </h4>
+                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-medium">
+                          0
+                        </span>
+                      </div>
+                      <div className="px-4 py-8 border border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center text-center">
+                        <LinkIcon className="w-8 h-8 text-gray-200 mb-2" />
+                        <span className="text-xs text-gray-400">
+                          No hay enlaces
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -753,7 +846,7 @@ const ChallengeChat: React.FC = () => {
                   {/* Challenge Info */}
                   <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-5 border border-blue-100">
                     <h4 className="font-semibold text-sm text-gray-900 mb-3">
-                      Información del Reto
+                      INFORMACIÓN DEL RETO
                     </h4>
                     <div className="space-y-2 text-sm">
                       <div>
@@ -785,36 +878,36 @@ const ChallengeChat: React.FC = () => {
                       Stakeholder Asignado
                     </h4>
                     <div className="flex items-center gap-4 mb-4">
-                      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold text-lg shadow-md">
-                        {getAvatarInitials(simulatedPerson)}
+                      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center text-blue-700 font-bold text-lg shadow-sm ring-2 ring-white border border-blue-100">
+                        {getAvatarInitials(challenge)}
                       </div>
                       <div>
                         <h5 className="font-semibold text-gray-900">
-                          {getFullName(simulatedPerson)}
+                          {getFullName(challenge)}
                         </h5>
                         <p className="text-sm text-gray-500">
-                          {simulatedPerson?.age} años
+                          {challenge?.person_age} años
                         </p>
                       </div>
                     </div>
-                    {simulatedPerson?.bio && (
+                    {challenge?.person_bio && (
                       <div className="mb-4">
                         <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                           Biografía
                         </span>
                         <p className="text-sm text-gray-700 mt-1 leading-relaxed">
-                          {simulatedPerson.bio}
+                          {challenge.person_bio}
                         </p>
                       </div>
                     )}
-                    {simulatedPerson?.expertise_areas &&
-                      simulatedPerson.expertise_areas.length > 0 && (
+                    {challenge?.person_expertise_areas &&
+                      challenge.person_expertise_areas.length > 0 && (
                         <div className="mb-4">
                           <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                             Áreas de Experiencia
                           </span>
                           <div className="flex flex-wrap gap-1.5 mt-2">
-                            {simulatedPerson.expertise_areas.map(
+                            {challenge.person_expertise_areas.map(
                               (area, idx) => (
                                 <span
                                   key={idx}
@@ -827,14 +920,14 @@ const ChallengeChat: React.FC = () => {
                           </div>
                         </div>
                       )}
-                    {simulatedPerson?.personality_traits &&
-                      simulatedPerson.personality_traits.length > 0 && (
+                    {challenge?.person_personality_traits &&
+                      challenge.person_personality_traits.length > 0 && (
                         <div>
                           <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                             Rasgos de Personalidad
                           </span>
                           <div className="flex flex-wrap gap-1.5 mt-2">
-                            {simulatedPerson.personality_traits.map(
+                            {challenge.person_personality_traits.map(
                               (trait, idx) => (
                                 <span
                                   key={idx}
@@ -850,6 +943,51 @@ const ChallengeChat: React.FC = () => {
                   </div>
                 </div>
               )}
+
+              {activeTab === 'milestones' && challengeAssignment && (
+                <div className="animate-fade-in">
+                  <ProjectMilestones
+                    challengeAssignmentId={challengeAssignment.id}
+                    onLinkGoogleCalendar={googleLogin}
+                    isGoogleCalendarLinked={googleCalendarLinked}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Google Auth Modal */}
+        {isGoogleAuthModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
+              <div className="flex flex-col items-center text-center">
+                <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-4">
+                  <LinkIcon className="w-8 h-8" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                  ¡Sincroniza tu Calendario!
+                </h3>
+                <p className="text-gray-500 text-sm mb-6">
+                  Vincular con Google Calendar te permitirá ver estas fechas
+                  directamente en tu agenda.
+                </p>
+
+                <div className="flex flex-col gap-3 w-full">
+                  <button
+                    onClick={() => googleLogin()}
+                    className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200"
+                  >
+                    Conectar Google Calendar
+                  </button>
+                  <button
+                    onClick={() => setIsGoogleAuthModalOpen(false)}
+                    className="w-full py-3 text-gray-500 text-sm hover:text-gray-700 transition-all"
+                  >
+                    Continuar sin sincronizar
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         )}

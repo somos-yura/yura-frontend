@@ -47,9 +47,10 @@ export const ChallengeCard: React.FC<ChallengeCardProps> = ({
           <h3 className="text-xl font-bold text-gray-900 font-montserrat line-clamp-2 mb-3 group-hover:text-blue-600 transition-colors duration-300 leading-tight">
             {challenge.title}
           </h3>
-          <p className="text-gray-600 text-sm leading-relaxed line-clamp-3 mb-4">
-            {challenge.description}
-          </p>
+          <div
+            className="text-gray-600 text-sm leading-relaxed mb-4 overflow-hidden max-h-[72px] [&_section]:space-y-1 [&_section]:block [&_h2]:hidden [&_h3]:hidden [&_p]:text-gray-600 [&_p]:text-sm [&_p]:mb-1 [&_p]:line-clamp-2 [&_p]:last:mb-0 [&_strong]:font-semibold [&_strong]:text-gray-700"
+            dangerouslySetInnerHTML={{ __html: challenge.description }}
+          />
         </div>
 
         <button
@@ -57,10 +58,9 @@ export const ChallengeCard: React.FC<ChallengeCardProps> = ({
             e.stopPropagation()
             handleExplore()
           }}
-          className="w-full bg-gradient-to-r from-blue-600 via-blue-500 to-purple-500 text-white font-montserrat font-bold py-4 px-4 rounded-2xl hover:from-blue-700 hover:via-blue-600 hover:to-purple-600 hover:shadow-2xl hover:shadow-blue-300 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 relative overflow-hidden group/btn"
+          className="w-full bg-gradient-to-r from-sky-500 to-sky-400 text-white font-montserrat font-bold py-4 px-4 rounded-2xl hover:from-sky-600 hover:to-sky-500 hover:shadow-2xl hover:shadow-sky-300 transition-all duration-300 transform hover:-translate-y-1 active:scale-95"
         >
-          <span className="relative z-10">Explorar reto</span>
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300"></div>
+          <span>Explorar reto</span>
         </button>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import { apiClient, ApiError } from '../lib/apiClient'
+import { ENDPOINTS } from '../config/endpoints'
 
 export class ChatApiError extends ApiError {
   constructor(message: string, status: number, details?: unknown) {
@@ -33,6 +34,9 @@ export interface ChatResponse {
     estimated_cost_usd: number
   }
   diagrams?: Diagram[]
+  current_agent?: string
+  google_calendar_linked?: boolean
+  needs_google_auth?: boolean
 }
 
 export interface ChatApiResponse {
@@ -60,6 +64,23 @@ export interface MessageHistoryApiResponse {
   data: MessageHistoryResponse
 }
 
+export interface Milestone {
+  id: string
+  title: string
+  description: string
+  due_date: string
+  status: string
+  google_calendar_event_id?: string
+}
+
+export interface MilestonesApiResponse {
+  success: boolean
+  message?: string
+  data: {
+    milestones: Milestone[]
+  }
+}
+
 export interface DiagramsApiResponse {
   success: boolean
   message?: string
@@ -68,13 +89,45 @@ export interface DiagramsApiResponse {
   }
 }
 
+export interface GoogleAuthResponse {
+  success: boolean
+}
+
+export interface GoogleAuthApiResponse {
+  success: boolean
+  message?: string
+  data: GoogleAuthResponse
+}
+
+export interface ConversationStatus {
+  google_calendar_linked: boolean
+  current_agent?: string
+}
+
+export interface ConversationStatusApiResponse {
+  success: boolean
+  message?: string
+  data: ConversationStatus
+}
+
+export interface SyncMilestonesResponse {
+  success: boolean
+  synced_count?: number
+}
+
+export interface SyncMilestonesApiResponse {
+  success: boolean
+  message?: string
+  data: SyncMilestonesResponse
+}
+
 export const chatApi = {
   async sendMessage(
     request: ChatRequest,
     token: string
   ): Promise<ChatApiResponse> {
     try {
-      const endpoint = '/api/v1/ai/chat/send-message'
+      const endpoint = ENDPOINTS.AI.CHAT.SEND_MESSAGE
       return (await apiClient.post<ChatResponse>(endpoint, request, {
         requireAuth: true,
         token,
@@ -108,7 +161,7 @@ export const chatApi = {
         params.append('before', before)
       }
 
-      const endpoint = `/api/v1/ai/chat/messages?${params.toString()}`
+      const endpoint = `${ENDPOINTS.AI.CHAT.MESSAGES}?${params.toString()}`
       return (await apiClient.get<MessageHistoryResponse>(endpoint, {
         requireAuth: true,
         token,
@@ -126,7 +179,7 @@ export const chatApi = {
     token: string
   ): Promise<DiagramsApiResponse> {
     try {
-      const endpoint = `/api/v1/ai/chat/diagrams/${challengeAssignmentId}`
+      const endpoint = `${ENDPOINTS.AI.CHAT.DIAGRAMS}/${challengeAssignmentId}`
       return (await apiClient.get<{ diagrams: Diagram[] }>(endpoint, {
         requireAuth: true,
         token,
@@ -136,6 +189,81 @@ export const chatApi = {
         throw new ChatApiError(error.message, error.status, error.details)
       }
       throw new ChatApiError('Error al obtener los diagramas', 500, error)
+    }
+  },
+
+  async getMilestones(
+    challengeAssignmentId: string,
+    token: string
+  ): Promise<MilestonesApiResponse> {
+    try {
+      const endpoint = `${ENDPOINTS.AI.CHAT.MILESTONES}/${challengeAssignmentId}`
+      return (await apiClient.get<{ milestones: Milestone[] }>(endpoint, {
+        requireAuth: true,
+        token,
+      })) as MilestonesApiResponse
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw new ChatApiError(error.message, error.status, error.details)
+      }
+      throw new ChatApiError('Error al obtener los hitos', 500, error)
+    }
+  },
+
+  async saveGoogleAuthCode(
+    code: string,
+    token: string
+  ): Promise<GoogleAuthApiResponse> {
+    try {
+      const endpoint = ENDPOINTS.USERS.GOOGLE_AUTH
+      return (await apiClient.post<GoogleAuthResponse>(
+        endpoint,
+        { code },
+        { requireAuth: true, token }
+      )) as GoogleAuthApiResponse
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw new ChatApiError(error.message, error.status, error.details)
+      }
+      throw new ChatApiError('Error al vincular con Google', 500, error)
+    }
+  },
+
+  async getStatus(
+    challengeAssignmentId: string,
+    sessionId: string,
+    token: string
+  ): Promise<ConversationStatusApiResponse> {
+    try {
+      const endpoint = `${ENDPOINTS.AI.CHAT.STATUS}/${challengeAssignmentId}?session_id=${sessionId}`
+      return (await apiClient.get<ConversationStatus>(endpoint, {
+        requireAuth: true,
+        token,
+      })) as ConversationStatusApiResponse
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw new ChatApiError(error.message, error.status, error.details)
+      }
+      throw new ChatApiError('Error al obtener el estado', 500, error)
+    }
+  },
+
+  async syncMilestones(
+    challengeAssignmentId: string,
+    token: string
+  ): Promise<SyncMilestonesApiResponse> {
+    try {
+      const endpoint = `${ENDPOINTS.AI.CHAT.SYNC_MILESTONES}/${challengeAssignmentId}`
+      return (await apiClient.post<SyncMilestonesResponse>(
+        endpoint,
+        {},
+        { requireAuth: true, token }
+      )) as SyncMilestonesApiResponse
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw new ChatApiError(error.message, error.status, error.details)
+      }
+      throw new ChatApiError('Error al sincronizar hitos', 500, error)
     }
   },
 }

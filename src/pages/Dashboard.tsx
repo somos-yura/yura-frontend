@@ -128,52 +128,31 @@ const Dashboard: React.FC = () => {
     <Layout>
       <div className="w-full px-4 md:px-8 pb-12">
         {/* Hero Section with Greeting and CTA */}
-        <div className="dashboard-hero mb-8 rounded-3xl p-8 md:p-10 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-violet-600 via-blue-600 to-cyan-500"></div>
-
-          {/* Animated decorative elements */}
-          <div className="absolute inset-0 opacity-20">
-            <div className="absolute top-10 right-20 w-32 h-32 bg-white rounded-full blur-2xl animate-pulse"></div>
-            <div
-              className="absolute bottom-10 left-20 w-40 h-40 bg-pink-300 rounded-full blur-3xl animate-pulse"
-              style={{ animationDelay: '1s' }}
-            ></div>
-            <div
-              className="absolute top-1/2 left-1/3 w-24 h-24 bg-yellow-200 rounded-full blur-2xl animate-pulse"
-              style={{ animationDelay: '0.5s' }}
-            ></div>
-          </div>
-
-          {/* Geometric shapes */}
-          <div className="absolute inset-0 opacity-10">
-            <div className="absolute top-0 right-0 w-72 h-72 border-4 border-white rounded-full transform translate-x-1/3 -translate-y-1/3"></div>
-            <div className="absolute bottom-0 left-0 w-96 h-96 border-4 border-white rounded-full transform -translate-x-1/2 translate-y-1/2"></div>
-          </div>
-
+        <div className="dashboard-hero mb-8 rounded-3xl p-8 md:p-10 relative overflow-hidden bg-white border-2 border-blue-300">
           <div className="relative z-10">
             <div className="flex items-start justify-between flex-wrap gap-4">
               <div className="flex-1">
-                <h1 className="text-3xl md:text-5xl font-bold text-white mb-4 animate-fade-in">
+                <h1 className="text-3xl md:text-5xl font-bold text-gray-800 mb-4 animate-fade-in">
                   {getGreeting()} 👋
                 </h1>
-                <p className="text-blue-50 text-base md:text-lg max-w-2xl leading-relaxed mb-6">
+                <p className="text-gray-700 text-base md:text-lg max-w-2xl leading-relaxed mb-6">
                   Explora retos sociales impactantes y únete a nuestra comunidad
                   para crear un cambio positivo.
                 </p>
                 <div className="flex gap-3 flex-wrap">
-                  <div className="bg-white/20 backdrop-blur-md rounded-xl px-5 py-3 border border-white/30 hover:bg-white/30 transition-all">
-                    <div className="text-white/90 text-xs mb-1">
+                  <div className="bg-blue-50 rounded-xl px-5 py-3 border border-blue-200 hover:bg-blue-100 transition-all shadow-sm">
+                    <div className="text-gray-700 text-xs mb-1">
                       Retos Activos
                     </div>
-                    <div className="text-2xl font-bold text-white">
+                    <div className="text-2xl font-bold text-gray-900">
                       {stats.totalChallenges}
                     </div>
                   </div>
-                  <div className="bg-white/20 backdrop-blur-md rounded-xl px-5 py-3 border border-white/30 hover:bg-white/30 transition-all">
-                    <div className="text-white/90 text-xs mb-1">
+                  <div className="bg-blue-50 rounded-xl px-5 py-3 border border-blue-200 hover:bg-blue-100 transition-all shadow-sm">
+                    <div className="text-gray-700 text-xs mb-1">
                       Tasa de Éxito
                     </div>
-                    <div className="text-2xl font-bold text-white">
+                    <div className="text-2xl font-bold text-gray-900">
                       {stats.completionRate}%
                     </div>
                   </div>
@@ -185,78 +164,78 @@ const Dashboard: React.FC = () => {
 
         {/* Quick Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
-          <div className="stats-card-enhanced group bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+          <div className="stats-card-enhanced group bg-gradient-to-br from-blue-200 to-blue-300 text-gray-800">
             <div className="flex items-start justify-between mb-4">
-              <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                <Target className="w-7 h-7 text-white" />
+              <div className="w-14 h-14 rounded-2xl bg-white/60 backdrop-blur-sm flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                <Target className="w-7 h-7 text-blue-600" />
               </div>
-              <div className="px-3 py-1 rounded-full bg-white/20 text-xs font-semibold flex items-center gap-1">
+              <div className="px-3 py-1 rounded-full bg-white/60 text-xs font-semibold flex items-center gap-1 text-gray-700">
                 <TrendingUp className="w-3 h-3" />
                 +12%
               </div>
             </div>
             <div>
-              <p className="text-blue-100 text-sm mb-1">Total de Retos</p>
-              <p className="text-3xl md:text-4xl font-bold">
+              <p className="text-gray-700 text-sm mb-1">Total de Retos</p>
+              <p className="text-3xl md:text-4xl font-bold text-gray-900">
                 {stats.totalChallenges}
               </p>
-              <p className="text-xs text-blue-100 mt-2">Desde el mes pasado</p>
+              <p className="text-xs text-gray-600 mt-2">Desde el mes pasado</p>
             </div>
           </div>
 
-          <div className="stats-card-enhanced group bg-gradient-to-br from-purple-500 to-purple-600 text-white">
+          <div className="stats-card-enhanced group bg-gradient-to-br from-purple-200 to-purple-300 text-gray-800">
             <div className="flex items-start justify-between mb-4">
-              <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                <Award className="w-7 h-7 text-white" />
+              <div className="w-14 h-14 rounded-2xl bg-white/60 backdrop-blur-sm flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                <Award className="w-7 h-7 text-purple-600" />
               </div>
-              <div className="px-3 py-1 rounded-full bg-white/20 text-xs font-semibold flex items-center gap-1">
+              <div className="px-3 py-1 rounded-full bg-white/60 text-xs font-semibold flex items-center gap-1 text-gray-700">
                 <TrendingUp className="w-3 h-3" />
                 +8%
               </div>
             </div>
             <div>
-              <p className="text-purple-100 text-sm mb-1">Retos Activos</p>
-              <p className="text-3xl md:text-4xl font-bold">
+              <p className="text-gray-700 text-sm mb-1">Retos Activos</p>
+              <p className="text-3xl md:text-4xl font-bold text-gray-900">
                 {stats.activeChallenges}
               </p>
-              <p className="text-xs text-purple-100 mt-2">En progreso ahora</p>
+              <p className="text-xs text-gray-600 mt-2">En progreso ahora</p>
             </div>
           </div>
 
-          <div className="stats-card-enhanced group bg-gradient-to-br from-emerald-500 to-emerald-600 text-white">
+          <div className="stats-card-enhanced group bg-gradient-to-br from-emerald-200 to-emerald-300 text-gray-800">
             <div className="flex items-start justify-between mb-4">
-              <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                <Users className="w-7 h-7 text-white" />
+              <div className="w-14 h-14 rounded-2xl bg-white/60 backdrop-blur-sm flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                <Users className="w-7 h-7 text-emerald-600" />
               </div>
-              <div className="px-3 py-1 rounded-full bg-white/20 text-xs font-semibold">
+              <div className="px-3 py-1 rounded-full bg-white/60 text-xs font-semibold text-gray-700">
                 Activas
               </div>
             </div>
             <div>
-              <p className="text-emerald-100 text-sm mb-1">Categorías</p>
-              <p className="text-3xl md:text-4xl font-bold">
+              <p className="text-gray-700 text-sm mb-1">Categorías</p>
+              <p className="text-3xl md:text-4xl font-bold text-gray-900">
                 {stats.categoryCount}
               </p>
-              <p className="text-xs text-emerald-100 mt-2">Áreas de impacto</p>
+              <p className="text-xs text-gray-600 mt-2">Áreas de impacto</p>
             </div>
           </div>
 
-          <div className="stats-card-enhanced group bg-gradient-to-br from-orange-500 to-orange-600 text-white">
+          <div className="stats-card-enhanced group bg-gradient-to-br from-orange-200 to-orange-300 text-gray-800">
             <div className="flex items-start justify-between mb-4">
-              <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                <TrendingUp className="w-7 h-7 text-white" />
+              <div className="w-14 h-14 rounded-2xl bg-white/60 backdrop-blur-sm flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                <TrendingUp className="w-7 h-7 text-orange-600" />
               </div>
-              <div className="px-3 py-1 rounded-full bg-white/20 text-xs font-semibold flex items-center gap-1">
+              <div className="px-3 py-1 rounded-full bg-white/60 text-xs font-semibold flex items-center gap-1 text-gray-700">
                 <TrendingUp className="w-3 h-3" />
                 +5%
               </div>
             </div>
             <div>
-              <p className="text-orange-100 text-sm mb-1">Tasa de Éxito</p>
-              <p className="text-3xl md:text-4xl font-bold">
+              <p className="text-gray-700 text-sm mb-1">Tasa de Éxito</p>
+              <p className="text-3xl md:text-4xl font-bold text-gray-900">
                 {stats.completionRate}%
               </p>
-              <p className="text-xs text-orange-100 mt-2">Mejorando cada mes</p>
+              <p className="text-xs text-gray-600 mt-2">Mejorando cada mes</p>
             </div>
           </div>
         </div>
@@ -280,7 +259,7 @@ const Dashboard: React.FC = () => {
               placeholder="Buscar retos por nombre o descripción..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-14 pr-6 py-4 border-2 border-gray-200 rounded-2xl bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200 text-base shadow-sm"
+              className="w-full pl-14 pr-6 py-4 border-2 border-gray-200 rounded-2xl bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-300 focus:ring-4 focus:ring-blue-50 transition-all duration-200 text-base shadow-sm"
             />
           </div>
 
@@ -291,7 +270,7 @@ const Dashboard: React.FC = () => {
                 onClick={() => setSelectedCategory(category)}
                 className={`category-chip ${
                   selectedCategory === category
-                    ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-md'
+                    ? 'bg-gradient-to-r from-blue-300 to-blue-200 text-gray-800 shadow-md'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
