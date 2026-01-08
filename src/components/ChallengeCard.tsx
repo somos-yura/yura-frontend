@@ -47,9 +47,10 @@ export const ChallengeCard: React.FC<ChallengeCardProps> = ({
           <h3 className="text-xl font-bold text-gray-900 font-montserrat line-clamp-2 mb-3 group-hover:text-blue-600 transition-colors duration-300 leading-tight">
             {challenge.title}
           </h3>
-          <p className="text-gray-600 text-sm leading-relaxed line-clamp-3 mb-4">
-            {challenge.description}
-          </p>
+          <div
+            className="text-gray-600 text-sm leading-relaxed mb-4 overflow-hidden max-h-[72px] [&_section]:space-y-1 [&_section]:block [&_h2]:hidden [&_h3]:hidden [&_p]:text-gray-600 [&_p]:text-sm [&_p]:mb-1 [&_p]:line-clamp-2 [&_p]:last:mb-0 [&_strong]:font-semibold [&_strong]:text-gray-700"
+            dangerouslySetInnerHTML={{ __html: challenge.description }}
+          />
         </div>
 
         <button

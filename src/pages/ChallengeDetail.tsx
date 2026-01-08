@@ -312,11 +312,12 @@ const ChallengeDetail: React.FC = () => {
                     <div className="w-1 h-8 bg-electricBlue rounded-full" />
                     Sobre el Reto
                   </h2>
-                  <div className="prose prose-lg max-w-none text-muted-foreground leading-relaxed">
-                    <p className="whitespace-pre-line">
-                      {challenge.description}
-                    </p>
-                  </div>
+                  <div
+                    className="prose prose-lg max-w-none text-muted-foreground leading-relaxed [&_section]:space-y-6 [&_section]:text-foreground [&_h2]:text-xl [&_h2]:font-bold [&_h2]:text-foreground [&_h2]:mb-4 [&_h2]:mt-6 [&_h2]:font-montserrat [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-foreground [&_h3]:mb-3 [&_h3]:mt-5 [&_p]:mb-4 [&_p]:leading-relaxed [&_p]:text-muted-foreground [&_strong]:font-semibold [&_strong]:text-foreground"
+                    dangerouslySetInnerHTML={{
+                      __html: challenge.description,
+                    }}
+                  />
                 </section>
               )}
 
