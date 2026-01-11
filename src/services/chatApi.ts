@@ -1,4 +1,4 @@
-import { apiClient, ApiError } from '../lib/apiClient'
+import { apiClient, ApiError, type ApiResponse } from '../lib/apiClient'
 import { ENDPOINTS } from '../config/endpoints'
 
 export const ResponseStatus = {
@@ -97,10 +97,11 @@ export interface MessageHistoryApiResponse {
 export interface Milestone {
   id: string
   title: string
-  description: string
+  description: string | null
   due_date: string
   status: string
-  google_calendar_event_id?: string
+  url: string | null
+  google_calendar_event_id: string | null
 }
 
 export interface MilestonesApiResponse {
@@ -306,6 +307,26 @@ export const chatApi = {
         throw new ChatApiError(error.message, error.status, error.details)
       }
       throw new ChatApiError('Error al sincronizar hitos', 500, error)
+    }
+  },
+
+  async updateMilestone(
+    milestoneId: string,
+    updates: Partial<Milestone>,
+    token: string
+  ): Promise<ApiResponse<{ milestone: Milestone }>> {
+    try {
+      const endpoint = `${ENDPOINTS.AI.CHAT.MILESTONES}/${milestoneId}`
+      return await apiClient.patch<{ milestone: Milestone }>(
+        endpoint,
+        updates,
+        { requireAuth: true, token }
+      )
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw new ChatApiError(error.message, error.status, error.details)
+      }
+      throw new ChatApiError('Error al actualizar el hito', 500, error)
     }
   },
 }
