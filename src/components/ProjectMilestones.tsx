@@ -1,8 +1,15 @@
-import React, { useEffect, useState } from 'react'
-import { Calendar, Clock, CheckCircle2 } from 'lucide-react'
+import React, { useEffect, useState, useCallback } from 'react'
+import {
+  Calendar,
+  Clock,
+  CheckCircle2,
+  Link as LinkIcon,
+  Edit2,
+} from 'lucide-react'
 import { chatApi, type Milestone } from '../services/chatApi'
 import { useAuthContext } from '../contexts/AuthContext'
 import { EXTERNAL_URLS } from '../config/externalUrls'
+import { URLPreview } from './URLPreview'
 
 interface ProjectMilestonesProps {
   challengeAssignmentId: string
@@ -22,45 +29,70 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({
   const { token } = useAuthContext()
   const [milestones, setMilestones] = useState<Milestone[]>([])
   const [loading, setLoading] = useState(true)
+  const [editingUrlId, setEditingUrlId] = useState<string | null>(null)
+  const [tempUrl, setTempUrl] = useState('')
+
+  const fetchMilestones = useCallback(async () => {
+    if (!token) return
+    try {
+      const response = await chatApi.getMilestones(challengeAssignmentId, token)
+      if (response.data && response.data.milestones) {
+        const sorted = [...response.data.milestones].sort(
+          (a, b) =>
+            new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
+        )
+        setMilestones(sorted)
+        onMilestonesCountChange?.(sorted.length)
+      } else {
+        onMilestonesCountChange?.(0)
+      }
+    } catch (error) {
+      console.error('Error fetching milestones:', error)
+    } finally {
+      setLoading(false)
+    }
+  }, [challengeAssignmentId, token, onMilestonesCountChange])
 
   useEffect(() => {
-    const fetchMilestones = async () => {
-      if (!token) return
-      try {
-        const response = await chatApi.getMilestones(
-          challengeAssignmentId,
-          token
-        )
-        if (response.data && response.data.milestones) {
-          const sorted = [...response.data.milestones].sort(
-            (a, b) =>
-              new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
-          )
-          setMilestones(sorted)
-          onMilestonesCountChange?.(sorted.length)
-        } else {
-          onMilestonesCountChange?.(0)
-        }
-      } catch (error) {
-        console.error('Error fetching milestones:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
     fetchMilestones()
-  }, [challengeAssignmentId, token, onMilestonesCountChange])
+  }, [fetchMilestones])
+
+  const handleUrlClick = (milestone: Milestone) => {
+    setEditingUrlId(milestone.id)
+    setTempUrl(milestone.url || '')
+  }
+
+  const handleUrlSave = async (milestoneId: string) => {
+    if (!token) return
+    try {
+      await chatApi.updateMilestone(
+        milestoneId,
+        { url: tempUrl.trim() || null },
+        token
+      )
+      await fetchMilestones()
+      setEditingUrlId(null)
+      setTempUrl('')
+    } catch (error) {
+      console.error('Error updating milestone URL:', error)
+    }
+  }
+
+  const handleUrlCancel = () => {
+    setEditingUrlId(null)
+    setTempUrl('')
+  }
 
   if (loading) {
     return (
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-border/50 animate-pulse">
-        <div className="h-6 w-32 bg-gray-200 rounded mb-6"></div>
+        <div className="h-6 w-32 bg-gray-200 rounded mb-6" />
         {[1, 2, 3].map((i) => (
           <div key={i} className="flex gap-4 mb-6">
-            <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
+            <div className="w-10 h-10 bg-gray-200 rounded-full" />
             <div className="flex-1 space-y-2">
-              <div className="h-4 w-3/4 bg-gray-200 rounded"></div>
-              <div className="h-3 w-1/2 bg-gray-200 rounded"></div>
+              <div className="h-4 w-3/4 bg-gray-200 rounded" />
+              <div className="h-3 w-1/2 bg-gray-200 rounded" />
             </div>
           </div>
         ))}
@@ -98,7 +130,6 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({
       <div className="space-y-6 relative">
         {milestones.length > 0 ? (
           <>
-            {/* Vertical line connector */}
             <div className="absolute left-[19px] top-2 bottom-2 w-0.5 bg-gray-100" />
 
             {milestones.map((milestone) => (
@@ -116,7 +147,10 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-foreground mb-1 line-clamp-1 group-hover:text-electricBlue transition-colors">
+                  <p
+                    className="text-sm font-bold text-foreground mb-1 line-clamp-1 group-hover:text-electricBlue transition-colors"
+                    title={milestone.title}
+                  >
                     {milestone.title}
                   </p>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -126,10 +160,76 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({
                     </span>
                   </div>
                   {milestone.description && (
-                    <p className="text-xs text-muted-foreground mt-2 line-clamp-2 leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity">
+                    <p
+                      className="text-xs text-muted-foreground mt-2 line-clamp-2 leading-relaxed"
+                      title={milestone.description}
+                    >
                       {milestone.description}
                     </p>
                   )}
+
+                  {/* Input inline para URL */}
+                  <div className="mt-3">
+                    {editingUrlId === milestone.id ? (
+                      <div className="space-y-2">
+                        <input
+                          type="text"
+                          value={tempUrl}
+                          onChange={(e) => setTempUrl(e.target.value)}
+                          placeholder="https://ejemplo.com/documento"
+                          className="w-full px-3 py-2 text-xs border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          autoFocus
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              handleUrlSave(milestone.id)
+                            } else if (e.key === 'Escape') {
+                              handleUrlCancel()
+                            }
+                          }}
+                        />
+                        <p className="text-xs text-gray-500 italic">
+                          Recuerda que la URL sea de acceso público
+                        </p>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleUrlSave(milestone.id)}
+                            className="px-3 py-1 text-xs bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                          >
+                            Guardar
+                          </button>
+                          <button
+                            onClick={handleUrlCancel}
+                            className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+                          >
+                            Cancelar
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        {milestone.url ? (
+                          <div className="relative group/url">
+                            <URLPreview url={milestone.url} />
+                            <button
+                              onClick={() => handleUrlClick(milestone)}
+                              className="absolute top-2 right-2 p-1.5 text-gray-400 hover:text-blue-600 bg-white hover:bg-blue-50 rounded shadow-sm border border-gray-200 transition-colors opacity-0 group-hover/url:opacity-100"
+                              title="Editar URL"
+                            >
+                              <Edit2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => handleUrlClick(milestone)}
+                            className="flex items-center gap-2 text-xs text-gray-400 hover:text-blue-600 transition-colors"
+                          >
+                            <LinkIcon className="w-3 h-3" />
+                            <span>Agregar URL del resultado</span>
+                          </button>
+                        )}
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
