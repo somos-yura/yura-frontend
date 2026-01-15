@@ -501,16 +501,6 @@ const ChallengeChat: React.FC = () => {
               {/* Messages List */}
               <div className="space-y-6">
                 {messages.length === 0 && (
-                  <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
-                    <h3 className="text-sm font-semibold text-gray-900 mb-2">
-                      {CHAT_MESSAGES.DESCRIPTION}
-                    </h3>
-                    <p className="text-gray-600 leading-relaxed text-sm">
-                      {challenge.description}
-                    </p>
-                  </div>
-                )}
-                {messages.length === 0 && (
                   <div className="flex flex-col items-center justify-center space-y-8 py-8">
                     <div className="text-center space-y-3">
                       <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center text-blue-700 font-bold text-2xl mx-auto shadow-sm mb-4 ring-4 ring-white border border-blue-100">
@@ -520,7 +510,8 @@ const ChallengeChat: React.FC = () => {
                         {CHAT_MESSAGES.GREETING}
                       </h1>
                       <p className="text-sm text-gray-500">
-                        Comencemos a conversar sobre este problema social
+                        Comencemos a trabajar en encontrar una solución a este
+                        problema
                       </p>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3 w-full max-w-3xl">
@@ -719,7 +710,7 @@ const ChallengeChat: React.FC = () => {
             </div>
           </div>
 
-          <div className="border-t border-gray-200 bg-white shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-20">
+          <div className="z-20">
             <div className="w-full max-w-4xl mx-auto px-6 py-2">
               {errorState.type && (
                 <div className="mb-2 p-3 bg-red-50 border border-red-100 rounded-lg flex items-center gap-2 text-sm text-red-600 animate-in slide-in-from-bottom-2 fade-in duration-300">
@@ -733,8 +724,8 @@ const ChallengeChat: React.FC = () => {
                   </p>
                 </div>
               )}
-              <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-3xl border border-gray-200 shadow-sm">
-                <div className="flex items-end gap-2.5 p-2.5">
+              <div className="bg-white rounded-[50px] border border-gray-200 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] ring-1 ring-gray-100 hover:ring-blue-100 transition-all duration-300 p-2">
+                <div className="flex items-center gap-2">
                   <div className="flex-1 min-w-0">
                     <textarea
                       value={inputValue}
@@ -747,22 +738,23 @@ const ChallengeChat: React.FC = () => {
                       }
                       rows={1}
                       disabled={!challengeAssignment || isTyping}
-                      className="w-full px-4 py-4 bg-transparent border-0 resize-none focus:outline-none text-sm leading-relaxed max-h-32 placeholder:text-gray-400 text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
-                      style={{ minHeight: '56px' }}
+                      className="w-full pl-5 pr-2 py-3.5 bg-transparent border-0 resize-none focus:outline-none text-[15px] leading-relaxed max-h-32 placeholder:text-gray-400 text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                      style={{ minHeight: '52px' }}
                     />
                   </div>
+
                   <button
                     onClick={handleSendMessage}
                     disabled={
                       !inputValue.trim() || isTyping || !challengeAssignment
                     }
-                    className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full hover:from-blue-600 hover:to-blue-700 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0 shadow-md hover:shadow-lg"
+                    className="mb-1 mr-1 p-2.5 bg-black text-white rounded-full hover:bg-gray-800 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0 shadow-md hover:shadow-lg flex items-center justify-center group bg-red-300"
                   >
-                    <Send className="w-5 h-5" />
+                    <Send className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
                   </button>
                 </div>
               </div>
-              <p className="text-center text-xs text-gray-400 mt-2 select-none">
+              <p className="text-center text-xs text-gray-400 mt-2.5 select-none font-medium opacity-70">
                 Estás hablando con un personaje simulado con IA. Puede cometer
                 errores.
               </p>
@@ -838,7 +830,6 @@ const ChallengeChat: React.FC = () => {
                     </div>
                   )}
 
-                  {/* Additional File Categories - Placeholder */}
                   {/* Additional File Categories - Placeholder */}
                   <div className="mt-8 space-y-6">
                     <div>
