@@ -109,7 +109,6 @@ const ChallengeChat: React.FC = () => {
     useState<ChallengeAssignment | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [chatError, setChatError] = useState<string | null>(null)
   const [diagrams, setDiagrams] = useState<Diagram[]>([])
   const [activeTab, setActiveTab] = useState<TabType>('chat')
   const [isGoogleAuthModalOpen, setIsGoogleAuthModalOpen] = useState(false)
@@ -140,8 +139,8 @@ const ChallengeChat: React.FC = () => {
       setIsGoogleAuthModalOpen(false)
     },
     onError: (errorMessage) => {
-      setChatError(errorMessage)
-      setTimeout(() => setChatError(null), 5000)
+      // Mensaje técnico para developers
+      console.warn('Google Auth Debug Info:', errorMessage)
     },
   })
 
@@ -173,6 +172,7 @@ const ChallengeChat: React.FC = () => {
     setInputValue,
     isTyping,
     hasMoreMessages,
+    errorState,
     handleSendMessage,
     handleSuggestedPrompt,
     loadMoreMessages,
@@ -182,8 +182,8 @@ const ChallengeChat: React.FC = () => {
     sessionId,
     token: token || null,
     onError: (errorMessage) => {
-      setChatError(errorMessage)
-      setTimeout(() => setChatError(null), 5000)
+      // Mensaje técnico para developers, no visible en UI para mantener simulación
+      console.warn('Simulation Debug Info:', errorMessage)
     },
     onMessageSent: (data) => {
       const newDiagrams = data.diagrams
@@ -242,7 +242,6 @@ const ChallengeChat: React.FC = () => {
 
       setLoading(true)
       setError(null)
-      setChatError(null)
 
       try {
         // Fetch challenge
@@ -383,15 +382,47 @@ const ChallengeChat: React.FC = () => {
                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center text-blue-700 font-bold text-base shadow-sm ring-2 ring-white border border-blue-100">
                     {getAvatarInitials(challenge)}
                   </div>
-                  <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></div>
+                  {/* Status Indicator Dot */}
+                  <div
+                    className={`absolute bottom-0 right-0 w-3.5 h-3.5 border-2 border-white rounded-full transition-colors duration-300 ${
+                      errorState.type
+                        ? 'bg-red-500' // Error state
+                        : isTyping
+                          ? 'bg-blue-500 animate-pulse' // Typing state
+                          : 'bg-green-500' // Connected/Idle state
+                    }`}
+                    title={
+                      errorState.type
+                        ? 'Offline'
+                        : isTyping
+                          ? 'Escribiendo...'
+                          : 'Online'
+                    }
+                  ></div>
                 </div>
                 <div className="flex-1 min-w-0">
                   <h1 className="text-lg font-bold text-gray-900 truncate leading-tight">
                     {getFullName(challenge)}
                   </h1>
-                  <p className="text-sm text-gray-500 truncate">
-                    {challenge.title}
-                  </p>
+                  <div className="flex items-center gap-1.5 text-sm overflow-hidden">
+                    <span
+                      className={`truncate font-medium flex-shrink-0 ${
+                        errorState.type
+                          ? 'text-red-500'
+                          : isTyping
+                            ? 'text-blue-600'
+                            : 'text-green-600'
+                      }`}
+                    >
+                      {errorState.type
+                        ? 'Offline'
+                        : isTyping
+                          ? 'Escribiendo...'
+                          : 'Online'}
+                    </span>
+                    <span className="text-gray-300 flex-shrink-0">•</span>
+                    <p className="text-gray-500 truncate">{challenge.title}</p>
+                  </div>
                 </div>
               </div>
 
@@ -467,235 +498,234 @@ const ChallengeChat: React.FC = () => {
           {/* Chat Messages Area */}
           <div className="flex-1 overflow-y-auto bg-gradient-to-br from-gray-50/50 to-white">
             <div className="w-full max-w-4xl mx-auto px-6 py-6">
-              {chatError && (
-                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl">
-                  <p className="text-sm text-red-600">{chatError}</p>
-                </div>
-              )}
-              {messages.length === 0 && (
-                <div className="mb-6">
-                  <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
-                    <h3 className="text-sm font-semibold text-gray-900 mb-2">
-                      {CHAT_MESSAGES.DESCRIPTION}
-                    </h3>
-                    <p className="text-gray-600 leading-relaxed text-sm">
-                      {challenge.description}
-                    </p>
-                  </div>
-                </div>
-              )}
-              {messages.length === 0 && (
-                <div className="flex flex-col items-center justify-center space-y-8 py-8">
-                  <div className="text-center space-y-3">
-                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center text-blue-700 font-bold text-2xl mx-auto shadow-sm mb-4 ring-4 ring-white border border-blue-100">
-                      {getAvatarInitials(challenge)}
+              {/* Messages List */}
+              <div className="space-y-6">
+                {messages.length === 0 && (
+                  <div className="flex flex-col items-center justify-center space-y-8 py-8">
+                    <div className="text-center space-y-3">
+                      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center text-blue-700 font-bold text-2xl mx-auto shadow-sm mb-4 ring-4 ring-white border border-blue-100">
+                        {getAvatarInitials(challenge)}
+                      </div>
+                      <h1 className="text-2xl font-semibold text-gray-900">
+                        {CHAT_MESSAGES.GREETING}
+                      </h1>
+                      <p className="text-sm text-gray-500">
+                        Comencemos a trabajar en encontrar una solución a este
+                        problema
+                      </p>
                     </div>
-                    <h1 className="text-2xl font-semibold text-gray-900">
-                      {CHAT_MESSAGES.GREETING}
-                    </h1>
-                    <p className="text-sm text-gray-500">
-                      Comencemos a conversar sobre este problema social
-                    </p>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 w-full max-w-3xl">
-                    {SUGGESTED_PROMPTS.map((prompt, index) => (
-                      <button
-                        key={index}
-                        onClick={() => handleSuggestedPrompt(prompt.prompt)}
-                        className="group bg-white border border-gray-200 rounded-xl p-4 hover:border-blue-300 hover:shadow-lg transition-all duration-200 text-left"
-                      >
-                        <div className="space-y-2">
-                          <div className="p-2.5 bg-blue-50 rounded-lg w-fit group-hover:bg-blue-100 transition-colors">
-                            <prompt.icon className="w-5 h-5 text-blue-600" />
-                          </div>
-                          <div>
-                            <h3 className="text-sm font-semibold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors">
-                              {prompt.title}
-                            </h3>
-                            <p className="text-xs text-gray-600 leading-relaxed">
-                              {prompt.description}
-                            </p>
-                          </div>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {messages.length > 0 && (
-                <div className="space-y-4">
-                  {hasMoreMessages && (
-                    <div className="flex justify-center py-2">
-                      <button
-                        onClick={loadMoreMessages}
-                        className="px-4 py-2 text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
-                      >
-                        Cargar más
-                      </button>
-                    </div>
-                  )}
-                  {messages.map((message, index) => {
-                    const isUser = message.role === 'user'
-                    const isConsecutive =
-                      index > 0 && messages[index - 1].role === message.role
-
-                    return (
-                      <div
-                        key={message.id}
-                        className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-2`}
-                      >
-                        <div
-                          className={`flex max-w-[85%] md:max-w-[75%] ${isUser ? 'flex-row-reverse' : 'flex-row'} items-end gap-2`}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 w-full max-w-3xl">
+                      {SUGGESTED_PROMPTS.map((prompt, index) => (
+                        <button
+                          key={index}
+                          onClick={() => handleSuggestedPrompt(prompt.prompt)}
+                          className="group bg-white border border-gray-200 rounded-xl p-4 hover:border-blue-300 hover:shadow-lg transition-all duration-200 text-left"
                         >
-                          {/* Avatar */}
-                          {!isUser && !isConsecutive ? (
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center text-blue-700 font-bold text-xs shadow-sm flex-shrink-0 mb-1 ring-2 ring-white border border-blue-100">
-                              {getAvatarInitials(challenge)}
+                          <div className="space-y-2">
+                            <div className="p-2.5 bg-blue-50 rounded-lg w-fit group-hover:bg-blue-100 transition-colors">
+                              <prompt.icon className="w-5 h-5 text-blue-600" />
                             </div>
-                          ) : isUser && !isConsecutive ? (
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold text-xs shadow-sm flex-shrink-0 mb-1">
-                              <User className="w-4 h-4" />
+                            <div>
+                              <h3 className="text-sm font-semibold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors">
+                                {prompt.title}
+                              </h3>
+                              <p className="text-xs text-gray-600 leading-relaxed">
+                                {prompt.description}
+                              </p>
                             </div>
-                          ) : (
-                            <div className="w-8 flex-shrink-0" />
-                          )}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {messages.length > 0 && (
+                  <div className="space-y-4">
+                    {hasMoreMessages && (
+                      <div className="flex justify-center py-2">
+                        <button
+                          onClick={loadMoreMessages}
+                          className="px-4 py-2 text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                        >
+                          Cargar más
+                        </button>
+                      </div>
+                    )}
+                    {messages.map((message, index) => {
+                      const isUser = message.role === 'user'
+                      const isConsecutive =
+                        index > 0 && messages[index - 1].role === message.role
 
+                      return (
+                        <div
+                          key={message.id}
+                          className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-2`}
+                        >
                           <div
-                            className={`flex flex-col ${isUser ? 'items-end' : 'items-start'}`}
+                            className={`flex max-w-[85%] md:max-w-[75%] ${isUser ? 'flex-row-reverse' : 'flex-row'} items-end gap-2`}
                           >
-                            {/* Message Bubble */}
-                            <div
-                              className={`relative px-4 py-2.5 shadow-sm w-fit ${
-                                isUser
-                                  ? 'bg-blue-600 text-white rounded-2xl rounded-tr-sm'
-                                  : 'bg-white border border-gray-100 text-gray-800 rounded-2xl rounded-tl-sm'
-                              }`}
-                            >
-                              <div className="text-sm leading-relaxed break-words markdown-content">
-                                <ReactMarkdown
-                                  remarkPlugins={[remarkGfm]}
-                                  components={{
-                                    code: ({
-                                      inline,
-                                      className,
-                                      children,
-                                      ...props
-                                    }: React.ComponentPropsWithoutRef<'code'> & {
-                                      inline?: boolean
-                                    }) => {
-                                      const match = /language-(\w+)/.exec(
-                                        className || ''
-                                      )
-                                      // Check if it's a mermaid diagram
-                                      if (
-                                        !inline &&
-                                        match &&
-                                        match[1] === 'mermaid'
-                                      ) {
-                                        return (
-                                          <div className="my-4 overflow-hidden rounded-lg bg-white p-2 shadow-sm border border-gray-100">
-                                            <Mermaid
-                                              chart={String(children).replace(
-                                                /\n$/,
-                                                ''
-                                              )}
-                                            />
-                                          </div>
-                                        )
-                                      }
+                            {/* Avatar */}
+                            {!isUser && !isConsecutive ? (
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center text-blue-700 font-bold text-xs shadow-sm flex-shrink-0 mb-1 ring-2 ring-white border border-blue-100">
+                                {getAvatarInitials(challenge)}
+                              </div>
+                            ) : isUser && !isConsecutive ? (
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold text-xs shadow-sm flex-shrink-0 mb-1">
+                                <User className="w-4 h-4" />
+                              </div>
+                            ) : (
+                              <div className="w-8 flex-shrink-0" />
+                            )}
 
-                                      return !inline && match ? (
-                                        <div className="rounded-lg bg-gray-900 p-3 my-2 overflow-x-auto">
+                            <div
+                              className={`flex flex-col ${isUser ? 'items-end' : 'items-start'}`}
+                            >
+                              {/* Message Bubble */}
+                              <div
+                                className={`relative px-4 py-2.5 shadow-sm w-fit ${
+                                  isUser
+                                    ? 'bg-blue-600 text-white rounded-2xl rounded-tr-sm'
+                                    : 'bg-white border border-gray-100 text-gray-800 rounded-2xl rounded-tl-sm'
+                                }`}
+                              >
+                                <div className="text-sm leading-relaxed break-words markdown-content">
+                                  <ReactMarkdown
+                                    remarkPlugins={[remarkGfm]}
+                                    components={{
+                                      code: ({
+                                        inline,
+                                        className,
+                                        children,
+                                        ...props
+                                      }: React.ComponentPropsWithoutRef<'code'> & {
+                                        inline?: boolean
+                                      }) => {
+                                        const match = /language-(\w+)/.exec(
+                                          className || ''
+                                        )
+                                        // Check if it's a mermaid diagram
+                                        if (
+                                          !inline &&
+                                          match &&
+                                          match[1] === 'mermaid'
+                                        ) {
+                                          return (
+                                            <div className="my-4 overflow-hidden rounded-lg bg-white p-2 shadow-sm border border-gray-100">
+                                              <Mermaid
+                                                chart={String(children).replace(
+                                                  /\n$/,
+                                                  ''
+                                                )}
+                                              />
+                                            </div>
+                                          )
+                                        }
+
+                                        return !inline && match ? (
+                                          <div className="rounded-lg bg-gray-900 p-3 my-2 overflow-x-auto">
+                                            <code
+                                              className={className}
+                                              {...props}
+                                            >
+                                              {children}
+                                            </code>
+                                          </div>
+                                        ) : (
                                           <code
-                                            className={className}
+                                            className={`${className} ${
+                                              isUser
+                                                ? 'bg-blue-700/30 text-white'
+                                                : 'bg-gray-100 text-gray-800'
+                                            } px-1.5 py-0.5 rounded text-xs font-mono`}
                                             {...props}
                                           >
                                             {children}
                                           </code>
-                                        </div>
-                                      ) : (
-                                        <code
-                                          className={`${className} ${
-                                            isUser
-                                              ? 'bg-blue-700/30 text-white'
-                                              : 'bg-gray-100 text-gray-800'
-                                          } px-1.5 py-0.5 rounded text-xs font-mono`}
-                                          {...props}
+                                        )
+                                      },
+                                      p: ({ children }) => (
+                                        <p className="mb-1 last:mb-0">
+                                          {children}
+                                        </p>
+                                      ),
+                                      ul: ({ children }) => (
+                                        <ul className="list-disc ml-4 mb-2">
+                                          {children}
+                                        </ul>
+                                      ),
+                                      ol: ({ children }) => (
+                                        <ol className="list-decimal ml-4 mb-2">
+                                          {children}
+                                        </ol>
+                                      ),
+                                      li: ({ children }) => (
+                                        <li className="mb-1">{children}</li>
+                                      ),
+                                      a: ({ href, children }) => (
+                                        <a
+                                          href={href}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className={`underline ${isUser ? 'text-white' : 'text-blue-600'} hover:opacity-80`}
                                         >
                                           {children}
-                                        </code>
-                                      )
-                                    },
-                                    p: ({ children }) => (
-                                      <p className="mb-1 last:mb-0">
-                                        {children}
-                                      </p>
-                                    ),
-                                    ul: ({ children }) => (
-                                      <ul className="list-disc ml-4 mb-2">
-                                        {children}
-                                      </ul>
-                                    ),
-                                    ol: ({ children }) => (
-                                      <ol className="list-decimal ml-4 mb-2">
-                                        {children}
-                                      </ol>
-                                    ),
-                                    li: ({ children }) => (
-                                      <li className="mb-1">{children}</li>
-                                    ),
-                                    a: ({ href, children }) => (
-                                      <a
-                                        href={href}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className={`underline ${isUser ? 'text-white' : 'text-blue-600'} hover:opacity-80`}
-                                      >
-                                        {children}
-                                      </a>
-                                    ),
-                                  }}
-                                >
-                                  {cleanDiagramDescriptions(message.content)}
-                                </ReactMarkdown>
+                                        </a>
+                                      ),
+                                    }}
+                                  >
+                                    {cleanDiagramDescriptions(message.content)}
+                                  </ReactMarkdown>
+                                </div>
                               </div>
-                            </div>
 
-                            {/* Timestamp below bubble */}
-                            <div
-                              className={`text-[10px] text-gray-400 mt-1 ${isUser ? 'mr-1' : 'ml-1'}`}
-                            >
-                              {formatTime(message.timestamp)}
+                              {/* Timestamp below bubble */}
+                              <div
+                                className={`text-[10px] text-gray-400 mt-1 ${isUser ? 'mr-1' : 'ml-1'}`}
+                              >
+                                {formatTime(message.timestamp)}
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    )
-                  })}
-                  {isTyping && (
-                    <div className="flex gap-3">
-                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center text-blue-700 font-bold text-xs shadow-sm flex-shrink-0 border border-blue-100">
-                        {getAvatarInitials(challenge)}
-                      </div>
-                      <div className="bg-white border border-gray-100 rounded-2xl rounded-tl-md px-5 py-3.5 shadow-sm">
-                        <div className="flex gap-1.5">
-                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]" />
-                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]" />
-                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
+                      )
+                    })}
+                    {isTyping && (
+                      <div className="flex gap-3">
+                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center text-blue-700 font-bold text-xs shadow-sm flex-shrink-0 border border-blue-100">
+                          {getAvatarInitials(challenge)}
+                        </div>
+                        <div className="bg-white border border-gray-100 rounded-2xl rounded-tl-md px-5 py-3.5 shadow-sm">
+                          <div className="flex gap-1.5">
+                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]" />
+                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  )}
-                  <div ref={messagesEndRef} />
-                </div>
-              )}
+                    )}
+                    <div ref={messagesEndRef} />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
-          <div className="border-t border-gray-200 bg-white shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-20">
+          <div className="z-20">
             <div className="w-full max-w-4xl mx-auto px-6 py-2">
-              <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-3xl border border-gray-200 shadow-sm">
-                <div className="flex items-end gap-2.5 p-2.5">
+              {errorState.type && (
+                <div className="mb-2 p-3 bg-red-50 border border-red-100 rounded-lg flex items-center gap-2 text-sm text-red-600 animate-in slide-in-from-bottom-2 fade-in duration-300">
+                  <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse flex-shrink-0" />
+                  <p>
+                    No se pudo enviar el mensaje. Inténtalo más tarde,{' '}
+                    <span className="font-semibold">
+                      {getFullName(challenge)}
+                    </span>{' '}
+                    está desconectado.
+                  </p>
+                </div>
+              )}
+              <div className="bg-white rounded-[50px] border border-gray-200 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] ring-1 ring-gray-100 hover:ring-blue-100 transition-all duration-300 p-2">
+                <div className="flex items-center gap-2">
                   <div className="flex-1 min-w-0">
                     <textarea
                       value={inputValue}
@@ -708,22 +738,23 @@ const ChallengeChat: React.FC = () => {
                       }
                       rows={1}
                       disabled={!challengeAssignment || isTyping}
-                      className="w-full px-4 py-4 bg-transparent border-0 resize-none focus:outline-none text-sm leading-relaxed max-h-32 placeholder:text-gray-400 text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
-                      style={{ minHeight: '56px' }}
+                      className="w-full pl-5 pr-2 py-3.5 bg-transparent border-0 resize-none focus:outline-none text-[15px] leading-relaxed max-h-32 placeholder:text-gray-400 text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                      style={{ minHeight: '52px' }}
                     />
                   </div>
+
                   <button
                     onClick={handleSendMessage}
                     disabled={
                       !inputValue.trim() || isTyping || !challengeAssignment
                     }
-                    className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full hover:from-blue-600 hover:to-blue-700 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0 shadow-md hover:shadow-lg"
+                    className="mb-1 mr-1 p-2.5 bg-black text-white rounded-full hover:bg-gray-800 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0 shadow-md hover:shadow-lg flex items-center justify-center group bg-red-300"
                   >
-                    <Send className="w-5 h-5" />
+                    <Send className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
                   </button>
                 </div>
               </div>
-              <p className="text-center text-xs text-gray-400 mt-2 select-none">
+              <p className="text-center text-xs text-gray-400 mt-2.5 select-none font-medium opacity-70">
                 Estás hablando con un personaje simulado con IA. Puede cometer
                 errores.
               </p>
@@ -799,7 +830,6 @@ const ChallengeChat: React.FC = () => {
                     </div>
                   )}
 
-                  {/* Additional File Categories - Placeholder */}
                   {/* Additional File Categories - Placeholder */}
                   <div className="mt-8 space-y-6">
                     <div>

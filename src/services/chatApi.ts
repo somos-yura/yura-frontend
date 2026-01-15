@@ -1,10 +1,37 @@
-import { apiClient, ApiError } from '../lib/apiClient'
+import { apiClient, ApiError, type ApiResponse } from '../lib/apiClient'
 import { ENDPOINTS } from '../config/endpoints'
 
+export const ResponseStatus = {
+  SUCCESS: 'success',
+  ERROR: 'error',
+} as const
+
+export type ResponseStatus =
+  (typeof ResponseStatus)[keyof typeof ResponseStatus]
+
+export const ErrorCode = {
+  TIMEOUT: 'timeout',
+  LLM_FAIL: 'llm_fail',
+  RAG_FAIL: 'rag_fail',
+  ORCHESTRATION_FAIL: 'orchestration_fail',
+  NETWORK_ERROR: 'network_error',
+  UNKNOWN: 'unknown',
+} as const
+
+export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode]
+
 export class ChatApiError extends ApiError {
-  constructor(message: string, status: number, details?: unknown) {
+  errorCode?: ErrorCode
+
+  constructor(
+    message: string,
+    status: number,
+    details?: unknown,
+    errorCode?: ErrorCode
+  ) {
     super(message, status, details)
     this.name = 'ChatApiError'
+    this.errorCode = errorCode
   }
 }
 
@@ -37,6 +64,9 @@ export interface ChatResponse {
   current_agent?: string
   google_calendar_linked?: boolean
   needs_google_auth?: boolean
+  status?: ResponseStatus
+  error_code?: ErrorCode | null
+  error_message?: string | null
 }
 
 export interface ChatApiResponse {
@@ -67,10 +97,11 @@ export interface MessageHistoryApiResponse {
 export interface Milestone {
   id: string
   title: string
-  description: string
+  description: string | null
   due_date: string
   status: string
-  google_calendar_event_id?: string
+  url: string | null
+  google_calendar_event_id: string | null
 }
 
 export interface MilestonesApiResponse {
@@ -134,9 +165,21 @@ export const chatApi = {
       })) as ChatApiResponse
     } catch (error) {
       if (error instanceof ApiError) {
-        throw new ChatApiError(error.message, error.status, error.details)
+        // Mapear el error de la API a un ChatApiError para mantener compatibilidad
+        const data = error.details as { error_code?: ErrorCode }
+        throw new ChatApiError(
+          error.message,
+          error.status,
+          error.details,
+          data?.error_code || ErrorCode.UNKNOWN
+        )
       }
-      throw new ChatApiError('Error al enviar el mensaje', 500, error)
+      throw new ChatApiError(
+        'Error de conexión. Por favor, verifica tu red.',
+        -1,
+        error,
+        ErrorCode.NETWORK_ERROR
+      )
     }
   },
 
@@ -264,6 +307,26 @@ export const chatApi = {
         throw new ChatApiError(error.message, error.status, error.details)
       }
       throw new ChatApiError('Error al sincronizar hitos', 500, error)
+    }
+  },
+
+  async updateMilestone(
+    milestoneId: string,
+    updates: Partial<Milestone>,
+    token: string
+  ): Promise<ApiResponse<{ milestone: Milestone }>> {
+    try {
+      const endpoint = `${ENDPOINTS.AI.CHAT.MILESTONES}/${milestoneId}`
+      return await apiClient.patch<{ milestone: Milestone }>(
+        endpoint,
+        updates,
+        { requireAuth: true, token }
+      )
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw new ChatApiError(error.message, error.status, error.details)
+      }
+      throw new ChatApiError('Error al actualizar el hito', 500, error)
     }
   },
 }

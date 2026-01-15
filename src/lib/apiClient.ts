@@ -17,7 +17,7 @@ interface RequestConfig extends RequestInit {
   token?: string
 }
 
-interface ApiResponse<T> {
+export interface ApiResponse<T> {
   success: boolean
   message?: string
   translation?: string
@@ -148,6 +148,32 @@ export const apiClient = {
       const response = await fetch(getApiUrl(endpoint), {
         method: 'DELETE',
         headers,
+        ...fetchConfig,
+      })
+
+      return handleApiResponse<T>(response)
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw error
+      }
+      throw new ApiError('Error de conexión', 0, error)
+    }
+  },
+
+  async patch<T>(
+    endpoint: string,
+    body?: unknown,
+    config: RequestConfig = {}
+  ): Promise<ApiResponse<T>> {
+    try {
+      const { requireAuth = false, token, ...fetchConfig } = config
+      const headers =
+        requireAuth && token ? getAuthHeaders(token) : getAuthHeaders()
+
+      const response = await fetch(getApiUrl(endpoint), {
+        method: 'PATCH',
+        headers,
+        body: body ? JSON.stringify(body) : undefined,
         ...fetchConfig,
       })
 
