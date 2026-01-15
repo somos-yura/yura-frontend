@@ -94,6 +94,12 @@ export interface MessageHistoryApiResponse {
   data: MessageHistoryResponse
 }
 
+export interface Deliverable {
+  item: string
+  observations: string | null
+  status: 'done' | 'partially_done' | 'not_done'
+}
+
 export interface Milestone {
   id: string
   title: string
@@ -102,6 +108,7 @@ export interface Milestone {
   status: string
   url: string | null
   google_calendar_event_id: string | null
+  deliverables?: Deliverable[]
 }
 
 export interface MilestonesApiResponse {

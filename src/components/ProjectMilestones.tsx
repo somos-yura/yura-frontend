@@ -148,8 +148,8 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({
 
                 <div className="flex-1 min-w-0">
                   <p
-                    className="text-sm font-bold text-foreground mb-1 line-clamp-1 group-hover:text-electricBlue transition-colors"
-                    title={milestone.title}
+                    className="text-sm font-bold text-foreground mb-1 group-hover:text-electricBlue transition-colors cursor-help leading-snug"
+                    title={`${milestone.title}${milestone.description ? `\n\n${milestone.description}` : ''}`}
                   >
                     {milestone.title}
                   </p>
@@ -159,14 +159,40 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({
                       {new Date(milestone.due_date).toLocaleDateString()}
                     </span>
                   </div>
-                  {milestone.description && (
-                    <p
-                      className="text-xs text-muted-foreground mt-2 line-clamp-2 leading-relaxed"
-                      title={milestone.description}
-                    >
-                      {milestone.description}
-                    </p>
-                  )}
+                  {milestone.deliverables &&
+                    milestone.deliverables.length > 0 && (
+                      <div className="mt-4 space-y-3">
+                        {milestone.deliverables.map((d, idx) => (
+                          <div key={idx} className="flex flex-col gap-1.5">
+                            <div className="flex items-start gap-1.5">
+                              <span className="text-[11px] text-foreground font-bold leading-tight mt-0.5">
+                                •
+                              </span>
+                              <span className="text-[11px] text-foreground font-medium leading-tight">
+                                {d.item}
+                              </span>
+                            </div>
+                            <div className="flex">
+                              <span
+                                className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border ${
+                                  d.status === 'done'
+                                    ? 'bg-green-100 text-green-700 border-green-200'
+                                    : d.status === 'partially_done'
+                                      ? 'bg-yellow-100 text-yellow-700 border-yellow-200'
+                                      : 'bg-gray-100 text-gray-500 border-gray-200'
+                                }`}
+                              >
+                                {d.status === 'done'
+                                  ? 'Hecho'
+                                  : d.status === 'partially_done'
+                                    ? 'Parcialmente hecho'
+                                    : 'No hecho'}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
 
                   {/* Input inline para URL */}
                   <div className="mt-3">
