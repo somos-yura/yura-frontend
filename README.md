@@ -1,6 +1,6 @@
-# MiniWorker Tech Frontend
+# YURA Tech Frontend
 
-Frontend de la plataforma MiniWorker Academy, una aplicación web para conectar estudiantes con proyectos sociales y personas simuladas para colaboración y aprendizaje.
+Frontend de la plataforma YURA, una aplicación web para conectar estudiantes con proyectos sociales y personas simuladas para colaboración y aprendizaje.
 
 ## 🚀 Stack Tecnológico
 

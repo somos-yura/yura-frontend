@@ -46,9 +46,9 @@ const Login: React.FC = () => {
           </div>
           <div className="relative z-10 mb-12">
             <img
-              src="/miniworkerlogosinbg.svg"
-              alt="MiniWorker Academy"
-              className="w-auto h-32 object-contain filter brightness-0 invert"
+              src="/yura_slogan2_wb.svg"
+              alt="YURA"
+              className="w-auto h-72 object-contain"
             />
           </div>
           <div className="relative z-10 space-y-6 text-center">
@@ -66,7 +66,7 @@ const Login: React.FC = () => {
           <div className="w-full max-w-md">
             <div className="text-center mb-8">
               <h1 className="text-4xl font-bold text-[#2E2E2E] font-montserrat mb-2">
-                MiniWorker Academy
+                YURA
               </h1>
               <div className="w-16 h-1 bg-[#1E90FF] mx-auto rounded-full"></div>
             </div>
