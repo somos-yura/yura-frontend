@@ -5,6 +5,7 @@ import {
   ErrorCode,
   type ChatResponse,
 } from '../services/chatApi'
+import { StakeholderAvailabilityService } from '../services/stakeholderAvailabilityService'
 import type { Message } from '../types/chat'
 
 interface UseChatOptions {
@@ -33,6 +34,9 @@ export const useChat = (options: UseChatOptions) => {
     type: ErrorCode | null
     message: string | null
   }>({ type: null, message: null })
+  const [isAvailable] = useState(
+    StakeholderAvailabilityService.getCurrentStatus().isAvailable
+  )
   const abortControllerRef = useRef<AbortController | null>(null)
   const hasLoadedHistory = useRef(false)
 
@@ -71,6 +75,16 @@ export const useChat = (options: UseChatOptions) => {
     if (!challengeAssignmentId || !token) {
       const errorMessage = 'No hay conexión. Por favor, verifica tu sesión.'
       setErrorState({ type: ErrorCode.NETWORK_ERROR, message: errorMessage })
+      if (onError) {
+        onError(errorMessage)
+      }
+      return
+    }
+
+    if (!isAvailable) {
+      const errorMessage =
+        'El stakeholder se encuentra fuera de su horario laboral.'
+      setErrorState({ type: ErrorCode.UNKNOWN, message: errorMessage })
       if (onError) {
         onError(errorMessage)
       }
@@ -152,6 +166,7 @@ export const useChat = (options: UseChatOptions) => {
     createAIMessage,
     onError,
     onMessageSent,
+    isAvailable,
   ])
 
   const handleSuggestedPrompt = useCallback((prompt: string) => {
@@ -272,5 +287,6 @@ export const useChat = (options: UseChatOptions) => {
     handleSuggestedPrompt,
     loadMoreMessages,
     refreshHistory,
+    isAvailable,
   }
 }
