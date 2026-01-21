@@ -1,8 +1,8 @@
-# Arquitectura Frontend - MiniWorker Academy
+# Arquitectura Frontend - YURA
 
 ## Resumen del Proyecto
 
-MiniWorker Academy es una plataforma de aprendizaje construida con React + TypeScript + Tailwind CSS.
+YURA es una plataforma de aprendizaje construida con React + TypeScript + Tailwind CSS.
 
 ## Stack Tecnológico
 
@@ -239,7 +239,7 @@ Todos los servicios utilizan el manejo de errores centralizado del `apiClient`, 
 ## Prompt Base para IA
 
 ```
-Genera los componentes de UI para proyecto React + TypeScript + Tailwind CSS, que representen la pantalla de _ de la plataforma MiniWorker Academy.
+Genera los componentes de UI para proyecto React + TypeScript + Tailwind CSS, que representen la pantalla de _ de la plataforma YURA.
 
 🎨 Estilo visual
 

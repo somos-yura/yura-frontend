@@ -48,9 +48,9 @@ const Register: React.FC = () => {
         <div className="hidden lg:flex w-1/2 bg-white p-12 flex-col justify-center items-center relative overflow-hidden">
           <div className="relative z-10 mb-12">
             <img
-              src="/miniworkerlogosinbg.svg"
-              alt="MiniWorker Academy"
-              className="w-auto h-32 object-contain"
+              src="/yura_slogan1_wb.svg"
+              alt="YURA"
+              className="w-auto h-62 object-contain"
             />
           </div>
           <div className="relative z-10 space-y-6 text-center">
@@ -68,7 +68,7 @@ const Register: React.FC = () => {
           <div className="w-full max-w-md">
             <div className="mb-8 text-center">
               <h1 className="text-4xl font-bold text-white font-montserrat mb-2">
-                MiniWorker Academy
+                YURA
               </h1>
               <div className="w-16 h-1 bg-white mx-auto rounded-full"></div>
             </div>
