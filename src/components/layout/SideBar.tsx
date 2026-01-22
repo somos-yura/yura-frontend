@@ -15,7 +15,7 @@ export function AppSidebar() {
               className="text-lg font-bold"
               style={{ fontFamily: 'var(--font-montserrat)' }}
             >
-              M
+              Y
             </span>
           </div>
           <div className="flex flex-col">
@@ -23,9 +23,8 @@ export function AppSidebar() {
               className="text-sm font-bold text-white"
               style={{ fontFamily: 'var(--font-montserrat)' }}
             >
-              MiniWorker
+              YURA
             </span>
-            <span className="text-xs text-gray-300">Academy</span>
           </div>
         </div>
       </div>

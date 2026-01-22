@@ -203,9 +203,7 @@ const Onboarding: React.FC = () => {
             <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
               <Code className="w-6 h-6 text-white" />
             </div>
-            <span className="text-xl font-bold tracking-tight">
-              Miniworker Academy
-            </span>
+            <span className="text-xl font-bold tracking-tight">YURA</span>
           </div>
 
           <div className="space-y-8">
