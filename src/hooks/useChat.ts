@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/react'
 import { useState, useCallback, useEffect, useRef } from 'react'
 import {
   chatApi,
@@ -133,6 +134,7 @@ export const useChat = (options: UseChatOptions) => {
         onMessageSent(response.data)
       }
     } catch (error) {
+      Sentry.captureException(error)
       setInputValue(messageContent)
       setAllMessages((prev) => prev.slice(0, -1))
 
@@ -224,6 +226,7 @@ export const useChat = (options: UseChatOptions) => {
         }
         hasLoadedHistory.current = true
       } catch (error) {
+        Sentry.captureException(error)
         // Silently fail - it's okay if there's no history yet
         console.log('No message history found or error loading:', error)
       } finally {
@@ -267,6 +270,7 @@ export const useChat = (options: UseChatOptions) => {
         setDisplayedMessageCount(formattedMessages.length)
       }
     } catch (error) {
+      Sentry.captureException(error)
       console.error('Error refreshing history:', error)
     } finally {
       setIsLoading(false)
