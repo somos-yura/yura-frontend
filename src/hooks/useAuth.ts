@@ -10,12 +10,11 @@ import {
 } from '../utils/validation'
 import type { LoginForm, RegisterForm, AuthState, User } from '../types/auth'
 
-const AUTH_STORAGE_KEY = 'miniworker_auth'
+const AUTH_STORAGE_KEY = 'miniworker_user'
 
 export const useAuth = () => {
   const [authState, setAuthState] = useState<AuthState>({
     user: null,
-    token: null,
     isAuthenticated: false,
     onboardingCompleted: false,
   })
@@ -23,12 +22,11 @@ export const useAuth = () => {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
-  const checkOnboardingStatus = async (token: string) => {
+  const checkOnboardingStatus = async () => {
     try {
-      const summary = await studentsApi.getProfileSummary(token)
+      const summary = await studentsApi.getProfileSummary()
       return summary.onboarding_completed
     } catch (error: unknown) {
-      // If 401, token is invalid/expired, throw error to trigger logout in initAuth
       if (
         error &&
         typeof error === 'object' &&
@@ -37,7 +35,6 @@ export const useAuth = () => {
       ) {
         throw error
       }
-      // If 404, profile doesn't exist, so onboarding is not completed
       if (
         error &&
         typeof error === 'object' &&
@@ -46,7 +43,6 @@ export const useAuth = () => {
       ) {
         return false
       }
-      // For other errors, we might want to log them but default to false to be safe
       Sentry.captureException(error)
       console.error('Error checking onboarding status:', error)
       return false
@@ -55,20 +51,23 @@ export const useAuth = () => {
 
   useEffect(() => {
     const initAuth = async () => {
-      const savedAuth = localStorage.getItem(AUTH_STORAGE_KEY)
-      if (savedAuth) {
+      const savedUser = localStorage.getItem(AUTH_STORAGE_KEY)
+      if (savedUser) {
         try {
-          const { user, token } = JSON.parse(savedAuth)
-          // Verify token validity by checking onboarding status (doubles as auth check)
-          const onboardingCompleted = await checkOnboardingStatus(token)
+          const user = JSON.parse(savedUser)
+          const onboardingCompleted = await checkOnboardingStatus()
           setAuthState({
             user,
-            token,
             isAuthenticated: true,
             onboardingCompleted,
           })
         } catch {
           localStorage.removeItem(AUTH_STORAGE_KEY)
+          setAuthState({
+            user: null,
+            isAuthenticated: false,
+            onboardingCompleted: false,
+          })
         }
       }
       setLoading(false)
@@ -98,20 +97,19 @@ export const useAuth = () => {
     return null
   }
 
-  const saveAuth = (
-    user: User,
-    token: string,
-    onboardingCompleted: boolean
-  ) => {
-    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({ user, token }))
-    setAuthState({ user, token, isAuthenticated: true, onboardingCompleted })
+  const saveAuth = (user: User, onboardingCompleted: boolean) => {
+    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user))
+    setAuthState({
+      user,
+      isAuthenticated: true,
+      onboardingCompleted,
+    })
   }
 
   const clearAuth = () => {
     localStorage.removeItem(AUTH_STORAGE_KEY)
     setAuthState({
       user: null,
-      token: null,
       isAuthenticated: false,
       onboardingCompleted: false,
     })
@@ -137,14 +135,13 @@ export const useAuth = () => {
         ? await authApi.login(form as LoginForm)
         : await authApi.register(form as RegisterForm)
 
-      const token = response.data.access_token
       let onboardingCompleted = false
 
       if (isLogin) {
-        onboardingCompleted = await checkOnboardingStatus(token)
+        onboardingCompleted = await checkOnboardingStatus()
       }
 
-      saveAuth(response.data.user, token, onboardingCompleted)
+      saveAuth(response.data.user, onboardingCompleted)
       setSuccess(
         isLogin ? '¡Inicio de sesión exitoso!' : '¡Cuenta creada exitosamente!'
       )
@@ -165,15 +162,21 @@ export const useAuth = () => {
   const login = (credentials: LoginForm) => handleAuth(credentials, true)
   const register = (userData: RegisterForm) => handleAuth(userData, false)
 
-  const logout = () => {
-    clearAuth()
-    setError(null)
-    setSuccess(null)
+  const logout = async () => {
+    try {
+      await authApi.logout()
+    } catch (error) {
+      Sentry.captureException(error)
+    } finally {
+      clearAuth()
+      setError(null)
+      setSuccess(null)
+    }
   }
 
   const markOnboardingComplete = () => {
-    if (authState.user && authState.token) {
-      saveAuth(authState.user, authState.token, true)
+    if (authState.user) {
+      saveAuth(authState.user, true)
     }
   }
 

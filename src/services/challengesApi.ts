@@ -74,8 +74,7 @@ export const challengesApi = {
   },
 
   async createAssignment(
-    request: ChallengeAssignmentRequest,
-    token: string
+    request: ChallengeAssignmentRequest
   ): Promise<ChallengeAssignmentResponse> {
     try {
       const endpoint = ENDPOINTS.CHALLENGES.ASSIGNMENTS
@@ -83,7 +82,7 @@ export const challengesApi = {
       return (await apiClient.post<ChallengeAssignmentResponse['data']>(
         endpoint,
         request,
-        { requireAuth: true, token }
+        { requireAuth: true }
       )) as ChallengeAssignmentResponse
     } catch (error) {
       Sentry.captureException(error)
@@ -105,7 +104,8 @@ export const challengesApi = {
       const endpoint = ENDPOINTS.CHALLENGES.ASSIGNMENTS_BY_STUDENT(studentId)
 
       return (await apiClient.get<StudentAssignmentsApiResponse['data']>(
-        endpoint
+        endpoint,
+        { requireAuth: true }
       )) as StudentAssignmentsApiResponse
     } catch (error) {
       Sentry.captureException(error)

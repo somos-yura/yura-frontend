@@ -12,7 +12,6 @@ import type { Message } from '../types/chat'
 interface UseChatOptions {
   challengeAssignmentId: string | null
   sessionId: string
-  token: string | null
   onError?: (error: string) => void
   onMessageSent?: (data: ChatResponse) => void
 }
@@ -21,8 +20,7 @@ const INITIAL_MESSAGE_LIMIT = 5
 const MESSAGES_PER_LOAD = 5
 
 export const useChat = (options: UseChatOptions) => {
-  const { challengeAssignmentId, sessionId, token, onError, onMessageSent } =
-    options
+  const { challengeAssignmentId, sessionId, onError, onMessageSent } = options
   const [allMessages, setAllMessages] = useState<Message[]>([])
   const [displayedMessageCount, setDisplayedMessageCount] = useState(
     INITIAL_MESSAGE_LIMIT
@@ -73,7 +71,7 @@ export const useChat = (options: UseChatOptions) => {
   const handleSendMessage = useCallback(async () => {
     if (!inputValue.trim() || isTyping) return
 
-    if (!challengeAssignmentId || !token) {
+    if (!challengeAssignmentId) {
       const errorMessage = 'No hay conexión. Por favor, verifica tu sesión.'
       setErrorState({ type: ErrorCode.NETWORK_ERROR, message: errorMessage })
       if (onError) {
@@ -105,14 +103,11 @@ export const useChat = (options: UseChatOptions) => {
     abortControllerRef.current = new AbortController()
 
     try {
-      const response = await chatApi.sendMessage(
-        {
-          challenge_assignment_id: challengeAssignmentId,
-          message: messageContent,
-          session_id: sessionId,
-        },
-        token
-      )
+      const response = await chatApi.sendMessage({
+        challenge_assignment_id: challengeAssignmentId,
+        message: messageContent,
+        session_id: sessionId,
+      })
 
       console.log('Chat API Response:', response)
 
@@ -162,7 +157,6 @@ export const useChat = (options: UseChatOptions) => {
     inputValue,
     challengeAssignmentId,
     sessionId,
-    token,
     isTyping,
     createUserMessage,
     createAIMessage,
@@ -188,12 +182,7 @@ export const useChat = (options: UseChatOptions) => {
   // Load message history when challenge assignment is available
   useEffect(() => {
     const loadMessageHistory = async () => {
-      if (
-        !challengeAssignmentId ||
-        !sessionId ||
-        !token ||
-        hasLoadedHistory.current
-      ) {
+      if (!challengeAssignmentId || !sessionId || hasLoadedHistory.current) {
         return
       }
 
@@ -201,8 +190,7 @@ export const useChat = (options: UseChatOptions) => {
       try {
         const response = await chatApi.getMessages(
           challengeAssignmentId,
-          sessionId,
-          token
+          sessionId
         )
 
         if (response.data && response.data.messages) {
@@ -235,7 +223,7 @@ export const useChat = (options: UseChatOptions) => {
     }
 
     loadMessageHistory()
-  }, [challengeAssignmentId, sessionId, token])
+  }, [challengeAssignmentId, sessionId])
 
   // Cleanup on unmount
   useEffect(() => {
@@ -247,14 +235,13 @@ export const useChat = (options: UseChatOptions) => {
   }, [])
 
   const refreshHistory = useCallback(async () => {
-    if (!challengeAssignmentId || !sessionId || !token) return
+    if (!challengeAssignmentId || !sessionId) return
 
     setIsLoading(true)
     try {
       const response = await chatApi.getMessages(
         challengeAssignmentId,
-        sessionId,
-        token
+        sessionId
       )
 
       if (response.data && response.data.messages) {
@@ -275,7 +262,7 @@ export const useChat = (options: UseChatOptions) => {
     } finally {
       setIsLoading(false)
     }
-  }, [challengeAssignmentId, sessionId, token])
+  }, [challengeAssignmentId, sessionId])
 
   return {
     messages,

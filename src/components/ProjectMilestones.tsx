@@ -7,7 +7,6 @@ import {
   Edit2,
 } from 'lucide-react'
 import { chatApi, type Milestone } from '../services/chatApi'
-import { useAuthContext } from '../contexts/AuthContext'
 import { EXTERNAL_URLS } from '../config/externalUrls'
 import { URLPreview } from './URLPreview'
 
@@ -26,16 +25,14 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({
   onMilestonesCountChange,
   showControls = true,
 }) => {
-  const { token } = useAuthContext()
   const [milestones, setMilestones] = useState<Milestone[]>([])
   const [loading, setLoading] = useState(true)
   const [editingUrlId, setEditingUrlId] = useState<string | null>(null)
   const [tempUrl, setTempUrl] = useState('')
 
   const fetchMilestones = useCallback(async () => {
-    if (!token) return
     try {
-      const response = await chatApi.getMilestones(challengeAssignmentId, token)
+      const response = await chatApi.getMilestones(challengeAssignmentId)
       if (response.data && response.data.milestones) {
         const sorted = [...response.data.milestones].sort(
           (a, b) =>
@@ -51,7 +48,7 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({
     } finally {
       setLoading(false)
     }
-  }, [challengeAssignmentId, token, onMilestonesCountChange])
+  }, [challengeAssignmentId, onMilestonesCountChange])
 
   useEffect(() => {
     fetchMilestones()
@@ -63,13 +60,10 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({
   }
 
   const handleUrlSave = async (milestoneId: string) => {
-    if (!token) return
     try {
-      await chatApi.updateMilestone(
-        milestoneId,
-        { url: tempUrl.trim() || null },
-        token
-      )
+      await chatApi.updateMilestone(milestoneId, {
+        url: tempUrl.trim() || null,
+      })
       await fetchMilestones()
       setEditingUrlId(null)
       setTempUrl('')

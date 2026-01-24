@@ -15,7 +15,6 @@ export class ApiError extends Error {
 
 interface RequestConfig extends RequestInit {
   requireAuth?: boolean
-  token?: string
 }
 
 export interface ApiResponse<T> {
@@ -25,17 +24,9 @@ export interface ApiResponse<T> {
   data: T
 }
 
-const getAuthHeaders = (token?: string): HeadersInit => {
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-    Accept: 'application/json',
-  }
-
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`
-  }
-
-  return headers
+const DEFAULT_HEADERS: HeadersInit = {
+  'Content-Type': 'application/json',
+  Accept: 'application/json',
 }
 
 const handleApiResponse = async <T>(
@@ -60,30 +51,51 @@ const handleApiResponse = async <T>(
   )
 }
 
+const handleApiError = (error: unknown): never => {
+  Sentry.captureException(error)
+  if (error instanceof ApiError) {
+    throw error
+  }
+  throw new ApiError('Error de conexión', 0, error)
+}
+
+const createFetchConfig = (
+  method: string,
+  config: RequestConfig,
+  body?: unknown
+): RequestInit => {
+  const headers = { ...DEFAULT_HEADERS }
+
+  return {
+    method,
+    headers,
+    credentials: 'include',
+    body: body ? JSON.stringify(body) : undefined,
+    ...config,
+  }
+}
+
+const makeRequest = async <T>(
+  endpoint: string,
+  method: string,
+  config: RequestConfig = {},
+  body?: unknown
+): Promise<ApiResponse<T>> => {
+  try {
+    const fetchConfig = createFetchConfig(method, config, body)
+    const response = await fetch(getApiUrl(endpoint), fetchConfig)
+    return handleApiResponse<T>(response)
+  } catch (error) {
+    return handleApiError(error)
+  }
+}
+
 export const apiClient = {
   async get<T>(
     endpoint: string,
     config: RequestConfig = {}
   ): Promise<ApiResponse<T>> {
-    try {
-      const { requireAuth = false, token, ...fetchConfig } = config
-      const headers =
-        requireAuth && token ? getAuthHeaders(token) : getAuthHeaders()
-
-      const response = await fetch(getApiUrl(endpoint), {
-        method: 'GET',
-        headers,
-        ...fetchConfig,
-      })
-
-      return handleApiResponse<T>(response)
-    } catch (error) {
-      Sentry.captureException(error)
-      if (error instanceof ApiError) {
-        throw error
-      }
-      throw new ApiError('Error de conexión', 0, error)
-    }
+    return makeRequest<T>(endpoint, 'GET', config)
   },
 
   async post<T>(
@@ -91,26 +103,7 @@ export const apiClient = {
     body?: unknown,
     config: RequestConfig = {}
   ): Promise<ApiResponse<T>> {
-    try {
-      const { requireAuth = false, token, ...fetchConfig } = config
-      const headers =
-        requireAuth && token ? getAuthHeaders(token) : getAuthHeaders()
-
-      const response = await fetch(getApiUrl(endpoint), {
-        method: 'POST',
-        headers,
-        body: body ? JSON.stringify(body) : undefined,
-        ...fetchConfig,
-      })
-
-      return handleApiResponse<T>(response)
-    } catch (error) {
-      Sentry.captureException(error)
-      if (error instanceof ApiError) {
-        throw error
-      }
-      throw new ApiError('Error de conexión', 0, error)
-    }
+    return makeRequest<T>(endpoint, 'POST', config, body)
   },
 
   async put<T>(
@@ -118,51 +111,14 @@ export const apiClient = {
     body?: unknown,
     config: RequestConfig = {}
   ): Promise<ApiResponse<T>> {
-    try {
-      const { requireAuth = false, token, ...fetchConfig } = config
-      const headers =
-        requireAuth && token ? getAuthHeaders(token) : getAuthHeaders()
-
-      const response = await fetch(getApiUrl(endpoint), {
-        method: 'PUT',
-        headers,
-        body: body ? JSON.stringify(body) : undefined,
-        ...fetchConfig,
-      })
-
-      return handleApiResponse<T>(response)
-    } catch (error) {
-      Sentry.captureException(error)
-      if (error instanceof ApiError) {
-        throw error
-      }
-      throw new ApiError('Error de conexión', 0, error)
-    }
+    return makeRequest<T>(endpoint, 'PUT', config, body)
   },
 
   async delete<T>(
     endpoint: string,
     config: RequestConfig = {}
   ): Promise<ApiResponse<T>> {
-    try {
-      const { requireAuth = false, token, ...fetchConfig } = config
-      const headers =
-        requireAuth && token ? getAuthHeaders(token) : getAuthHeaders()
-
-      const response = await fetch(getApiUrl(endpoint), {
-        method: 'DELETE',
-        headers,
-        ...fetchConfig,
-      })
-
-      return handleApiResponse<T>(response)
-    } catch (error) {
-      Sentry.captureException(error)
-      if (error instanceof ApiError) {
-        throw error
-      }
-      throw new ApiError('Error de conexión', 0, error)
-    }
+    return makeRequest<T>(endpoint, 'DELETE', config)
   },
 
   async patch<T>(
@@ -170,25 +126,6 @@ export const apiClient = {
     body?: unknown,
     config: RequestConfig = {}
   ): Promise<ApiResponse<T>> {
-    try {
-      const { requireAuth = false, token, ...fetchConfig } = config
-      const headers =
-        requireAuth && token ? getAuthHeaders(token) : getAuthHeaders()
-
-      const response = await fetch(getApiUrl(endpoint), {
-        method: 'PATCH',
-        headers,
-        body: body ? JSON.stringify(body) : undefined,
-        ...fetchConfig,
-      })
-
-      return handleApiResponse<T>(response)
-    } catch (error) {
-      Sentry.captureException(error)
-      if (error instanceof ApiError) {
-        throw error
-      }
-      throw new ApiError('Error de conexión', 0, error)
-    }
+    return makeRequest<T>(endpoint, 'PATCH', config, body)
   },
 }
