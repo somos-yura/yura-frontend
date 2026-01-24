@@ -1,5 +1,8 @@
 import * as Sentry from '@sentry/react'
 import { getApiUrl } from '../config/api'
+import { ENDPOINTS } from '../config/endpoints'
+
+const AUTH_STORAGE_KEY = 'miniworker_user'
 
 export class ApiError extends Error {
   status: number
@@ -30,11 +33,17 @@ const DEFAULT_HEADERS: HeadersInit = {
 }
 
 const handleApiResponse = async <T>(
-  response: Response
+  response: Response,
+  endpoint: string
 ): Promise<ApiResponse<T>> => {
   const data = await response.json()
 
   if (!response.ok) {
+    if (response.status === 401 && endpoint !== ENDPOINTS.USERS.LOGIN) {
+      localStorage.removeItem(AUTH_STORAGE_KEY)
+      window.location.href = '/login'
+    }
+
     const errorMessage =
       data.translation || data.message || data.detail || 'Error en la petición'
     throw new ApiError(errorMessage, response.status, data)
@@ -84,7 +93,7 @@ const makeRequest = async <T>(
   try {
     const fetchConfig = createFetchConfig(method, config, body)
     const response = await fetch(getApiUrl(endpoint), fetchConfig)
-    return handleApiResponse<T>(response)
+    return handleApiResponse<T>(response, endpoint)
   } catch (error) {
     return handleApiError(error)
   }
