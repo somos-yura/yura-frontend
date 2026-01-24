@@ -13,7 +13,7 @@ interface ProjectWithAssignment {
 }
 
 const MyProjects: React.FC = () => {
-  const { user, token } = useAuthContext()
+  const { user } = useAuthContext()
   const navigate = useNavigate()
   const [projects, setProjects] = useState<ProjectWithAssignment[]>([])
   const [loading, setLoading] = useState(true)
@@ -21,7 +21,7 @@ const MyProjects: React.FC = () => {
 
   useEffect(() => {
     const fetchActiveProjects = async () => {
-      if (!user?.id || !token) {
+      if (!user?.id) {
         setLoading(false)
         return
       }
@@ -75,7 +75,7 @@ const MyProjects: React.FC = () => {
     }
 
     fetchActiveProjects()
-  }, [user?.id, token])
+  }, [user?.id])
 
   const handleProjectClick = (project: ProjectWithAssignment) => {
     navigate(`/challenge/${project.challenge.id}/chat`, {

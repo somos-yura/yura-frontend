@@ -104,7 +104,8 @@ export const challengesApi = {
       const endpoint = ENDPOINTS.CHALLENGES.ASSIGNMENTS_BY_STUDENT(studentId)
 
       return (await apiClient.get<StudentAssignmentsApiResponse['data']>(
-        endpoint
+        endpoint,
+        { requireAuth: true }
       )) as StudentAssignmentsApiResponse
     } catch (error) {
       Sentry.captureException(error)
