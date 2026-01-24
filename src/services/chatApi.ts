@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/react'
 import { apiClient, ApiError, type ApiResponse } from '../lib/apiClient'
 import { ENDPOINTS } from '../config/endpoints'
 
@@ -171,6 +172,7 @@ export const chatApi = {
         token,
       })) as ChatApiResponse
     } catch (error) {
+      Sentry.captureException(error)
       if (error instanceof ApiError) {
         // Mapear el error de la API a un ChatApiError para mantener compatibilidad
         const data = error.details as { error_code?: ErrorCode }
@@ -217,6 +219,7 @@ export const chatApi = {
         token,
       })) as MessageHistoryApiResponse
     } catch (error) {
+      Sentry.captureException(error)
       if (error instanceof ApiError) {
         throw new ChatApiError(error.message, error.status, error.details)
       }
@@ -235,6 +238,7 @@ export const chatApi = {
         token,
       })) as DiagramsApiResponse
     } catch (error) {
+      Sentry.captureException(error)
       if (error instanceof ApiError) {
         throw new ChatApiError(error.message, error.status, error.details)
       }
@@ -253,6 +257,7 @@ export const chatApi = {
         token,
       })) as MilestonesApiResponse
     } catch (error) {
+      Sentry.captureException(error)
       if (error instanceof ApiError) {
         throw new ChatApiError(error.message, error.status, error.details)
       }
@@ -272,6 +277,7 @@ export const chatApi = {
         { requireAuth: true, token }
       )) as GoogleAuthApiResponse
     } catch (error) {
+      Sentry.captureException(error)
       if (error instanceof ApiError) {
         throw new ChatApiError(error.message, error.status, error.details)
       }
@@ -291,6 +297,7 @@ export const chatApi = {
         token,
       })) as ConversationStatusApiResponse
     } catch (error) {
+      Sentry.captureException(error)
       if (error instanceof ApiError) {
         throw new ChatApiError(error.message, error.status, error.details)
       }
@@ -310,6 +317,7 @@ export const chatApi = {
         { requireAuth: true, token }
       )) as SyncMilestonesApiResponse
     } catch (error) {
+      Sentry.captureException(error)
       if (error instanceof ApiError) {
         throw new ChatApiError(error.message, error.status, error.details)
       }
@@ -330,6 +338,7 @@ export const chatApi = {
         { requireAuth: true, token }
       )
     } catch (error) {
+      Sentry.captureException(error)
       if (error instanceof ApiError) {
         throw new ChatApiError(error.message, error.status, error.details)
       }

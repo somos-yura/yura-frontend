@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/react'
 import { apiClient, ApiError } from '../lib/apiClient'
 import { ENDPOINTS } from '../config/endpoints'
 import type {
@@ -42,6 +43,7 @@ export const challengesApi = {
         endpoint
       )) as SocialProblemsApiResponse
     } catch (error) {
+      Sentry.captureException(error)
       if (error instanceof ApiError) {
         throw new ChallengeApiError(error.message, error.status, error.details)
       }
@@ -62,6 +64,7 @@ export const challengesApi = {
       )
       return problem ?? null
     } catch (error) {
+      Sentry.captureException(error)
       throw new ChallengeApiError(
         'Error al obtener el problema social',
         500,
@@ -83,6 +86,7 @@ export const challengesApi = {
         { requireAuth: true, token }
       )) as ChallengeAssignmentResponse
     } catch (error) {
+      Sentry.captureException(error)
       if (error instanceof ApiError) {
         throw new ChallengeApiError(error.message, error.status, error.details)
       }
@@ -104,6 +108,7 @@ export const challengesApi = {
         endpoint
       )) as StudentAssignmentsApiResponse
     } catch (error) {
+      Sentry.captureException(error)
       if (error instanceof ApiError) {
         throw new ChallengeApiError(error.message, error.status, error.details)
       }

@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/react'
 import { getApiUrl } from '../config/api'
 
 export class ApiError extends Error {
@@ -77,6 +78,7 @@ export const apiClient = {
 
       return handleApiResponse<T>(response)
     } catch (error) {
+      Sentry.captureException(error)
       if (error instanceof ApiError) {
         throw error
       }
@@ -103,6 +105,7 @@ export const apiClient = {
 
       return handleApiResponse<T>(response)
     } catch (error) {
+      Sentry.captureException(error)
       if (error instanceof ApiError) {
         throw error
       }
@@ -129,6 +132,7 @@ export const apiClient = {
 
       return handleApiResponse<T>(response)
     } catch (error) {
+      Sentry.captureException(error)
       if (error instanceof ApiError) {
         throw error
       }
@@ -153,6 +157,7 @@ export const apiClient = {
 
       return handleApiResponse<T>(response)
     } catch (error) {
+      Sentry.captureException(error)
       if (error instanceof ApiError) {
         throw error
       }
@@ -179,6 +184,7 @@ export const apiClient = {
 
       return handleApiResponse<T>(response)
     } catch (error) {
+      Sentry.captureException(error)
       if (error instanceof ApiError) {
         throw error
       }

@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/react'
 import { ApiError } from '../lib/apiClient'
 
 export interface Category {
@@ -64,6 +65,7 @@ export const categoriesApi = {
             return data
             */
     } catch (error) {
+      Sentry.captureException(error)
       if (error instanceof ApiError) {
         throw new CategoryApiError(error.message, error.status, error.details)
       }

@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/react'
 import { useState, useEffect } from 'react'
 import { authApi, ApiError } from '../services/authApi'
 import { studentsApi } from '../services/studentsApi'
@@ -46,6 +47,7 @@ export const useAuth = () => {
         return false
       }
       // For other errors, we might want to log them but default to false to be safe
+      Sentry.captureException(error)
       console.error('Error checking onboarding status:', error)
       return false
     }
@@ -148,6 +150,7 @@ export const useAuth = () => {
       )
       return response
     } catch (err) {
+      Sentry.captureException(err)
       const errorMessage =
         err instanceof ApiError
           ? err.message

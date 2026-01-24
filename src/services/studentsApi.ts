@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/react'
 import { apiClient, ApiError } from '../lib/apiClient'
 import { ENDPOINTS } from '../config/endpoints'
 import type {
@@ -19,6 +20,7 @@ export const studentsApi = {
       )
       return response.data
     } catch (error) {
+      Sentry.captureException(error)
       if (error instanceof ApiError) {
         throw error
       }
@@ -34,6 +36,7 @@ export const studentsApi = {
       )
       return response.data
     } catch (error) {
+      Sentry.captureException(error)
       if (error instanceof ApiError) {
         throw error
       }
@@ -49,6 +52,7 @@ export const studentsApi = {
       )
       return response.data
     } catch (error) {
+      Sentry.captureException(error)
       if (error instanceof ApiError) {
         throw error
       }
