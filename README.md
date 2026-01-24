@@ -9,6 +9,7 @@ Frontend de la plataforma YURA, una aplicación web para conectar estudiantes co
 - **Routing**: React Router DOM v7
 - **Styling**: Tailwind CSS 3.4.18
 - **Iconos**: Lucide React
+- **Observabilidad**: Sentry (Error Tracking & Performance)
 - **Linting**: ESLint con TypeScript
 
 ## 📋 Requisitos Previos
@@ -35,6 +36,7 @@ Crea un archivo `.env` en la raíz del proyecto:
 API_BASE_URL=http://localhost:8000
 API_VERSION=v1
 PUBLIC_GOOGLE_CLIENT_ID=tu_google_client_id_aqui
+PUBLIC_SENTRY_DSN=tu_sentry_dsn_aqui
 ```
 
 **Nota**: `PUBLIC_GOOGLE_CLIENT_ID` es requerido para la funcionalidad de integración con Google Calendar.

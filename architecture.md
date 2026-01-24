@@ -11,6 +11,7 @@ YURA es una plataforma de aprendizaje construida con React + TypeScript + Tailwi
 - **Routing**: React Router DOM v7
 - **Styling**: Tailwind CSS 3.4.18
 - **Linting**: ESLint con TypeScript
+- **Observabilidad**: Sentry (@sentry/react)
 - **Estado**: React Hooks (useState, useEffect, custom hooks)
 
 ## Estructura de Directorios
@@ -72,8 +73,9 @@ src/
 │   └── externalUrls.ts   # URLs y configuración de servicios externos
 ├── App.tsx               # Componente raíz
 ├── router.tsx            # Configuración de rutas
-├── main.tsx              # Punto de entrada
-└── index.css             # Estilos globales
+├── main.tsx              # Punto de entrada (Inicialización de Sentry)
+├── index.css             # Estilos globales
+└── types/env.d.ts        # Definiciones de tipos para variables de entorno
 ```
 
 ## Principios de Arquitectura
@@ -104,7 +106,8 @@ src/
 - **Protected Routes**: Para rutas que requieren autenticación
 - **Custom Hooks**: Para lógica reutilizable por feature
 - **Composition**: Componentes compuestos por otros componentes más pequeños
-- **Error Boundaries**: Manejo centralizado de errores
+- **Error Boundaries**: Manejo centralizado de errores con `Sentry.ErrorBoundary`
+- **Observability**: Monitoreo de errores y rendimiento distribuido con Sentry.
 
 ## Rutas de la Aplicación
 
