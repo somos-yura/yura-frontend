@@ -36,6 +36,17 @@ export const authApi = {
       throw new ApiError('Error al registrar usuario', 500, error)
     }
   },
+
+  async logout(): Promise<void> {
+    try {
+      await apiClient.post(ENDPOINTS.USERS.LOGOUT, {}, { requireAuth: true })
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw error
+      }
+      throw new ApiError('Error al cerrar sesión', 500, error)
+    }
+  },
 }
 
 export { ApiError }

@@ -24,7 +24,7 @@ const ChallengeChat: React.FC = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const location = useLocation()
-  const { user, token } = useAuthContext()
+  const { user } = useAuthContext()
 
   const getBackPath = () => {
     const from = (location.state as { from?: string })?.from
@@ -57,7 +57,6 @@ const ChallengeChat: React.FC = () => {
   const sessionId = getSessionId()
 
   const { initiateAuth: googleLogin } = useGoogleAuth({
-    token: token || null,
     challengeAssignmentId: challengeAssignment?.id || null,
     onSuccess: async () => {
       await refreshHistory()
@@ -106,7 +105,6 @@ const ChallengeChat: React.FC = () => {
   } = useChat({
     challengeAssignmentId: challengeAssignment?.id || null,
     sessionId,
-    token: token || null,
     onError: (errorMessage) => {
       console.warn('Simulation Debug Info:', errorMessage)
     },
@@ -126,12 +124,9 @@ const ChallengeChat: React.FC = () => {
 
   useEffect(() => {
     const fetchDiagrams = async () => {
-      if (!challengeAssignment || !token) return
+      if (!challengeAssignment) return
       try {
-        const response = await chatApi.getDiagrams(
-          challengeAssignment.id,
-          token
-        )
+        const response = await chatApi.getDiagrams(challengeAssignment.id)
         if (response.data && response.data.diagrams) {
           setDiagrams(response.data.diagrams)
         }
@@ -140,16 +135,15 @@ const ChallengeChat: React.FC = () => {
       }
     }
     fetchDiagrams()
-  }, [challengeAssignment, token])
+  }, [challengeAssignment])
 
   useEffect(() => {
     const fetchStatus = async () => {
-      if (!challengeAssignment || !token) return
+      if (!challengeAssignment) return
       try {
         const response = await chatApi.getStatus(
           challengeAssignment.id,
-          sessionId,
-          token
+          sessionId
         )
         if (response.success && response.data) {
           setGoogleCalendarLinked(response.data.google_calendar_linked)
@@ -159,7 +153,7 @@ const ChallengeChat: React.FC = () => {
       }
     }
     fetchStatus()
-  }, [challengeAssignment, token, sessionId])
+  }, [challengeAssignment, sessionId])
 
   useEffect(() => {
     const fetchData = async () => {

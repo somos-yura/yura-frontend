@@ -38,7 +38,6 @@ export interface ApiError {
 
 export interface AuthState {
   user: User | null
-  token: string | null
   isAuthenticated: boolean
   onboardingCompleted: boolean
 }

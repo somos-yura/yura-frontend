@@ -28,7 +28,7 @@ const ChallengeDetail: React.FC = () => {
     const from = (location.state as { from?: string })?.from
     return from || '/dashboard'
   }
-  const { user, token } = useAuthContext()
+  const { user } = useAuthContext()
   const [challenge, setChallenge] = useState<Challenge | null>(null)
   const [currentAssignment, setCurrentAssignment] =
     useState<ChallengeAssignment | null>(null)
@@ -111,7 +111,7 @@ const ChallengeDetail: React.FC = () => {
   }
 
   const handleConfirmContact = async () => {
-    if (!challenge || !user || !token) {
+    if (!challenge || !user) {
       setAssignmentError('Faltan datos necesarios para realizar el contacto')
       setShowConfirmationModal(false)
       return
@@ -122,13 +122,10 @@ const ChallengeDetail: React.FC = () => {
     setAssignmentError(null)
 
     try {
-      const assignmentResponse = await challengesApi.createAssignment(
-        {
-          social_problem_id: challenge.id,
-          student_id: user.id,
-        },
-        token
-      )
+      const assignmentResponse = await challengesApi.createAssignment({
+        social_problem_id: challenge.id,
+        student_id: user.id,
+      })
 
       setCurrentAssignment(assignmentResponse.data)
 

@@ -36,7 +36,7 @@ import { useAuthContext } from '../contexts/AuthContext'
 
 const Onboarding: React.FC = () => {
   const navigate = useNavigate()
-  const { token, markOnboardingComplete } = useAuthContext()
+  const { markOnboardingComplete } = useAuthContext()
   const [currentStep, setCurrentStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -83,18 +83,13 @@ const Onboarding: React.FC = () => {
   }
 
   const handleSubmit = async () => {
-    if (!token) {
-      setError('Authentication required')
-      return
-    }
-
     setLoading(true)
     setError(null)
 
     try {
       // Minimum delay to show the animation (5 seconds)
       const delay = new Promise((resolve) => setTimeout(resolve, 5000))
-      const apiCall = studentsApi.completeOnboarding(formData, token)
+      const apiCall = studentsApi.completeOnboarding(formData)
 
       await Promise.all([apiCall, delay])
 
@@ -461,30 +456,6 @@ const Onboarding: React.FC = () => {
                       ))}
                     </div>
                   </div>
-
-                  <div className="space-y-4">
-                    <label className="block text-sm font-medium text-gray-700">
-                      Años de experiencia profesional
-                    </label>
-                    <select
-                      value={formData.years_of_experience}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          years_of_experience: e.target
-                            .value as YearsOfExperience,
-                        }))
-                      }
-                      className="w-full p-4 bg-white border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all"
-                    >
-                      <option value="">Selecciona una opción...</option>
-                      <option value="0">Sin experiencia profesional</option>
-                      <option value="0-1">Menos de 1 año</option>
-                      <option value="1-3">1-3 años</option>
-                      <option value="3-5">3-5 años</option>
-                      <option value="5+">Más de 5 años</option>
-                    </select>
-                  </div>
                 </div>
               )}
 
@@ -598,20 +569,6 @@ const Onboarding: React.FC = () => {
                         }`}
                       >
                         <Zap className="w-8 h-8" />
-                      </div>
-                      <div>
-                        <h3
-                          className={`text-lg font-bold mb-1 ${
-                            formData.learning_style === 'practical'
-                              ? 'text-gray-900'
-                              : 'text-gray-900'
-                          }`}
-                        >
-                          Práctico
-                        </h3>
-                        <p className="text-gray-600">
-                          Aprendo haciendo y experimentando
-                        </p>
                       </div>
                     </button>
                   </div>
