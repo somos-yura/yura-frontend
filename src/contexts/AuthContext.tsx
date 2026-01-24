@@ -2,19 +2,18 @@ import type React from 'react'
 import { createContext, useContext } from 'react'
 import type { ReactNode } from 'react'
 import { useAuth } from '../hooks/useAuth'
-import type { User } from '../types/auth'
+import type { LoginForm, RegisterForm, AuthResponse, User } from '../types/auth'
 
 interface AuthContextType {
   user: User | null
-  token: string | null
   isAuthenticated: boolean
   onboardingCompleted: boolean
   loading: boolean
   error: string | null
   success: string | null
-  login: (credentials: unknown) => Promise<unknown>
-  register: (userData: unknown) => Promise<unknown>
-  logout: () => void
+  login: (credentials: LoginForm) => Promise<AuthResponse | undefined>
+  register: (userData: RegisterForm) => Promise<AuthResponse | undefined>
+  logout: () => Promise<void>
   markOnboardingComplete: () => void
   clearError: () => void
 }

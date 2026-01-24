@@ -9,14 +9,13 @@ import type {
 
 export const studentsApi = {
   async completeOnboarding(
-    data: StudentOnboardingData,
-    token: string
+    data: StudentOnboardingData
   ): Promise<StudentProfile> {
     try {
       const response = await apiClient.put<StudentProfile>(
         ENDPOINTS.STUDENTS.ONBOARDING,
         data,
-        { requireAuth: true, token }
+        { requireAuth: true }
       )
       return response.data
     } catch (error) {
@@ -28,11 +27,11 @@ export const studentsApi = {
     }
   },
 
-  async getProfile(token: string): Promise<StudentProfile> {
+  async getProfile(): Promise<StudentProfile> {
     try {
       const response = await apiClient.get<StudentProfile>(
         ENDPOINTS.STUDENTS.PROFILE,
-        { requireAuth: true, token }
+        { requireAuth: true }
       )
       return response.data
     } catch (error) {
@@ -44,11 +43,11 @@ export const studentsApi = {
     }
   },
 
-  async getProfileSummary(token: string): Promise<StudentProfileSummary> {
+  async getProfileSummary(): Promise<StudentProfileSummary> {
     try {
       const response = await apiClient.get<StudentProfileSummary>(
         ENDPOINTS.STUDENTS.SUMMARY,
-        { requireAuth: true, token }
+        { requireAuth: true }
       )
       return response.data
     } catch (error) {

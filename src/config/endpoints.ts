@@ -2,6 +2,7 @@ export const ENDPOINTS = {
   USERS: {
     LOGIN: '/api/v1/users/login',
     REGISTER: '/api/v1/users/register',
+    LOGOUT: '/api/v1/users/logout',
     GOOGLE_AUTH: '/api/v1/users/google-auth',
   },
   AI: {

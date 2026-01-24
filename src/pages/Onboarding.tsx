@@ -36,7 +36,7 @@ import { useAuthContext } from '../contexts/AuthContext'
 
 const Onboarding: React.FC = () => {
   const navigate = useNavigate()
-  const { token, markOnboardingComplete } = useAuthContext()
+  const { markOnboardingComplete } = useAuthContext()
   const [currentStep, setCurrentStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -83,18 +83,13 @@ const Onboarding: React.FC = () => {
   }
 
   const handleSubmit = async () => {
-    if (!token) {
-      setError('Authentication required')
-      return
-    }
-
     setLoading(true)
     setError(null)
 
     try {
       // Minimum delay to show the animation (5 seconds)
       const delay = new Promise((resolve) => setTimeout(resolve, 5000))
-      const apiCall = studentsApi.completeOnboarding(formData, token)
+      const apiCall = studentsApi.completeOnboarding(formData)
 
       await Promise.all([apiCall, delay])
 

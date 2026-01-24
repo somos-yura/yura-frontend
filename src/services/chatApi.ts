@@ -161,15 +161,11 @@ export interface SyncMilestonesApiResponse {
 }
 
 export const chatApi = {
-  async sendMessage(
-    request: ChatRequest,
-    token: string
-  ): Promise<ChatApiResponse> {
+  async sendMessage(request: ChatRequest): Promise<ChatApiResponse> {
     try {
       const endpoint = ENDPOINTS.AI.CHAT.SEND_MESSAGE
       return (await apiClient.post<ChatResponse>(endpoint, request, {
         requireAuth: true,
-        token,
       })) as ChatApiResponse
     } catch (error) {
       Sentry.captureException(error)
@@ -195,7 +191,6 @@ export const chatApi = {
   async getMessages(
     challengeAssignmentId: string,
     sessionId: string,
-    token: string,
     limit?: number,
     before?: string
   ): Promise<MessageHistoryApiResponse> {
@@ -216,7 +211,6 @@ export const chatApi = {
       const endpoint = `${ENDPOINTS.AI.CHAT.MESSAGES}?${params.toString()}`
       return (await apiClient.get<MessageHistoryResponse>(endpoint, {
         requireAuth: true,
-        token,
       })) as MessageHistoryApiResponse
     } catch (error) {
       Sentry.captureException(error)
@@ -228,14 +222,12 @@ export const chatApi = {
   },
 
   async getDiagrams(
-    challengeAssignmentId: string,
-    token: string
+    challengeAssignmentId: string
   ): Promise<DiagramsApiResponse> {
     try {
       const endpoint = `${ENDPOINTS.AI.CHAT.DIAGRAMS}/${challengeAssignmentId}`
       return (await apiClient.get<{ diagrams: Diagram[] }>(endpoint, {
         requireAuth: true,
-        token,
       })) as DiagramsApiResponse
     } catch (error) {
       Sentry.captureException(error)
@@ -247,14 +239,12 @@ export const chatApi = {
   },
 
   async getMilestones(
-    challengeAssignmentId: string,
-    token: string
+    challengeAssignmentId: string
   ): Promise<MilestonesApiResponse> {
     try {
       const endpoint = `${ENDPOINTS.AI.CHAT.MILESTONES}/${challengeAssignmentId}`
       return (await apiClient.get<{ milestones: Milestone[] }>(endpoint, {
         requireAuth: true,
-        token,
       })) as MilestonesApiResponse
     } catch (error) {
       Sentry.captureException(error)
@@ -265,16 +255,13 @@ export const chatApi = {
     }
   },
 
-  async saveGoogleAuthCode(
-    code: string,
-    token: string
-  ): Promise<GoogleAuthApiResponse> {
+  async saveGoogleAuthCode(code: string): Promise<GoogleAuthApiResponse> {
     try {
       const endpoint = ENDPOINTS.USERS.GOOGLE_AUTH
       return (await apiClient.post<GoogleAuthResponse>(
         endpoint,
         { code },
-        { requireAuth: true, token }
+        { requireAuth: true }
       )) as GoogleAuthApiResponse
     } catch (error) {
       Sentry.captureException(error)
@@ -287,14 +274,12 @@ export const chatApi = {
 
   async getStatus(
     challengeAssignmentId: string,
-    sessionId: string,
-    token: string
+    sessionId: string
   ): Promise<ConversationStatusApiResponse> {
     try {
       const endpoint = `${ENDPOINTS.AI.CHAT.STATUS}/${challengeAssignmentId}?session_id=${sessionId}`
       return (await apiClient.get<ConversationStatus>(endpoint, {
         requireAuth: true,
-        token,
       })) as ConversationStatusApiResponse
     } catch (error) {
       Sentry.captureException(error)
@@ -306,15 +291,14 @@ export const chatApi = {
   },
 
   async syncMilestones(
-    challengeAssignmentId: string,
-    token: string
+    challengeAssignmentId: string
   ): Promise<SyncMilestonesApiResponse> {
     try {
       const endpoint = `${ENDPOINTS.AI.CHAT.SYNC_MILESTONES}/${challengeAssignmentId}`
       return (await apiClient.post<SyncMilestonesResponse>(
         endpoint,
         {},
-        { requireAuth: true, token }
+        { requireAuth: true }
       )) as SyncMilestonesApiResponse
     } catch (error) {
       Sentry.captureException(error)
@@ -327,15 +311,14 @@ export const chatApi = {
 
   async updateMilestone(
     milestoneId: string,
-    updates: Partial<Milestone>,
-    token: string
+    updates: Partial<Milestone>
   ): Promise<ApiResponse<{ milestone: Milestone }>> {
     try {
       const endpoint = `${ENDPOINTS.AI.CHAT.MILESTONES}/${milestoneId}`
       return await apiClient.patch<{ milestone: Milestone }>(
         endpoint,
         updates,
-        { requireAuth: true, token }
+        { requireAuth: true }
       )
     } catch (error) {
       Sentry.captureException(error)

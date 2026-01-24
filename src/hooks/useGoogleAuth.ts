@@ -4,7 +4,6 @@ import { EXTERNAL_URLS, getGoogleRedirectUri } from '../config/externalUrls'
 import { chatApi, ChatApiError } from '../services/chatApi'
 
 interface UseGoogleAuthOptions {
-  token: string | null
   challengeAssignmentId: string | null
   onSuccess?: () => void
   onError?: (error: string) => void
@@ -16,7 +15,6 @@ interface UseGoogleAuthReturn {
 }
 
 export const useGoogleAuth = ({
-  token,
   challengeAssignmentId,
   onSuccess,
   onError,
@@ -39,15 +37,15 @@ export const useGoogleAuth = ({
 
   const handleAuthSuccess = useCallback(
     async (code: string) => {
-      if (!token || !challengeAssignmentId) {
-        onError?.('Token o asignación no disponible')
+      if (!challengeAssignmentId) {
+        onError?.('Asignación no disponible')
         return
       }
 
       try {
         isProcessingRef.current = true
-        await chatApi.saveGoogleAuthCode(code, token)
-        await chatApi.syncMilestones(challengeAssignmentId, token)
+        await chatApi.saveGoogleAuthCode(code)
+        await chatApi.syncMilestones(challengeAssignmentId)
         onSuccess?.()
       } catch (error) {
         const errorMessage =
@@ -59,7 +57,7 @@ export const useGoogleAuth = ({
         isProcessingRef.current = false
       }
     },
-    [token, challengeAssignmentId, onSuccess, onError]
+    [challengeAssignmentId, onSuccess, onError]
   )
 
   const cleanup = useCallback(() => {
