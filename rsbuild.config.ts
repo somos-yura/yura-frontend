@@ -14,6 +14,15 @@ const envVars = Object.entries(publicVars).reduce(
   {} as Record<string, string>
 )
 
+Object.keys(process.env).forEach((key) => {
+  if (key.startsWith('PUBLIC_')) {
+    const value = JSON.stringify(process.env[key])
+    envVars[`import.meta.env.${key}`] = value
+    envVars[`process.env.${key}`] = value
+    envVars[key] = value
+  }
+})
+
 export default defineConfig({
   plugins: [pluginReact()],
   source: {
