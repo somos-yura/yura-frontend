@@ -62,6 +62,7 @@ const handleApiResponse = async <T>(
       response.status === 401 &&
       endpoint !== ENDPOINTS.USERS.LOGIN &&
       endpoint !== ENDPOINTS.USERS.REFRESH &&
+      endpoint !== ENDPOINTS.USERS.REGISTER &&
       !config._retry
     ) {
       if (isRefreshing) {
@@ -102,15 +103,25 @@ const handleApiResponse = async <T>(
         processQueue(refreshError) // Reject all queued requests
         isRefreshing = false
 
-        // Refresh failed - redirect to login
-        window.location.href = '/login'
+        // Refresh failed - redirect to login only if not already on auth page
+        const currentPath = window.location.pathname
+        if (currentPath !== '/login' && currentPath !== '/register') {
+          window.location.href = '/login'
+        }
         throw new ApiError('Session expired. Please login again.', 401)
       }
     }
 
     // For non-401 errors or if refresh already attempted
-    if (response.status === 401 && endpoint !== ENDPOINTS.USERS.LOGIN) {
-      window.location.href = '/login'
+    if (
+      response.status === 401 &&
+      endpoint !== ENDPOINTS.USERS.LOGIN &&
+      endpoint !== ENDPOINTS.USERS.REGISTER
+    ) {
+      const currentPath = window.location.pathname
+      if (currentPath !== '/login' && currentPath !== '/register') {
+        window.location.href = '/login'
+      }
     }
 
     const errorMessage =
