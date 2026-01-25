@@ -1,6 +1,6 @@
 import { apiClient, ApiError } from '../lib/apiClient'
 import { ENDPOINTS } from '../config/endpoints'
-import type { LoginForm, RegisterForm, AuthResponse } from '../types/auth'
+import type { LoginForm, RegisterForm, AuthResponse, User } from '../types/auth'
 
 export const authApi = {
   async login(credentials: LoginForm): Promise<AuthResponse> {
@@ -45,6 +45,30 @@ export const authApi = {
         throw error
       }
       throw new ApiError('Error al cerrar sesión', 500, error)
+    }
+  },
+
+  async refresh(): Promise<void> {
+    try {
+      // Refresh endpoint will read refresh token from cookie and set new access token cookie
+      await apiClient.post(ENDPOINTS.USERS.REFRESH, {})
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw error
+      }
+      throw new ApiError('Error al refrescar token', 500, error)
+    }
+  },
+
+  async getCurrentUser(): Promise<User> {
+    try {
+      const response = await apiClient.get<{ user: User }>(ENDPOINTS.USERS.ME)
+      return response.data.user
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw error
+      }
+      throw new ApiError('Error al obtener usuario actual', 500, error)
     }
   },
 }

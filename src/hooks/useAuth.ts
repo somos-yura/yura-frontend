@@ -10,8 +10,6 @@ import {
 } from '../utils/validation'
 import type { LoginForm, RegisterForm, AuthState, User } from '../types/auth'
 
-const AUTH_STORAGE_KEY = 'miniworker_user'
-
 export const useAuth = () => {
   const [authState, setAuthState] = useState<AuthState>({
     user: null,
@@ -51,26 +49,28 @@ export const useAuth = () => {
 
   useEffect(() => {
     const initAuth = async () => {
-      const savedUser = localStorage.getItem(AUTH_STORAGE_KEY)
-      if (savedUser) {
-        try {
-          const user = JSON.parse(savedUser)
-          const onboardingCompleted = await checkOnboardingStatus()
-          setAuthState({
-            user,
-            isAuthenticated: true,
-            onboardingCompleted,
-          })
-        } catch {
-          localStorage.removeItem(AUTH_STORAGE_KEY)
-          setAuthState({
-            user: null,
-            isAuthenticated: false,
-            onboardingCompleted: false,
-          })
-        }
+      try {
+        // Check authentication by calling /me endpoint
+        // This validates the access token cookie
+        const user = await authApi.getCurrentUser()
+        const onboardingCompleted = await checkOnboardingStatus()
+
+        setAuthState({
+          user,
+          isAuthenticated: true,
+          onboardingCompleted,
+        })
+      } catch (error) {
+        // If /me fails (401), user is not authenticated
+        console.error(error)
+        setAuthState({
+          user: null,
+          isAuthenticated: false,
+          onboardingCompleted: false,
+        })
+      } finally {
+        setLoading(false)
       }
-      setLoading(false)
     }
     initAuth()
   }, [])
@@ -98,7 +98,6 @@ export const useAuth = () => {
   }
 
   const saveAuth = (user: User, onboardingCompleted: boolean) => {
-    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user))
     setAuthState({
       user,
       isAuthenticated: true,
@@ -107,7 +106,6 @@ export const useAuth = () => {
   }
 
   const clearAuth = () => {
-    localStorage.removeItem(AUTH_STORAGE_KEY)
     setAuthState({
       user: null,
       isAuthenticated: false,

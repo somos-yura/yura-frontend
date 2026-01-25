@@ -2,7 +2,23 @@ import * as Sentry from '@sentry/react'
 import { getApiUrl } from '../config/api'
 import { ENDPOINTS } from '../config/endpoints'
 
-const AUTH_STORAGE_KEY = 'miniworker_user'
+// Refresh token state
+let isRefreshing = false
+let failedQueue: Array<{
+  resolve: (value: unknown) => void
+  reject: (reason?: unknown) => void
+}> = []
+
+const processQueue = (error: unknown = null) => {
+  failedQueue.forEach((promise) => {
+    if (error) {
+      promise.reject(error)
+    } else {
+      promise.resolve(null)
+    }
+  })
+  failedQueue = []
+}
 
 export class ApiError extends Error {
   status: number
@@ -18,6 +34,7 @@ export class ApiError extends Error {
 
 interface RequestConfig extends RequestInit {
   requireAuth?: boolean
+  _retry?: boolean // Internal flag to prevent infinite retry loops
 }
 
 export interface ApiResponse<T> {
@@ -34,13 +51,65 @@ const DEFAULT_HEADERS: HeadersInit = {
 
 const handleApiResponse = async <T>(
   response: Response,
-  endpoint: string
+  endpoint: string,
+  config: RequestConfig = {}
 ): Promise<ApiResponse<T>> => {
   const data = await response.json()
 
   if (!response.ok) {
+    // Handle 401 Unauthorized - attempt token refresh
+    if (
+      response.status === 401 &&
+      endpoint !== ENDPOINTS.USERS.LOGIN &&
+      endpoint !== ENDPOINTS.USERS.REFRESH &&
+      !config._retry
+    ) {
+      if (isRefreshing) {
+        // If already refreshing, queue this request
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject })
+        })
+          .then(() => {
+            // Retry the original request after refresh completes
+            return makeRequest<T>(endpoint, config.method || 'GET', {
+              ...config,
+              _retry: true,
+            })
+          })
+          .catch((err) => {
+            throw err
+          })
+      }
+
+      // Start refresh process
+      isRefreshing = true
+      config._retry = true
+
+      try {
+        // Call refresh endpoint - this will set new access token cookie
+        await fetch(getApiUrl(ENDPOINTS.USERS.REFRESH), {
+          method: 'POST',
+          credentials: 'include',
+          headers: DEFAULT_HEADERS,
+        })
+
+        processQueue(null) // Resolve all queued requests
+        isRefreshing = false
+
+        // Retry the original request
+        return makeRequest<T>(endpoint, config.method || 'GET', config)
+      } catch (refreshError) {
+        processQueue(refreshError) // Reject all queued requests
+        isRefreshing = false
+
+        // Refresh failed - redirect to login
+        window.location.href = '/login'
+        throw new ApiError('Session expired. Please login again.', 401)
+      }
+    }
+
+    // For non-401 errors or if refresh already attempted
     if (response.status === 401 && endpoint !== ENDPOINTS.USERS.LOGIN) {
-      localStorage.removeItem(AUTH_STORAGE_KEY)
       window.location.href = '/login'
     }
 
@@ -93,7 +162,7 @@ const makeRequest = async <T>(
   try {
     const fetchConfig = createFetchConfig(method, config, body)
     const response = await fetch(getApiUrl(endpoint), fetchConfig)
-    return handleApiResponse<T>(response, endpoint)
+    return handleApiResponse<T>(response, endpoint, config)
   } catch (error) {
     return handleApiError(error)
   }

@@ -21,8 +21,6 @@ export interface AuthResponse {
   message: string
   data: {
     user: User
-    access_token: string
-    token_type: string
   }
 }
 
