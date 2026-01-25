@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/api/:path*",
+      "destination": "https://backend-production-7668.up.railway.app/:path*"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

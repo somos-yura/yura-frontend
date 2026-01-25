@@ -1,5 +1,5 @@
 export const config = {
-  API_BASE_URL: process.env.PUBLIC_API_BASE_URL || 'http://localhost:8000',
+  API_BASE_URL: process.env.PUBLIC_API_BASE_URL || '/api', // Use proxy in production, env var for dev
   API_VERSION: process.env.PUBLIC_API_VERSION || 'v1',
   GOOGLE_CLIENT_ID: process.env.PUBLIC_GOOGLE_CLIENT_ID || '',
 }
