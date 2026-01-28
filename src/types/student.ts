@@ -21,20 +21,9 @@ export const ExperienceLevel = {
 export type ExperienceLevel =
   (typeof ExperienceLevel)[keyof typeof ExperienceLevel]
 
-export const YearsOfExperience = {
-  ZERO: '0',
-  LESS_THAN_ONE: '0-1',
-  ONE_TO_THREE: '1-3',
-  THREE_TO_FIVE: '3-5',
-  FIVE_PLUS: '5+',
-} as const
-export type YearsOfExperience =
-  (typeof YearsOfExperience)[keyof typeof YearsOfExperience]
-
 export const LearningStyle = {
   VISUAL: 'visual',
   READING_WRITING: 'reading_writing',
-  PRACTICAL: 'practical',
 } as const
 export type LearningStyle = (typeof LearningStyle)[keyof typeof LearningStyle]
 
@@ -123,7 +112,6 @@ export type FocusArea = (typeof FocusArea)[keyof typeof FocusArea]
 export interface StudentOnboardingData {
   career_track: CareerTrack
   experience_level: ExperienceLevel
-  years_of_experience: YearsOfExperience
   learning_style: LearningStyle
   feedback_timing: FeedbackTiming
   project_experience: ProjectExperience

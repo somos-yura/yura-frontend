@@ -5,7 +5,6 @@ import type {
   StudentOnboardingData,
   CareerTrack,
   ExperienceLevel,
-  YearsOfExperience,
   LearningStyle,
   FeedbackTiming,
   ProjectExperience,
@@ -46,7 +45,6 @@ const Onboarding: React.FC = () => {
   const [formData, setFormData] = useState<StudentOnboardingData>({
     career_track: '' as CareerTrack,
     experience_level: '' as ExperienceLevel,
-    years_of_experience: '' as YearsOfExperience,
     learning_style: '' as LearningStyle,
     feedback_timing: '' as FeedbackTiming,
     project_experience: '' as ProjectExperience,
@@ -144,11 +142,7 @@ const Onboarding: React.FC = () => {
   const isStepValid = (step: number): boolean => {
     switch (step) {
       case 1:
-        return (
-          !!formData.career_track &&
-          !!formData.experience_level &&
-          !!formData.years_of_experience
-        )
+        return !!formData.career_track && !!formData.experience_level
       case 2:
         return !!formData.learning_style && !!formData.feedback_timing
       case 3:
@@ -545,30 +539,6 @@ const Onboarding: React.FC = () => {
                         <p className="text-gray-600">
                           Prefiero leer documentación y tomar notas
                         </p>
-                      </div>
-                    </button>
-
-                    <button
-                      onClick={() =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          learning_style: 'practical' as LearningStyle,
-                        }))
-                      }
-                      className={`w-full p-6 rounded-2xl border-2 text-left transition-all duration-200 hover:shadow-md flex items-center gap-6 ${
-                        formData.learning_style === 'practical'
-                          ? 'border-gray-800 ring-1 ring-gray-800 bg-gray-50'
-                          : 'border-gray-200 hover:border-gray-400 bg-white'
-                      }`}
-                    >
-                      <div
-                        className={`p-4 rounded-xl transition-colors ${
-                          formData.learning_style === 'practical'
-                            ? 'bg-gray-800 text-white'
-                            : 'bg-gray-100 text-gray-700'
-                        }`}
-                      >
-                        <Zap className="w-8 h-8" />
                       </div>
                     </button>
                   </div>
