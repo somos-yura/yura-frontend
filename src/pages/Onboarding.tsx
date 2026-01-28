@@ -544,9 +544,13 @@ const Onboarding: React.FC = () => {
                   </div>
 
                   <div className="pt-8 border-t border-gray-100">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-1">
                       Preferencia de Feedback
                     </h3>
+                    <p className="text-sm text-gray-500 mb-6">
+                      Esta elección determinará qué tan seguido recibirás
+                      retroalimentación sobre tu trabajo.
+                    </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <button
                         onClick={() =>
@@ -562,8 +566,8 @@ const Onboarding: React.FC = () => {
                         }`}
                       >
                         <Zap className="w-5 h-5" />
-                        <span className="font-medium">
-                          Inmediato (tras cada paso)
+                        <span className="font-medium text-left">
+                          Inmediato, al terminar con un requerimiento
                         </span>
                       </button>
                       <button
