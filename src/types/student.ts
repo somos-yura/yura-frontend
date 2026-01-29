@@ -90,13 +90,6 @@ export const ProgressionPace = {
 export type ProgressionPace =
   (typeof ProgressionPace)[keyof typeof ProgressionPace]
 
-export const TimeHorizon = {
-  SHORT_TERM: 'short_term',
-  MEDIUM_TERM: 'medium_term',
-  LONG_TERM: 'long_term',
-} as const
-export type TimeHorizon = (typeof TimeHorizon)[keyof typeof TimeHorizon]
-
 export const FocusArea = {
   TECHNICAL_PROBLEM_SOLVING: 'technical_problem_solving',
   SYSTEM_DESIGN: 'system_design',
@@ -121,7 +114,6 @@ export interface StudentOnboardingData {
   strength_areas: string[]
   improvement_areas: string[]
   focus_areas: FocusArea[]
-  time_horizon: TimeHorizon
   experience_notes?: string
 }
 
