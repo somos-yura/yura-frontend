@@ -114,16 +114,23 @@ const Dashboard: React.FC = () => {
     <Layout>
       <div className="w-full px-4 md:px-8 pb-12">
         {/* Hero Section with Greeting and CTA */}
-        <div className="dashboard-hero mb-8 rounded-3xl p-8 md:p-10 relative overflow-hidden bg-white border-2 border-blue-300">
+        <div className="dashboard-hero mb-8 rounded-3xl p-8 md:p-10 relative overflow-hidden bg-white border border-blue-200">
           <div className="relative z-10">
             <div className="flex items-start justify-between flex-wrap gap-4">
               <div className="flex-1">
-                <h1 className="text-3xl md:text-5xl font-bold text-gray-800 mb-4 animate-fade-in">
+                <h1 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4 animate-fade-in">
                   {getGreeting()} 👋
                 </h1>
-                <p className="text-gray-700 text-base md:text-lg max-w-2xl leading-relaxed">
-                  Explora retos sociales impactantes y únete a nuestra comunidad
-                  para crear un cambio positivo.
+
+                <p className="text-gray-700 text-base md:text-lg max-w-4xl leading-relaxed">
+                  Impulsamos desafíos de innovación abierta para descubrir y
+                  escalar soluciones tecnológicas a los retos más complejos de
+                  nuestro tiempo. Conectamos talento global a través de una
+                  plataforma y metodología probadas.
+                </p>
+
+                <p className="mt-3 text-gray-600 font-bold">
+                  Y esto recién comienza.
                 </p>
               </div>
             </div>
