@@ -556,12 +556,8 @@ const ChallengeDetail: React.FC = () => {
         isOpen={showConfirmationModal}
         onClose={handleCancelContact}
         onConfirm={handleConfirmContact}
-        title="Iniciar Colaboración"
-        message={
-          challenge
-            ? `¿Deseas contactar a ${challenge.person_first_name} ${challenge.person_last_name}? Al hacerlo, te comprometerás a trabajar en este reto social.`
-            : '¿Estás seguro de que deseas contactarte para llevar a cabo este proyecto?'
-        }
+        title={`¿Deseas contactar a ${challenge.person_first_name} ${challenge.person_last_name}?`}
+        message="Al hacerlo, te comprometerás a trabajar en este reto social."
         confirmText="Sí, contactar"
         cancelText="Cancelar"
       />
