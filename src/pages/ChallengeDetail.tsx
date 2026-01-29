@@ -18,6 +18,7 @@ import { ContactLoadingModal } from '../components/ui/ContactLoadingModal'
 import { MessageAlert } from '../components/ui/MessageAlert'
 import { useAuthContext } from '../contexts/AuthContext'
 import { ProjectMilestones } from '../components/ProjectMilestones'
+import { capitalizeFirstLetter } from '../utils/textUtils'
 
 const ChallengeDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>()
@@ -94,7 +95,7 @@ const ChallengeDetail: React.FC = () => {
 
   const getCategoryDisplay = () => {
     if (challenge?.category && challenge.category.length > 0) {
-      return challenge.category[0]
+      return capitalizeFirstLetter(challenge.category[0])
     }
     return 'Sin categoría'
   }
@@ -286,7 +287,7 @@ const ChallengeDetail: React.FC = () => {
                       className="bg-white/10 text-white/90 px-3 py-1.5 rounded-full text-sm font-medium backdrop-blur-sm border border-white/10 flex items-center gap-2"
                     >
                       <Briefcase className="w-3.5 h-3.5" />
-                      {careerType}
+                      {capitalizeFirstLetter(careerType)}
                     </span>
                   ))}
                 </div>
@@ -447,7 +448,7 @@ const ChallengeDetail: React.FC = () => {
                                       className="inline-flex items-center gap-1.5 bg-purple-50 text-purple-700 px-3 py-1.5 rounded-lg text-sm font-medium border border-purple-100"
                                     >
                                       <Heart className="w-3.5 h-3.5" />
-                                      {trait}
+                                      {capitalizeFirstLetter(trait)}
                                     </span>
                                   )
                                 )}
@@ -469,7 +470,7 @@ const ChallengeDetail: React.FC = () => {
                                       key={index}
                                       className="inline-flex items-center bg-blue-50 text-electricBlue px-3 py-1.5 rounded-lg text-sm font-semibold border border-blue-100"
                                     >
-                                      {area}
+                                      {capitalizeFirstLetter(area)}
                                     </span>
                                   )
                                 )}

@@ -6,6 +6,7 @@ import { Layout } from '../components/layout/Layout'
 import { useAuthContext } from '../contexts/AuthContext'
 import { challengesApi, ChallengeApiError } from '../services/challengesApi'
 import type { ChallengeAssignment, Challenge } from '../types/challenge'
+import { capitalizeFirstLetter } from '../utils/textUtils'
 
 interface ProjectWithAssignment {
   challenge: Challenge
@@ -99,7 +100,7 @@ const MyProjects: React.FC = () => {
 
   const getCategoryDisplay = (challenge: Challenge) => {
     if (challenge.category && challenge.category.length > 0) {
-      return challenge.category[0]
+      return capitalizeFirstLetter(challenge.category[0])
     }
     return 'Sin categoría'
   }

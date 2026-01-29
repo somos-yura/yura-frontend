@@ -14,6 +14,7 @@ import { type Challenge, type ChallengeAssignment } from '../../types/challenge'
 import { DiagramCard } from './DiagramCard'
 import { ProjectMilestones } from '../ProjectMilestones'
 import { StakeholderAvailabilityService } from '../../services/stakeholderAvailabilityService'
+import { capitalizeFirstLetter } from '../../utils/textUtils'
 
 interface ChatSidebarProps {
   activeTab: 'chat' | 'files' | 'participants' | 'milestones'
@@ -157,7 +158,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                         key={idx}
                         className="px-2 py-0.5 bg-white text-blue-700 text-xs rounded-full border border-blue-200"
                       >
-                        {cat}
+                        {capitalizeFirstLetter(cat)}
                       </span>
                     ))}
                   </div>
@@ -205,7 +206,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                           key={idx}
                           className="px-2.5 py-1 bg-blue-50 text-blue-700 text-xs rounded-lg border border-blue-100"
                         >
-                          {area}
+                          {capitalizeFirstLetter(area)}
                         </span>
                       ))}
                     </div>
@@ -223,7 +224,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                           key={idx}
                           className="px-2.5 py-1 bg-purple-50 text-purple-700 text-xs rounded-lg border border-purple-100"
                         >
-                          {trait}
+                          {capitalizeFirstLetter(trait)}
                         </span>
                       ))}
                     </div>

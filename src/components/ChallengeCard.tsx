@@ -1,5 +1,6 @@
 import type React from 'react'
 import type { ChallengeCardProps } from '../types/components'
+import { capitalizeFirstLetter } from '../utils/textUtils'
 
 export const ChallengeCard: React.FC<ChallengeCardProps> = ({
   challenge,
@@ -15,7 +16,7 @@ export const ChallengeCard: React.FC<ChallengeCardProps> = ({
   }
 
   const getCategoryDisplay = () => {
-    return challenge.category[0]
+    return capitalizeFirstLetter(challenge.category[0])
   }
 
   return (

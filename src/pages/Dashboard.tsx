@@ -7,6 +7,7 @@ import { useChallenges } from '../hooks/useChallenges'
 import { useDashboardFilters } from '../hooks/useDashboardFilters'
 import type { Challenge } from '../types/challenge'
 import { useMemo, useRef, useEffect } from 'react'
+import { capitalizeFirstLetter } from '../utils/textUtils'
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate()
@@ -171,7 +172,7 @@ const Dashboard: React.FC = () => {
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                {category}
+                {capitalizeFirstLetter(category)}
               </button>
             ))}
           </div>
