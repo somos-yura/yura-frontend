@@ -147,7 +147,7 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({
                   >
                     {milestone.title}
                   </p>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Clock className="w-3.5 h-3.5" />
                     <span>
                       {new Date(milestone.due_date).toLocaleDateString()}
@@ -197,7 +197,7 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({
                           value={tempUrl}
                           onChange={(e) => setTempUrl(e.target.value)}
                           placeholder="https://ejemplo.com/documento"
-                          className="w-full px-3 py-2 text-xs border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 text-sm border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                           autoFocus
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') {
@@ -207,19 +207,19 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({
                             }
                           }}
                         />
-                        <p className="text-xs text-gray-500 italic">
+                        <p className="text-sm text-gray-500 italic">
                           Recuerda que la URL sea de acceso público
                         </p>
                         <div className="flex gap-2">
                           <button
                             onClick={() => handleUrlSave(milestone.id)}
-                            className="px-3 py-1 text-xs bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                            className="px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
                           >
                             Guardar
                           </button>
                           <button
                             onClick={handleUrlCancel}
-                            className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+                            className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
                           >
                             Cancelar
                           </button>
@@ -241,7 +241,7 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({
                         ) : (
                           <button
                             onClick={() => handleUrlClick(milestone)}
-                            className="flex items-center gap-2 text-xs text-gray-400 hover:text-blue-600 transition-colors"
+                            className="flex items-center gap-2 text-sm text-gray-400 hover:text-blue-600 transition-colors"
                           >
                             <LinkIcon className="w-3 h-3" />
                             <span>Agregar URL del resultado</span>
@@ -257,7 +257,7 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({
         ) : (
           <div className="py-8 text-center bg-gray-50/50 rounded-xl border border-dashed border-gray-200">
             <Clock className="w-8 h-8 text-gray-300 mx-auto mb-2 opacity-50" />
-            <p className="text-xs text-gray-400 font-medium">
+            <p className="text-sm text-gray-400 font-medium">
               No hay hitos programados aún
             </p>
           </div>

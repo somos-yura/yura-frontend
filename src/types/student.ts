@@ -103,7 +103,7 @@ export const FocusArea = {
 export type FocusArea = (typeof FocusArea)[keyof typeof FocusArea]
 
 export interface StudentOnboardingData {
-  career_track: CareerTrack
+  career_track: CareerTrack[]
   experience_level: ExperienceLevel
   learning_style: LearningStyle
   feedback_timing: FeedbackTiming
@@ -114,7 +114,6 @@ export interface StudentOnboardingData {
   strength_areas: string[]
   improvement_areas: string[]
   focus_areas: FocusArea[]
-  experience_notes?: string
 }
 
 export interface StudentProfile extends StudentOnboardingData {
@@ -129,7 +128,7 @@ export interface StudentProfile extends StudentOnboardingData {
 export interface StudentProfileSummary {
   id: string
   user_id: string
-  career_track: CareerTrack
+  career_track: CareerTrack[]
   experience_level: ExperienceLevel
   onboarding_completed: boolean
   onboarding_completed_at: string | null

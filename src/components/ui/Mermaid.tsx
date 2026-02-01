@@ -59,7 +59,7 @@ export const Mermaid: React.FC<MermaidProps> = ({ chart }) => {
     return (
       <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm font-mono">
         {error}
-        <pre className="mt-2 text-xs opacity-75 whitespace-pre-wrap">
+        <pre className="mt-2 text-sm opacity-75 whitespace-pre-wrap">
           {chart}
         </pre>
       </div>

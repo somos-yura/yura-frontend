@@ -85,7 +85,7 @@ export function Header({
               <p className="text-sm font-semibold text-white">
                 {getUserDisplayName(user?.email)}
               </p>
-              <p className="text-xs text-gray-300">
+              <p className="text-sm text-gray-300">
                 {user?.email || 'usuario@example.com'}
               </p>
             </div>
@@ -94,7 +94,7 @@ export function Header({
             <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 z-[110]">
               <div className="p-4 border-b border-gray-200">
                 <h3 className="text-sm font-bold text-gray-900">Mi Cuenta</h3>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-sm text-gray-500 mt-1">
                   {user?.email || 'usuario@example.com'}
                 </p>
               </div>

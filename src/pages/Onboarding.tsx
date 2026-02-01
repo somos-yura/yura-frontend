@@ -21,6 +21,7 @@ import {
   Loader2,
   Star,
   Zap,
+  Info,
 } from 'lucide-react'
 import { useAuthContext } from '../contexts/AuthContext'
 import {
@@ -37,6 +38,19 @@ import {
   FOCUS_AREAS_OPTIONS,
 } from '../constants/onboardingData'
 
+const SimpleTooltip: React.FC<{ text: string; children: React.ReactNode }> = ({
+  text,
+  children,
+}) => (
+  <div className="group relative flex items-center">
+    {children}
+    <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 hidden group-hover:block w-52 p-3 bg-gray-900 text-white text-sm leading-relaxed rounded-xl shadow-2xl z-[100] pointer-events-none animate-in fade-in zoom-in duration-200">
+      {text}
+      <div className="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-gray-900" />
+    </div>
+  </div>
+)
+
 const Onboarding: React.FC = () => {
   const navigate = useNavigate()
   const { markOnboardingComplete } = useAuthContext()
@@ -47,7 +61,7 @@ const Onboarding: React.FC = () => {
 
   // Form state
   const [formData, setFormData] = useState<StudentOnboardingData>({
-    career_track: '' as CareerTrack,
+    career_track: [],
     experience_level: '' as ExperienceLevel,
     learning_style: '' as LearningStyle,
     feedback_timing: '' as FeedbackTiming,
@@ -58,7 +72,6 @@ const Onboarding: React.FC = () => {
     strength_areas: [],
     improvement_areas: [],
     focus_areas: [],
-    experience_notes: '',
   })
 
   const handleNext = () => {
@@ -117,7 +130,7 @@ const Onboarding: React.FC = () => {
   const isStepValid = (step: number): boolean => {
     switch (step) {
       case 1:
-        return !!formData.career_track && !!formData.experience_level
+        return formData.career_track.length > 0 && !!formData.experience_level
       case 2:
         return !!formData.learning_style && !!formData.feedback_timing
       case 3:
@@ -209,7 +222,7 @@ const Onboarding: React.FC = () => {
             <p className="text-sm text-gray-300 italic">
               &quot;La mejor forma de predecir el futuro es implementarlo.&quot;
             </p>
-            <p className="text-xs text-gray-500 mt-2 font-semibold">
+            <p className="text-sm text-gray-500 mt-2 font-semibold">
               - Alan Kay
             </p>
           </div>
@@ -296,14 +309,26 @@ const Onboarding: React.FC = () => {
                     {CAREER_OPTIONS.map((option) => (
                       <button
                         key={option.value}
-                        onClick={() =>
+                        onClick={() => {
+                          const isSelected = formData.career_track.includes(
+                            option.value as CareerTrack
+                          )
                           setFormData((prev) => ({
                             ...prev,
-                            career_track: option.value as CareerTrack,
+                            career_track: isSelected
+                              ? prev.career_track.filter(
+                                  (t) => t !== option.value
+                                )
+                              : [
+                                  ...prev.career_track,
+                                  option.value as CareerTrack,
+                                ],
                           }))
-                        }
+                        }}
                         className={`p-4 rounded-xl border-2 text-left transition-all duration-200 hover:shadow-md flex items-center gap-4 ${
-                          formData.career_track === option.value
+                          formData.career_track.includes(
+                            option.value as CareerTrack
+                          )
                             ? 'border-blue-600 bg-blue-50/50 ring-1 ring-blue-600'
                             : 'border-gray-200 hover:border-blue-300 bg-white'
                         }`}
@@ -311,9 +336,16 @@ const Onboarding: React.FC = () => {
                         <div className={`p-3 rounded-lg ${option.bg}`}>
                           <option.icon className={`w-6 h-6 ${option.color}`} />
                         </div>
-                        <span className="font-semibold text-gray-900">
+                        <span className="font-semibold text-gray-900 flex-1">
                           {option.label}
                         </span>
+                        {option.tooltip && (
+                          <SimpleTooltip text={option.tooltip}>
+                            <div className="p-1 hover:bg-black/5 rounded-full transition-colors">
+                              <Info className="w-4 h-4 text-gray-400" />
+                            </div>
+                          </SimpleTooltip>
+                        )}
                       </button>
                     ))}
                   </div>
@@ -322,7 +354,7 @@ const Onboarding: React.FC = () => {
                     <h3 className="text-xl font-semibold text-gray-900">
                       Nivel de Experiencia
                     </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                       {EXPERIENCE_LEVEL_OPTIONS.map((option) => (
                         <button
                           key={option.value}
@@ -339,7 +371,7 @@ const Onboarding: React.FC = () => {
                           }`}
                         >
                           <div className="font-bold mb-1">{option.label}</div>
-                          <div className="text-xs opacity-80">
+                          <div className="text-sm opacity-80">
                             {option.desc}
                           </div>
                         </button>
@@ -459,7 +491,7 @@ const Onboarding: React.FC = () => {
                         field: 'project_experience',
                       },
                       {
-                        label: 'Trabajo en Equipo',
+                        label: 'Experiencia con Equipos',
                         value: formData.team_experience,
                         options: TEAM_EXPERIENCE_OPTIONS,
                         field: 'team_experience',
@@ -514,9 +546,14 @@ const Onboarding: React.FC = () => {
                           }))
                         }
                       />
-                      <span className="font-medium text-gray-700">
+                      <span className="font-medium text-gray-700 flex-1">
                         He desplegado código a producción
                       </span>
+                      <SimpleTooltip text="Significa que tu trabajo ha sido publicado y es usado por personas reales fuera de un entorno de aprendizaje o personal.">
+                        <div className="p-1 hover:bg-black/5 rounded-full transition-colors">
+                          <Info className="w-4 h-4 text-gray-400" />
+                        </div>
+                      </SimpleTooltip>
                     </label>
                   </div>
 
@@ -569,11 +606,11 @@ const Onboarding: React.FC = () => {
                         </div>
 
                         <div
-                          className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 ${col.gridClass} gap-8`}
+                          className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 ${col.gridClass} gap-6 md:gap-8`}
                         >
                           {col.groups.map((group) => (
                             <div key={group.label} className="space-y-4">
-                              <h4 className="text-xs font-black uppercase tracking-widest">
+                              <h4 className="text-sm font-black uppercase tracking-widest text-gray-500 mb-2">
                                 {group.label}
                               </h4>
                               <div className="flex flex-col gap-3">
@@ -586,26 +623,26 @@ const Onboarding: React.FC = () => {
                                   return (
                                     <label
                                       key={option}
+                                      onClick={() => {
+                                        setFormData((prev) => ({
+                                          ...prev,
+                                          [col.field]: isSelected
+                                            ? (
+                                                prev[
+                                                  col.field as keyof StudentOnboardingData
+                                                ] as string[]
+                                              ).filter((t) => t !== option)
+                                            : [
+                                                ...(prev[
+                                                  col.field as keyof StudentOnboardingData
+                                                ] as string[]),
+                                                option,
+                                              ],
+                                        }))
+                                      }}
                                       className="flex items-center gap-3 group cursor-pointer"
                                     >
                                       <div
-                                        onClick={() => {
-                                          setFormData((prev) => ({
-                                            ...prev,
-                                            [col.field]: isSelected
-                                              ? (
-                                                  prev[
-                                                    col.field as keyof StudentOnboardingData
-                                                  ] as string[]
-                                                ).filter((t) => t !== option)
-                                              : [
-                                                  ...(prev[
-                                                    col.field as keyof StudentOnboardingData
-                                                  ] as string[]),
-                                                  option,
-                                                ],
-                                          }))
-                                        }}
                                         className={`w-5 h-5 flex-shrink-0 rounded-md border-2 flex items-center justify-center transition-all duration-200 ${
                                           isSelected
                                             ? `${col.activeClass} shadow-sm`
@@ -659,27 +696,6 @@ const Onboarding: React.FC = () => {
                           </button>
                         )
                       })}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700">
-                      Notas adicionales (Opcional)
-                    </label>
-                    <textarea
-                      value={formData.experience_notes}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          experience_notes: e.target.value.slice(0, 500),
-                        }))
-                      }
-                      placeholder="Cualquier contexto adicional sobre tu experiencia o metas..."
-                      rows={3}
-                      maxLength={500}
-                      className="w-full p-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 resize-none"
-                    />
-                    <div className="text-xs text-gray-500 text-right mt-1">
-                      {formData.experience_notes?.length || 0} / 500
                     </div>
                   </div>
                 </div>

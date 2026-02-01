@@ -113,7 +113,7 @@ const Dashboard: React.FC = () => {
 
   return (
     <Layout>
-      <div className="w-full px-4 md:px-8 pb-12">
+      <div className="w-full px-6 md:px-8 pb-12">
         {/* Hero Section with Greeting and CTA */}
         <div className="dashboard-hero mb-8 rounded-3xl p-8 md:p-10 relative overflow-hidden bg-white border border-blue-200">
           <div className="relative z-10">

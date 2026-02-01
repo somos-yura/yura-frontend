@@ -29,10 +29,10 @@ export const DiagramCard: React.FC<DiagramCardProps> = ({
             <FileText className="w-4 h-4 text-blue-600" />
           </div>
           <div className="flex flex-col items-start">
-            <span className="text-xs font-bold bg-blue-50 text-blue-600 px-2 py-1 rounded-lg border border-blue-100 uppercase tracking-wide">
+            <span className="text-sm font-bold bg-blue-50 text-blue-600 px-2 py-1 rounded-lg border border-blue-100 uppercase tracking-wide">
               Diagrama {total - index}
             </span>
-            <span className="text-xs text-gray-500 mt-1">
+            <span className="text-sm text-gray-500 mt-1">
               {new Date(diagram.created_at).toLocaleString('es-ES', {
                 month: 'short',
                 day: 'numeric',
@@ -58,7 +58,7 @@ export const DiagramCard: React.FC<DiagramCardProps> = ({
           {/* Description */}
           {diagram.description && (
             <div className="mt-3 px-1">
-              <p className="text-xs text-gray-700 leading-relaxed">
+              <p className="text-sm text-gray-700 leading-relaxed">
                 {diagram.description}
               </p>
             </div>

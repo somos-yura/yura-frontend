@@ -330,7 +330,7 @@ const ChallengeDetail: React.FC = () => {
                           <p className="text-sm font-medium text-foreground truncate mb-1">
                             Fuente {index + 1}
                           </p>
-                          <p className="text-xs text-muted-foreground truncate group-hover:text-electricBlue transition-colors">
+                          <p className="text-sm text-muted-foreground truncate group-hover:text-electricBlue transition-colors">
                             {source}
                           </p>
                         </div>
@@ -378,17 +378,17 @@ const ChallengeDetail: React.FC = () => {
                     Conecta con {challenge.person_first_name}
                   </h2>
                   <p className="text-muted-foreground text-lg">
-                    Esta es la persona asignada a este problema social. Conoce
-                    más sobre con{' '}
-                    <strong>quién trabajarás y cómo podrás ayudarle</strong>. Al
-                    contactar,{' '}
+                    Esta es la persona asignada a este problema social.
+                    <br />
+                    Conoce más sobre con{' '}
+                    <strong>quién trabajarás y cómo podrás ayudarle</strong>.
+                    <br />
+                    Al contactar,{' '}
                     <strong>iniciarás tu compromiso con este reto.</strong>
                   </p>
-                  <p className="text-xs text-muted-foreground">
-                    <strong>
-                      ** La persona asignada es impulsada por inteligencia
-                      artificial, no es una persona real.
-                    </strong>
+                  <p className="mt-4 text-electricBlue">
+                    ** La persona asignada es impulsada por inteligencia
+                    artificial, no es una persona real.
                   </p>
                 </div>
 
@@ -523,7 +523,7 @@ const ChallengeDetail: React.FC = () => {
                             )}
                           </button>
                           {!currentAssignment && (
-                            <p className="text-xs text-center text-muted-foreground mt-3">
+                            <p className="text-sm text-center text-muted-foreground mt-3">
                               Al contactar, te comprometerás a trabajar en este
                               reto social
                             </p>

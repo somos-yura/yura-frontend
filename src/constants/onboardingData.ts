@@ -47,6 +47,8 @@ export const CAREER_OPTIONS = [
   {
     value: CareerTrack.BACKEND,
     label: 'Backend Developer',
+    tooltip:
+      'Se encarga de todo lo que no se ve: el cerebro y la memoria del sistema.',
     icon: Server,
     color: 'text-blue-600',
     bg: 'bg-blue-50',
@@ -54,6 +56,7 @@ export const CAREER_OPTIONS = [
   {
     value: CareerTrack.FRONTEND,
     label: 'Frontend Developer',
+    tooltip: 'Crea la parte que tocas y ves: botones, colores y el diseño.',
     icon: Layout,
     color: 'text-purple-600',
     bg: 'bg-purple-50',
@@ -61,6 +64,8 @@ export const CAREER_OPTIONS = [
   {
     value: CareerTrack.FULLSTACK,
     label: 'Full Stack Developer',
+    tooltip:
+      'Alguien que sabe hacer un poco de todo, tanto lo visual como lo interno.',
     icon: Code,
     color: 'text-indigo-600',
     bg: 'bg-indigo-50',
@@ -68,6 +73,7 @@ export const CAREER_OPTIONS = [
   {
     value: CareerTrack.MOBILE,
     label: 'Mobile Developer',
+    tooltip: 'Especialista en crear aplicaciones exclusivas para celulares.',
     icon: Smartphone,
     color: 'text-pink-600',
     bg: 'bg-pink-50',
@@ -75,6 +81,7 @@ export const CAREER_OPTIONS = [
   {
     value: CareerTrack.DEVOPS,
     label: 'DevOps Engineer',
+    tooltip: 'Se asegura de que la página siempre esté "viva" y no se caiga.',
     icon: Terminal,
     color: 'text-slate-600',
     bg: 'bg-slate-50',
@@ -82,6 +89,8 @@ export const CAREER_OPTIONS = [
   {
     value: CareerTrack.QA,
     label: 'QA Engineer',
+    tooltip:
+      'Su trabajo es intentar romper la aplicación para encontrar fallas.',
     icon: Check,
     color: 'text-green-600',
     bg: 'bg-green-50',
@@ -89,6 +98,7 @@ export const CAREER_OPTIONS = [
   {
     value: CareerTrack.DATA_ENGINEER,
     label: 'Data Engineer',
+    tooltip: 'Organiza grandes cantidades de información para que sea útil.',
     icon: Database,
     color: 'text-orange-600',
     bg: 'bg-orange-50',
@@ -96,6 +106,7 @@ export const CAREER_OPTIONS = [
   {
     value: CareerTrack.PRODUCT_MANAGER,
     label: 'Product Manager',
+    tooltip: 'El que decide qué se va a construir y por qué es importante.',
     icon: BarChart,
     color: 'text-cyan-600',
     bg: 'bg-cyan-50',
