@@ -14,6 +14,7 @@ import { type Challenge, type ChallengeAssignment } from '../../types/challenge'
 import { DiagramCard } from './DiagramCard'
 import { ProjectMilestones } from '../ProjectMilestones'
 import { StakeholderAvailabilityService } from '../../services/stakeholderAvailabilityService'
+import { capitalizeFirstLetter } from '../../utils/textUtils'
 
 interface ChatSidebarProps {
   activeTab: 'chat' | 'files' | 'participants' | 'milestones'
@@ -77,7 +78,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                 <FileText className="w-4 h-4 text-blue-600" />
                 Diagramas
               </h4>
-              <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-medium">
+              <span className="text-sm bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-medium">
                 {diagrams.length}
               </span>
             </div>
@@ -109,13 +110,13 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                     <ImageIcon className="w-4 h-4 text-purple-600" />
                     Imágenes
                   </h4>
-                  <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-medium">
+                  <span className="text-sm bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-medium">
                     0
                   </span>
                 </div>
                 <div className="px-4 py-8 border border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center text-center">
                   <ImageIcon className="w-8 h-8 text-gray-200 mb-2" />
-                  <span className="text-xs text-gray-400">No hay imágenes</span>
+                  <span className="text-sm text-gray-400">No hay imágenes</span>
                 </div>
               </div>
 
@@ -125,13 +126,13 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                     <LinkIcon className="w-4 h-4 text-orange-600" />
                     Enlaces
                   </h4>
-                  <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-medium">
+                  <span className="text-sm bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-medium">
                     0
                   </span>
                 </div>
                 <div className="px-4 py-8 border border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center text-center">
                   <LinkIcon className="w-8 h-8 text-gray-200 mb-2" />
-                  <span className="text-xs text-gray-400">No hay enlaces</span>
+                  <span className="text-sm text-gray-400">No hay enlaces</span>
                 </div>
               </div>
             </div>
@@ -155,9 +156,9 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                     {challenge.category.map((cat, idx) => (
                       <span
                         key={idx}
-                        className="px-2 py-0.5 bg-white text-blue-700 text-xs rounded-full border border-blue-200"
+                        className="px-2 py-0.5 bg-white text-blue-700 text-sm rounded-full border border-blue-200"
                       >
-                        {cat}
+                        {capitalizeFirstLetter(cat)}
                       </span>
                     ))}
                   </div>
@@ -185,7 +186,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
               </div>
               {challenge?.person_bio && (
                 <div className="mb-4">
-                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                  <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">
                     Biografía
                   </span>
                   <p className="text-sm text-gray-700 mt-1 leading-relaxed">
@@ -196,16 +197,16 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
               {challenge?.person_expertise_areas &&
                 challenge.person_expertise_areas.length > 0 && (
                   <div className="mb-4">
-                    <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">
                       Áreas de Experiencia
                     </span>
                     <div className="flex flex-wrap gap-1.5 mt-2">
                       {challenge.person_expertise_areas.map((area, idx) => (
                         <span
                           key={idx}
-                          className="px-2.5 py-1 bg-blue-50 text-blue-700 text-xs rounded-lg border border-blue-100"
+                          className="px-2.5 py-1 bg-blue-50 text-blue-700 text-sm rounded-lg border border-blue-100"
                         >
-                          {area}
+                          {capitalizeFirstLetter(area)}
                         </span>
                       ))}
                     </div>
@@ -214,16 +215,16 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
               {challenge?.person_personality_traits &&
                 challenge.person_personality_traits.length > 0 && (
                   <div>
-                    <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">
                       Rasgos de Personalidad
                     </span>
                     <div className="flex flex-wrap gap-1.5 mt-2">
                       {challenge.person_personality_traits.map((trait, idx) => (
                         <span
                           key={idx}
-                          className="px-2.5 py-1 bg-purple-50 text-purple-700 text-xs rounded-lg border border-purple-100"
+                          className="px-2.5 py-1 bg-purple-50 text-purple-700 text-sm rounded-lg border border-purple-100"
                         >
-                          {trait}
+                          {capitalizeFirstLetter(trait)}
                         </span>
                       ))}
                     </div>
@@ -231,7 +232,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                 )}
               {/* Availability Info */}
               <div className="mt-4 pt-4 border-t border-gray-100">
-                <span className="text-xs font-medium text-gray-500 uppercase tracking-wide flex items-center gap-1.5 mb-2">
+                <span className="text-sm font-medium text-gray-500 uppercase tracking-wide flex items-center gap-1.5 mb-2">
                   <Calendar className="w-3.5 h-3.5" />
                   Horarios Disponibles
                 </span>

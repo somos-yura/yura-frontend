@@ -32,7 +32,7 @@ export function Header({
   }
 
   return (
-    <header className="sticky top-0 z-10 flex h-20 items-center justify-between border-b border-[#0D1424]/20 bg-gradient-to-r from-[#0D1424] to-[#0F1729] px-4 sm:px-6 shadow-sm">
+    <header className="sticky top-0 z-[100] flex h-20 items-center justify-between border-b border-[#0D1424]/20 bg-gradient-to-r from-[#0D1424] to-[#0F1729] px-4 sm:px-6 shadow-sm">
       <div className="flex items-center gap-4">
         <button
           onClick={onToggleSidebar}
@@ -85,16 +85,16 @@ export function Header({
               <p className="text-sm font-semibold text-white">
                 {getUserDisplayName(user?.email)}
               </p>
-              <p className="text-xs text-gray-300">
+              <p className="text-sm text-gray-300">
                 {user?.email || 'usuario@example.com'}
               </p>
             </div>
           </button>
           {showUserMenu && (
-            <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 z-50">
+            <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 z-[110]">
               <div className="p-4 border-b border-gray-200">
                 <h3 className="text-sm font-bold text-gray-900">Mi Cuenta</h3>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-sm text-gray-500 mt-1">
                   {user?.email || 'usuario@example.com'}
                 </p>
               </div>

@@ -7,6 +7,7 @@ import { useChallenges } from '../hooks/useChallenges'
 import { useDashboardFilters } from '../hooks/useDashboardFilters'
 import type { Challenge } from '../types/challenge'
 import { useMemo, useRef, useEffect } from 'react'
+import { capitalizeFirstLetter } from '../utils/textUtils'
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate()
@@ -112,7 +113,7 @@ const Dashboard: React.FC = () => {
 
   return (
     <Layout>
-      <div className="w-full px-4 md:px-8 pb-12">
+      <div className="w-full px-6 md:px-8 pb-12">
         {/* Hero Section with Greeting and CTA */}
         <div className="dashboard-hero mb-8 rounded-3xl p-8 md:p-10 relative overflow-hidden bg-white border border-blue-200">
           <div className="relative z-10">
@@ -171,7 +172,7 @@ const Dashboard: React.FC = () => {
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                {category}
+                {capitalizeFirstLetter(category)}
               </button>
             ))}
           </div>
