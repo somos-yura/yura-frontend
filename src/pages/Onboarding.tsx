@@ -915,28 +915,6 @@ const Onboarding: React.FC = () => {
                       <option value="long_term">Largo plazo (1+ año)</option>
                     </select>
                   </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700">
-                      Notas adicionales (Opcional)
-                    </label>
-                    <textarea
-                      value={formData.experience_notes}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          experience_notes: e.target.value.slice(0, 500),
-                        }))
-                      }
-                      placeholder="Cualquier contexto adicional sobre tu experiencia o metas..."
-                      rows={3}
-                      maxLength={500}
-                      className="w-full p-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 resize-none"
-                    />
-                    <div className="text-xs text-gray-500 text-right mt-1">
-                      {formData.experience_notes?.length || 0} / 500
-                    </div>
-                  </div>
                 </div>
               )}
 

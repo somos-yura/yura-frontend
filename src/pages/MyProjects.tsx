@@ -187,7 +187,7 @@ const MyProjects: React.FC = () => {
                 onClick={() => navigate('/dashboard')}
                 className="px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-blue-600 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
               >
-                Explorar Retos
+                Explorar Problemas Sociales
               </button>
             </div>
           ) : (

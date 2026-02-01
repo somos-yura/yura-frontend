@@ -358,12 +358,20 @@ const ChallengeDetail: React.FC = () => {
                 <div className="relative z-10 mb-10 text-center max-w-2xl mx-auto">
                   <h2 className="text-3xl font-bold text-foreground mb-4 font-montserrat flex items-center justify-center gap-3">
                     <User className="w-8 h-8 text-electricBlue" />
-                    Conecta con el Stakeholder
+                    Conecta con {challenge.person_first_name}
                   </h2>
                   <p className="text-muted-foreground text-lg">
                     Esta es la persona asignada a este problema social. Conoce
-                    más sobre quién trabajarás y cómo podrás ayudarle. Al
-                    contactar, iniciarás tu compromiso con este reto.
+                    más sobre con{' '}
+                    <strong>quién trabajarás y cómo podrás ayudarle</strong>. Al
+                    contactar,{' '}
+                    <strong>iniciarás tu compromiso con este reto.</strong>
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    <strong>
+                      ** La persona asignada es impulsada por inteligencia
+                      artificial, no es una persona real.
+                    </strong>
                   </p>
                 </div>
 

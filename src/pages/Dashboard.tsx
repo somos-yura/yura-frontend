@@ -141,7 +141,7 @@ const Dashboard: React.FC = () => {
         <div className="mb-8 space-y-4">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl md:text-2xl font-bold text-gray-900">
-              Explorar Retos
+              Explorar Problemas Sociales
             </h2>
             <p className="text-sm text-gray-500">
               {challenges.length} retos disponibles
