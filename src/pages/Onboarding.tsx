@@ -121,7 +121,14 @@ const Onboarding: React.FC = () => {
       case 2:
         return !!formData.learning_style && !!formData.feedback_timing
       case 3:
-        return !!formData.project_experience && !!formData.team_experience
+        return (
+          !!formData.project_experience &&
+          !!formData.team_experience &&
+          formData.desired_technologies.length > 0 &&
+          formData.strength_areas.length > 0 &&
+          formData.improvement_areas.length > 0 &&
+          formData.focus_areas.length > 0
+        )
       default:
         return false
     }

@@ -5,9 +5,9 @@ import {
   Briefcase,
   ArrowRight,
   User,
-  Sparkles,
   Award,
   Heart,
+  Sparkles,
 } from 'lucide-react'
 import { Layout } from '../components/layout/Layout'
 import { useState, useEffect, useMemo, useRef } from 'react'
@@ -281,19 +281,7 @@ const ChallengeDetail: React.FC = () => {
                   <span className="bg-electricBlue text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-lg shadow-electricBlue/20 backdrop-blur-sm border border-white/10">
                     {getCategoryDisplay()}
                   </span>
-                  {challenge.career_types?.map((careerType, index) => (
-                    <span
-                      key={index}
-                      className="bg-white/10 text-white/90 px-3 py-1.5 rounded-full text-sm font-medium backdrop-blur-sm border border-white/10 flex items-center gap-2"
-                    >
-                      <Briefcase className="w-3.5 h-3.5" />
-                      {capitalizeFirstLetter(careerType)}
-                    </span>
-                  ))}
                 </div>
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white font-montserrat leading-tight text-balance shadow-sm">
-                  {challenge.title}
-                </h1>
               </div>
             </div>
           </div>
@@ -351,6 +339,34 @@ const ChallengeDetail: React.FC = () => {
                   </div>
                 </section>
               )}
+
+              {/* Habilidades y Perfiles Requeridos */}
+              <h2 className="text-2xl font-bold text-foreground mb-6 font-montserrat flex items-center gap-3">
+                <div className="w-1 h-8 bg-electricBlue rounded-full" />
+                Habilidades deseables
+              </h2>
+              <section className="bg-white rounded-2xl p-8 md:p-10 shadow-xl shadow-black/5 border border-border/50">
+                <p className="text-muted-foreground mb-8 text-lg">
+                  Para sumar valor a este proyecto social, sería ideal (pero no
+                  excluyente) tener conocimientos en:
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  {challenge.career_types.map((type, index) => {
+                    return (
+                      <div
+                        key={index}
+                        className="flex items-start p-3 rounded-xl bg-gray-50 border border-gray-100 hover:border-electricBlue/20 transition-colors group"
+                      >
+                        <div>
+                          <p className="font-bold">
+                            {capitalizeFirstLetter(type)}
+                          </p>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </section>
 
               {/* Stakeholders Section */}
               <section className="bg-gradient-to-br from-[#F8FAFC] to-white rounded-3xl p-8 md:p-12 relative overflow-hidden">
@@ -419,10 +435,6 @@ const ChallengeDetail: React.FC = () => {
                                   <span>{challenge.person_age} años</span>
                                 </div>
                               )}
-                              <div className="flex items-center gap-1.5">
-                                <Briefcase className="w-4 h-4" />
-                                <span>Stakeholder</span>
-                              </div>
                             </div>
                           </div>
                         </div>
