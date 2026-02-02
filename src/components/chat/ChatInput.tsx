@@ -95,7 +95,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             </button>
           </div>
         </div>
-        <p className="text-center text-xs text-gray-400 mt-2.5 select-none font-medium opacity-70">
+        <p className="text-center text-sm text-gray-400 mt-2.5 select-none font-medium opacity-70">
           Estás hablando con un personaje simulado con IA. Puede cometer
           errores.
         </p>

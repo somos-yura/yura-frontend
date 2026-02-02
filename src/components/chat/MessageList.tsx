@@ -59,11 +59,11 @@ export const MessageList: React.FC<MessageListProps> = ({
                     >
                       {/* Avatar */}
                       {!isUser && !isConsecutive ? (
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center text-blue-700 font-bold text-xs shadow-sm flex-shrink-0 mb-1 ring-2 ring-white border border-blue-100">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center text-blue-700 font-bold text-sm shadow-sm flex-shrink-0 mb-1 ring-2 ring-white border border-blue-100">
                           {getAvatarInitials(challenge)}
                         </div>
                       ) : isUser && !isConsecutive ? (
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold text-xs shadow-sm flex-shrink-0 mb-1">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold text-sm shadow-sm flex-shrink-0 mb-1">
                           <User className="w-4 h-4" />
                         </div>
                       ) : (
@@ -125,7 +125,7 @@ export const MessageList: React.FC<MessageListProps> = ({
                                         isUser
                                           ? 'bg-blue-700/30 text-white'
                                           : 'bg-gray-100 text-gray-800'
-                                      } px-1.5 py-0.5 rounded text-xs font-mono`}
+                                      } px-1.5 py-0.5 rounded text-sm font-mono`}
                                       {...props}
                                     >
                                       {children}
@@ -178,7 +178,7 @@ export const MessageList: React.FC<MessageListProps> = ({
               })}
               {isTyping && (
                 <div className="flex gap-3">
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center text-blue-700 font-bold text-xs shadow-sm flex-shrink-0 border border-blue-100">
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center text-blue-700 font-bold text-sm shadow-sm flex-shrink-0 border border-blue-100">
                     {getAvatarInitials(challenge)}
                   </div>
                   <div className="bg-white border border-gray-100 rounded-2xl rounded-tl-md px-5 py-3.5 shadow-sm">

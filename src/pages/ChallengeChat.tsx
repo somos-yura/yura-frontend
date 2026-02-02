@@ -324,7 +324,7 @@ const ChallengeChat: React.FC = () => {
                         <h3 className="text-sm font-semibold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors">
                           {prompt.title}
                         </h3>
-                        <p className="text-xs text-gray-600 leading-relaxed">
+                        <p className="text-sm text-gray-600 leading-relaxed">
                           {prompt.description}
                         </p>
                       </div>

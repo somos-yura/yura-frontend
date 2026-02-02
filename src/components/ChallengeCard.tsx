@@ -1,5 +1,6 @@
 import type React from 'react'
 import type { ChallengeCardProps } from '../types/components'
+import { capitalizeFirstLetter } from '../utils/textUtils'
 
 export const ChallengeCard: React.FC<ChallengeCardProps> = ({
   challenge,
@@ -15,7 +16,7 @@ export const ChallengeCard: React.FC<ChallengeCardProps> = ({
   }
 
   const getCategoryDisplay = () => {
-    return challenge.category[0]
+    return capitalizeFirstLetter(challenge.category[0])
   }
 
   return (
@@ -33,7 +34,7 @@ export const ChallengeCard: React.FC<ChallengeCardProps> = ({
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
 
         <div className="absolute top-4 right-4">
-          <span className="inline-flex items-center gap-1.5 text-xs font-bold bg-white/95 text-gray-900 px-4 py-2 rounded-full shadow-xl backdrop-blur-md border border-white/60 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300">
+          <span className="inline-flex items-center gap-1.5 text-sm font-bold bg-white/95 text-gray-900 px-4 py-2 rounded-full shadow-xl backdrop-blur-md border border-white/60 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300">
             {getCategoryDisplay()}
           </span>
         </div>

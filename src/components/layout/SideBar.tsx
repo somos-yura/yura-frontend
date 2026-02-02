@@ -32,7 +32,7 @@ export function AppSidebar() {
       {/* Navigation */}
       <div className="flex-1 overflow-auto p-4">
         <div className="mb-3">
-          <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 mb-3">
+          <div className="text-sm font-semibold text-gray-500 uppercase tracking-wider px-3 mb-3">
             Navegación
           </div>
           <ul className="space-y-1">
@@ -68,10 +68,10 @@ export function AppSidebar() {
             </div>
             <div>
               <p className="text-sm font-bold text-gray-900">Plan Gratuito</p>
-              <p className="text-xs text-gray-600">Actualiza tu plan</p>
+              <p className="text-sm text-gray-600">Actualiza tu plan</p>
             </div>
           </div>
-          <button className="w-full mt-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold py-2 px-3 rounded-lg hover:from-amber-600 hover:to-orange-600 transition-all shadow-md hover:shadow-lg">
+          <button className="w-full mt-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-bold py-2 px-3 rounded-lg hover:from-amber-600 hover:to-orange-600 transition-all shadow-md hover:shadow-lg">
             Mejorar a Premium
           </button>
         </div>

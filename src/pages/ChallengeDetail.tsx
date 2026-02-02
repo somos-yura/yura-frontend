@@ -5,9 +5,9 @@ import {
   Briefcase,
   ArrowRight,
   User,
-  Sparkles,
   Award,
   Heart,
+  Sparkles,
 } from 'lucide-react'
 import { Layout } from '../components/layout/Layout'
 import { useState, useEffect, useMemo, useRef } from 'react'
@@ -18,6 +18,7 @@ import { ContactLoadingModal } from '../components/ui/ContactLoadingModal'
 import { MessageAlert } from '../components/ui/MessageAlert'
 import { useAuthContext } from '../contexts/AuthContext'
 import { ProjectMilestones } from '../components/ProjectMilestones'
+import { capitalizeFirstLetter } from '../utils/textUtils'
 
 const ChallengeDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>()
@@ -94,7 +95,7 @@ const ChallengeDetail: React.FC = () => {
 
   const getCategoryDisplay = () => {
     if (challenge?.category && challenge.category.length > 0) {
-      return challenge.category[0]
+      return capitalizeFirstLetter(challenge.category[0])
     }
     return 'Sin categoría'
   }
@@ -280,19 +281,7 @@ const ChallengeDetail: React.FC = () => {
                   <span className="bg-electricBlue text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-lg shadow-electricBlue/20 backdrop-blur-sm border border-white/10">
                     {getCategoryDisplay()}
                   </span>
-                  {challenge.career_types?.map((careerType, index) => (
-                    <span
-                      key={index}
-                      className="bg-white/10 text-white/90 px-3 py-1.5 rounded-full text-sm font-medium backdrop-blur-sm border border-white/10 flex items-center gap-2"
-                    >
-                      <Briefcase className="w-3.5 h-3.5" />
-                      {careerType}
-                    </span>
-                  ))}
                 </div>
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white font-montserrat leading-tight text-balance shadow-sm">
-                  {challenge.title}
-                </h1>
               </div>
             </div>
           </div>
@@ -341,7 +330,7 @@ const ChallengeDetail: React.FC = () => {
                           <p className="text-sm font-medium text-foreground truncate mb-1">
                             Fuente {index + 1}
                           </p>
-                          <p className="text-xs text-muted-foreground truncate group-hover:text-electricBlue transition-colors">
+                          <p className="text-sm text-muted-foreground truncate group-hover:text-electricBlue transition-colors">
                             {source}
                           </p>
                         </div>
@@ -350,6 +339,34 @@ const ChallengeDetail: React.FC = () => {
                   </div>
                 </section>
               )}
+
+              {/* Habilidades y Perfiles Requeridos */}
+              <h2 className="text-2xl font-bold text-foreground mb-6 font-montserrat flex items-center gap-3">
+                <div className="w-1 h-8 bg-electricBlue rounded-full" />
+                Habilidades deseables
+              </h2>
+              <section className="bg-white rounded-2xl p-8 md:p-10 shadow-xl shadow-black/5 border border-border/50">
+                <p className="text-muted-foreground mb-8 text-lg">
+                  Para sumar valor a este proyecto social, sería ideal (pero no
+                  excluyente) tener conocimientos en:
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  {challenge.career_types.map((type, index) => {
+                    return (
+                      <div
+                        key={index}
+                        className="flex items-start p-3 rounded-xl bg-gray-50 border border-gray-100 hover:border-electricBlue/20 transition-colors group"
+                      >
+                        <div>
+                          <p className="font-bold">
+                            {capitalizeFirstLetter(type)}
+                          </p>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </section>
 
               {/* Stakeholders Section */}
               <section className="bg-gradient-to-br from-[#F8FAFC] to-white rounded-3xl p-8 md:p-12 relative overflow-hidden">
@@ -361,17 +378,17 @@ const ChallengeDetail: React.FC = () => {
                     Conecta con {challenge.person_first_name}
                   </h2>
                   <p className="text-muted-foreground text-lg">
-                    Esta es la persona asignada a este problema social. Conoce
-                    más sobre con{' '}
-                    <strong>quién trabajarás y cómo podrás ayudarle</strong>. Al
-                    contactar,{' '}
+                    Esta es la persona asignada a este problema social.
+                    <br />
+                    Conoce más sobre con{' '}
+                    <strong>quién trabajarás y cómo podrás ayudarle</strong>.
+                    <br />
+                    Al contactar,{' '}
                     <strong>iniciarás tu compromiso con este reto.</strong>
                   </p>
-                  <p className="text-xs text-muted-foreground">
-                    <strong>
-                      ** La persona asignada es impulsada por inteligencia
-                      artificial, no es una persona real.
-                    </strong>
+                  <p className="mt-4 text-electricBlue">
+                    ** La persona asignada es impulsada por inteligencia
+                    artificial, no es una persona real.
                   </p>
                 </div>
 
@@ -418,10 +435,6 @@ const ChallengeDetail: React.FC = () => {
                                   <span>{challenge.person_age} años</span>
                                 </div>
                               )}
-                              <div className="flex items-center gap-1.5">
-                                <Briefcase className="w-4 h-4" />
-                                <span>Stakeholder</span>
-                              </div>
                             </div>
                           </div>
                         </div>
@@ -455,7 +468,7 @@ const ChallengeDetail: React.FC = () => {
                                       className="inline-flex items-center gap-1.5 bg-purple-50 text-purple-700 px-3 py-1.5 rounded-lg text-sm font-medium border border-purple-100"
                                     >
                                       <Heart className="w-3.5 h-3.5" />
-                                      {trait}
+                                      {capitalizeFirstLetter(trait)}
                                     </span>
                                   )
                                 )}
@@ -477,7 +490,7 @@ const ChallengeDetail: React.FC = () => {
                                       key={index}
                                       className="inline-flex items-center bg-blue-50 text-electricBlue px-3 py-1.5 rounded-lg text-sm font-semibold border border-blue-100"
                                     >
-                                      {area}
+                                      {capitalizeFirstLetter(area)}
                                     </span>
                                   )
                                 )}
@@ -510,7 +523,7 @@ const ChallengeDetail: React.FC = () => {
                             )}
                           </button>
                           {!currentAssignment && (
-                            <p className="text-xs text-center text-muted-foreground mt-3">
+                            <p className="text-sm text-center text-muted-foreground mt-3">
                               Al contactar, te comprometerás a trabajar en este
                               reto social
                             </p>
@@ -563,12 +576,8 @@ const ChallengeDetail: React.FC = () => {
         isOpen={showConfirmationModal}
         onClose={handleCancelContact}
         onConfirm={handleConfirmContact}
-        title="Iniciar Colaboración"
-        message={
-          challenge
-            ? `¿Deseas contactar a ${challenge.person_first_name} ${challenge.person_last_name}? Al hacerlo, te comprometerás a trabajar en este reto social.`
-            : '¿Estás seguro de que deseas contactarte para llevar a cabo este proyecto?'
-        }
+        title={`¿Deseas contactar a ${challenge.person_first_name} ${challenge.person_last_name}?`}
+        message="Al hacerlo, te comprometerás a trabajar en este reto social."
         confirmText="Sí, contactar"
         cancelText="Cancelar"
       />

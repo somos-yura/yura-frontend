@@ -9,7 +9,6 @@ import type {
   FeedbackTiming,
   ProjectExperience,
   TeamExperience,
-  TimeHorizon,
   FocusArea,
 } from '../types/student'
 import { MessageAlert } from '../components/ui/MessageAlert'
@@ -19,19 +18,38 @@ import {
   Check,
   Rocket,
   Code,
-  Target,
   Loader2,
-  BookOpen,
   Star,
   Zap,
-  Layout,
-  Terminal,
-  Smartphone,
-  Server,
-  Database,
-  BarChart,
+  Info,
 } from 'lucide-react'
 import { useAuthContext } from '../contexts/AuthContext'
+import {
+  ONBOARDING_STEPS,
+  CAREER_OPTIONS,
+  EXPERIENCE_LEVEL_OPTIONS,
+  LEARNING_STYLE_OPTIONS,
+  FEEDBACK_PREFERENCE_OPTIONS,
+  PROJECT_EXPERIENCE_OPTIONS,
+  TEAM_EXPERIENCE_OPTIONS,
+  TECHNOLOGY_GROUPS,
+  STRENGTH_GROUPS,
+  IMPROVEMENT_GROUPS,
+  FOCUS_AREAS_OPTIONS,
+} from '../constants/onboardingData'
+
+const SimpleTooltip: React.FC<{ text: string; children: React.ReactNode }> = ({
+  text,
+  children,
+}) => (
+  <div className="group relative flex items-center">
+    {children}
+    <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 hidden group-hover:block w-52 p-3 bg-gray-900 text-white text-sm leading-relaxed rounded-xl shadow-2xl z-[100] pointer-events-none animate-in fade-in zoom-in duration-200">
+      {text}
+      <div className="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-gray-900" />
+    </div>
+  </div>
+)
 
 const Onboarding: React.FC = () => {
   const navigate = useNavigate()
@@ -39,11 +57,11 @@ const Onboarding: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const totalSteps = 3
+  const totalSteps = ONBOARDING_STEPS.length
 
   // Form state
   const [formData, setFormData] = useState<StudentOnboardingData>({
-    career_track: '' as CareerTrack,
+    career_track: [],
     experience_level: '' as ExperienceLevel,
     learning_style: '' as LearningStyle,
     feedback_timing: '' as FeedbackTiming,
@@ -54,13 +72,7 @@ const Onboarding: React.FC = () => {
     strength_areas: [],
     improvement_areas: [],
     focus_areas: [],
-    time_horizon: '' as TimeHorizon,
-    experience_notes: '',
   })
-
-  const [techInput, setTechInput] = useState('')
-  const [strengthInput, setStrengthInput] = useState('')
-  const [improvementInput, setImprovementInput] = useState('')
 
   const handleNext = () => {
     if (currentStep < totalSteps) {
@@ -85,7 +97,6 @@ const Onboarding: React.FC = () => {
     setError(null)
 
     try {
-      // Minimum delay to show the animation (5 seconds)
       const delay = new Promise((resolve) => setTimeout(resolve, 5000))
       const apiCall = studentsApi.completeOnboarding(formData)
 
@@ -103,34 +114,11 @@ const Onboarding: React.FC = () => {
     }
   }
 
-  const addTag = (
-    field: 'desired_technologies' | 'strength_areas' | 'improvement_areas',
-    value: string,
-    setter: React.Dispatch<React.SetStateAction<string>>
-  ) => {
-    if (value.trim() && formData[field].length < 20) {
-      setFormData((prev) => ({
-        ...prev,
-        [field]: [...prev[field], value.trim()],
-      }))
-      setter('')
-    }
-  }
-
-  const removeTag = (
-    field: 'desired_technologies' | 'strength_areas' | 'improvement_areas',
-    index: number
-  ) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: prev[field].filter((_, i) => i !== index),
-    }))
-  }
-
   const toggleFocusArea = (area: FocusArea) => {
     setFormData((prev) => {
       const currentAreas = prev.focus_areas
-      if (currentAreas.includes(area)) {
+      const isSelected = currentAreas.includes(area)
+      if (isSelected) {
         return { ...prev, focus_areas: currentAreas.filter((a) => a !== area) }
       } else if (currentAreas.length < 5) {
         return { ...prev, focus_areas: [...currentAreas, area] }
@@ -142,40 +130,22 @@ const Onboarding: React.FC = () => {
   const isStepValid = (step: number): boolean => {
     switch (step) {
       case 1:
-        return !!formData.career_track && !!formData.experience_level
+        return formData.career_track.length > 0 && !!formData.experience_level
       case 2:
         return !!formData.learning_style && !!formData.feedback_timing
       case 3:
         return (
           !!formData.project_experience &&
           !!formData.team_experience &&
-          !!formData.time_horizon
+          formData.desired_technologies.length > 0 &&
+          formData.strength_areas.length > 0 &&
+          formData.improvement_areas.length > 0 &&
+          formData.focus_areas.length > 0
         )
       default:
         return false
     }
   }
-
-  const steps = [
-    {
-      id: 1,
-      title: 'Perfil Profesional',
-      description: 'Define tu trayectoria y nivel actual',
-      icon: Target,
-    },
-    {
-      id: 2,
-      title: 'Estilo de Aprendizaje',
-      description: 'Personaliza tu experiencia educativa',
-      icon: BookOpen,
-    },
-    {
-      id: 3,
-      title: 'Metas y Experiencia',
-      description: 'Establece tus objetivos a futuro',
-      icon: Rocket,
-    },
-  ]
 
   return (
     <div className="min-h-screen flex flex-col lg:flex-row bg-gray-50">
@@ -196,7 +166,7 @@ const Onboarding: React.FC = () => {
           </div>
 
           <div className="space-y-8">
-            {steps.map((step) => (
+            {ONBOARDING_STEPS.map((step) => (
               <div
                 key={step.id}
                 className={`gap-4 transition-all duration-300 ${
@@ -245,16 +215,14 @@ const Onboarding: React.FC = () => {
         <div className="relative z-10 mt-auto">
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/10">
             <div className="flex gap-2 mb-2 text-yellow-400">
-              <Star className="w-4 h-4 fill-current" />
-              <Star className="w-4 h-4 fill-current" />
-              <Star className="w-4 h-4 fill-current" />
-              <Star className="w-4 h-4 fill-current" />
-              <Star className="w-4 h-4 fill-current" />
+              {[...Array(5)].map((_, i) => (
+                <Star key={i} className="w-4 h-4 fill-current" />
+              ))}
             </div>
             <p className="text-sm text-gray-300 italic">
               &quot;La mejor forma de predecir el futuro es implementarlo.&quot;
             </p>
-            <p className="text-xs text-gray-500 mt-2 font-semibold">
+            <p className="text-sm text-gray-500 mt-2 font-semibold">
               - Alan Kay
             </p>
           </div>
@@ -281,30 +249,41 @@ const Onboarding: React.FC = () => {
                 </p>
               </div>
               <div className="space-y-4 w-full max-w-md bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                <div className="flex items-center gap-4 text-gray-700">
-                  <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                    <Check className="w-5 h-5 text-green-600" />
+                {[
+                  {
+                    label: 'Analizando tu perfil profesional',
+                    completed: true,
+                  },
+                  {
+                    label: 'Analizando la forma en la que aprendes',
+                    completed: true,
+                  },
+                  {
+                    label: 'Cargando tus primeros desafíos',
+                    completed: false,
+                    active: true,
+                  },
+                ].map((item, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center gap-4 text-gray-700"
+                  >
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${item.completed ? 'bg-green-100' : 'bg-blue-100 animate-pulse'}`}
+                    >
+                      {item.completed ? (
+                        <Check className="w-5 h-5 text-green-600" />
+                      ) : (
+                        <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />
+                      )}
+                    </div>
+                    <span
+                      className={`font-medium ${item.active ? 'text-blue-700' : ''}`}
+                    >
+                      {item.label}
+                    </span>
                   </div>
-                  <span className="font-medium">
-                    Analizando tu perfil profesional
-                  </span>
-                </div>
-                <div className="flex items-center gap-4 text-gray-700">
-                  <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                    <Check className="w-5 h-5 text-green-600" />
-                  </div>
-                  <span className="font-medium">
-                    Analizando la forma en la que aprendes
-                  </span>
-                </div>
-                <div className="flex items-center gap-4 text-gray-700">
-                  <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 animate-pulse">
-                    <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />
-                  </div>
-                  <span className="font-medium text-blue-700">
-                    Cargando tus primeros desafíos
-                  </span>
-                </div>
+                ))}
               </div>
             </div>
           ) : (
@@ -327,74 +306,29 @@ const Onboarding: React.FC = () => {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {[
-                      {
-                        value: 'backend',
-                        label: 'Backend Developer',
-                        icon: Server,
-                        color: 'text-blue-600',
-                        bg: 'bg-blue-50',
-                      },
-                      {
-                        value: 'frontend',
-                        label: 'Frontend Developer',
-                        icon: Layout,
-                        color: 'text-purple-600',
-                        bg: 'bg-purple-50',
-                      },
-                      {
-                        value: 'fullstack',
-                        label: 'Full Stack Developer',
-                        icon: Code,
-                        color: 'text-indigo-600',
-                        bg: 'bg-indigo-50',
-                      },
-                      {
-                        value: 'mobile',
-                        label: 'Mobile Developer',
-                        icon: Smartphone,
-                        color: 'text-pink-600',
-                        bg: 'bg-pink-50',
-                      },
-                      {
-                        value: 'devops',
-                        label: 'DevOps Engineer',
-                        icon: Terminal,
-                        color: 'text-slate-600',
-                        bg: 'bg-slate-50',
-                      },
-                      {
-                        value: 'qa',
-                        label: 'QA Engineer',
-                        icon: Check,
-                        color: 'text-green-600',
-                        bg: 'bg-green-50',
-                      },
-                      {
-                        value: 'data_engineer',
-                        label: 'Data Engineer',
-                        icon: Database,
-                        color: 'text-orange-600',
-                        bg: 'bg-orange-50',
-                      },
-                      {
-                        value: 'product_manager',
-                        label: 'Product Manager',
-                        icon: BarChart,
-                        color: 'text-cyan-600',
-                        bg: 'bg-cyan-50',
-                      },
-                    ].map((option) => (
+                    {CAREER_OPTIONS.map((option) => (
                       <button
                         key={option.value}
-                        onClick={() =>
+                        onClick={() => {
+                          const isSelected = formData.career_track.includes(
+                            option.value as CareerTrack
+                          )
                           setFormData((prev) => ({
                             ...prev,
-                            career_track: option.value as CareerTrack,
+                            career_track: isSelected
+                              ? prev.career_track.filter(
+                                  (t) => t !== option.value
+                                )
+                              : [
+                                  ...prev.career_track,
+                                  option.value as CareerTrack,
+                                ],
                           }))
-                        }
+                        }}
                         className={`p-4 rounded-xl border-2 text-left transition-all duration-200 hover:shadow-md flex items-center gap-4 ${
-                          formData.career_track === option.value
+                          formData.career_track.includes(
+                            option.value as CareerTrack
+                          )
                             ? 'border-blue-600 bg-blue-50/50 ring-1 ring-blue-600'
                             : 'border-gray-200 hover:border-blue-300 bg-white'
                         }`}
@@ -402,9 +336,16 @@ const Onboarding: React.FC = () => {
                         <div className={`p-3 rounded-lg ${option.bg}`}>
                           <option.icon className={`w-6 h-6 ${option.color}`} />
                         </div>
-                        <span className="font-semibold text-gray-900">
+                        <span className="font-semibold text-gray-900 flex-1">
                           {option.label}
                         </span>
+                        {option.tooltip && (
+                          <SimpleTooltip text={option.tooltip}>
+                            <div className="p-1 hover:bg-black/5 rounded-full transition-colors">
+                              <Info className="w-4 h-4 text-gray-400" />
+                            </div>
+                          </SimpleTooltip>
+                        )}
                       </button>
                     ))}
                   </div>
@@ -413,21 +354,8 @@ const Onboarding: React.FC = () => {
                     <h3 className="text-xl font-semibold text-gray-900">
                       Nivel de Experiencia
                     </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                      {[
-                        {
-                          value: 'beginner',
-                          label: 'Principiante',
-                          desc: 'Recién empezando',
-                        },
-                        { value: 'junior', label: 'Junior', desc: '0-2 años' },
-                        {
-                          value: 'mid_level',
-                          label: 'Mid-Level',
-                          desc: '2-5 años',
-                        },
-                        { value: 'senior', label: 'Senior', desc: '5+ años' },
-                      ].map((option) => (
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                      {EXPERIENCE_LEVEL_OPTIONS.map((option) => (
                         <button
                           key={option.value}
                           onClick={() =>
@@ -443,7 +371,7 @@ const Onboarding: React.FC = () => {
                           }`}
                         >
                           <div className="font-bold mb-1">{option.label}</div>
-                          <div className="text-xs opacity-80">
+                          <div className="text-sm opacity-80">
                             {option.desc}
                           </div>
                         </button>
@@ -466,81 +394,44 @@ const Onboarding: React.FC = () => {
                   </div>
 
                   <div className="space-y-4">
-                    <button
-                      onClick={() =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          learning_style: 'visual' as LearningStyle,
-                        }))
-                      }
-                      className={`w-full p-6 rounded-2xl border-2 text-left transition-all duration-200 hover:shadow-md flex items-center gap-6 ${
-                        formData.learning_style === 'visual'
-                          ? 'border-blue-500 ring-1 ring-blue-500 bg-blue-50/30'
-                          : 'border-gray-200 hover:border-blue-300 bg-white'
-                      }`}
-                    >
-                      <div
-                        className={`p-4 rounded-xl transition-colors ${
-                          formData.learning_style === 'visual'
-                            ? 'bg-blue-500 text-white'
-                            : 'bg-blue-100 text-blue-600'
+                    {LEARNING_STYLE_OPTIONS.map((option) => (
+                      <button
+                        key={option.value}
+                        onClick={() =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            learning_style: option.value as LearningStyle,
+                          }))
+                        }
+                        className={`w-full p-6 rounded-2xl border-2 text-left transition-all duration-200 hover:shadow-md flex items-center gap-6 ${
+                          formData.learning_style === option.value
+                            ? option.activeBorderClass
+                            : 'border-gray-200 hover:border-blue-300 bg-white'
                         }`}
                       >
-                        <Target className="w-8 h-8" />
-                      </div>
-                      <div>
-                        <h3
-                          className={`text-lg font-bold mb-1 ${
-                            formData.learning_style === 'visual'
-                              ? 'text-blue-700'
-                              : 'text-gray-900'
+                        <div
+                          className={`p-4 rounded-xl transition-colors ${
+                            formData.learning_style === option.value
+                              ? `${option.colorClass} text-white`
+                              : option.iconContainerClass
                           }`}
                         >
-                          Visual
-                        </h3>
-                        <p className="text-gray-600">
-                          Aprendo mejor con diagramas e imágenes
-                        </p>
-                      </div>
-                    </button>
-
-                    <button
-                      onClick={() =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          learning_style: 'reading_writing' as LearningStyle,
-                        }))
-                      }
-                      className={`w-full p-6 rounded-2xl border-2 text-left transition-all duration-200 hover:shadow-md flex items-center gap-6 ${
-                        formData.learning_style === 'reading_writing'
-                          ? 'border-gray-800 ring-1 ring-gray-800 bg-gray-50'
-                          : 'border-gray-200 hover:border-gray-400 bg-white'
-                      }`}
-                    >
-                      <div
-                        className={`p-4 rounded-xl transition-colors ${
-                          formData.learning_style === 'reading_writing'
-                            ? 'bg-gray-800 text-white'
-                            : 'bg-gray-100 text-gray-700'
-                        }`}
-                      >
-                        <BookOpen className="w-8 h-8" />
-                      </div>
-                      <div>
-                        <h3
-                          className={`text-lg font-bold mb-1 ${
-                            formData.learning_style === 'reading_writing'
-                              ? 'text-gray-900'
-                              : 'text-gray-900'
-                          }`}
-                        >
-                          Lectura/Escritura
-                        </h3>
-                        <p className="text-gray-600">
-                          Prefiero leer documentación y tomar notas
-                        </p>
-                      </div>
-                    </button>
+                          <option.icon className="w-8 h-8" />
+                        </div>
+                        <div>
+                          <h3
+                            className={`text-lg font-bold mb-1 ${
+                              formData.learning_style === option.value
+                                ? option.activeTextClass
+                                : 'text-gray-900'
+                            }`}
+                          >
+                            {option.label}
+                          </h3>
+                          <p className="text-gray-600">{option.desc}</p>
+                        </div>
+                      </button>
+                    ))}
                   </div>
 
                   <div className="pt-8 border-t border-gray-100">
@@ -552,42 +443,27 @@ const Onboarding: React.FC = () => {
                       retroalimentación sobre tu trabajo.
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <button
-                        onClick={() =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            feedback_timing: 'immediate' as FeedbackTiming,
-                          }))
-                        }
-                        className={`p-4 rounded-xl border-2 flex items-center gap-3 transition-all ${
-                          formData.feedback_timing === 'immediate'
-                            ? 'border-green-500 bg-green-50 text-green-700'
-                            : 'border-gray-200 hover:border-green-300'
-                        }`}
-                      >
-                        <Zap className="w-5 h-5" />
-                        <span className="font-medium text-left">
-                          Inmediato, al terminar con un requerimiento
-                        </span>
-                      </button>
-                      <button
-                        onClick={() =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            feedback_timing: 'final' as FeedbackTiming,
-                          }))
-                        }
-                        className={`p-4 rounded-xl border-2 flex items-center gap-3 transition-all ${
-                          formData.feedback_timing === 'final'
-                            ? 'border-orange-500 bg-orange-50 text-orange-700'
-                            : 'border-gray-200 hover:border-orange-300'
-                        }`}
-                      >
-                        <Target className="w-5 h-5" />
-                        <span className="font-medium">
-                          Al finalizar el proyecto
-                        </span>
-                      </button>
+                      {FEEDBACK_PREFERENCE_OPTIONS.map((option) => (
+                        <button
+                          key={option.value}
+                          onClick={() =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              feedback_timing: option.value as FeedbackTiming,
+                            }))
+                          }
+                          className={`p-4 rounded-xl border-2 flex items-center gap-3 transition-all ${
+                            formData.feedback_timing === option.value
+                              ? option.borderClass
+                              : `border-gray-200 ${option.hoverClass}`
+                          }`}
+                        >
+                          <option.icon className="w-5 h-5" />
+                          <span className="font-medium text-left">
+                            {option.label}
+                          </span>
+                        </button>
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -607,63 +483,49 @@ const Onboarding: React.FC = () => {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label className="text-sm font-semibold text-gray-700">
-                        Experiencia en Proyectos
-                      </label>
-                      <select
-                        value={formData.project_experience}
-                        onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            project_experience: e.target
-                              .value as ProjectExperience,
-                          }))
-                        }
-                        className="w-full p-3 bg-white border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
-                      >
-                        <option value="">Selecciona...</option>
-                        <option value="none">Sin experiencia</option>
-                        <option value="academic_only">Solo académicos</option>
-                        <option value="personal_projects">
-                          Proyectos personales
-                        </option>
-                        <option value="professional">
-                          Proyectos profesionales
-                        </option>
-                      </select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-sm font-semibold text-gray-700">
-                        Trabajo en Equipo
-                      </label>
-                      <select
-                        value={formData.team_experience}
-                        onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            team_experience: e.target.value as TeamExperience,
-                          }))
-                        }
-                        className="w-full p-3 bg-white border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
-                      >
-                        <option value="">Selecciona...</option>
-                        <option value="solo_only">Solo individual</option>
-                        <option value="small_teams">
-                          Equipos pequeños (2-5)
-                        </option>
-                        <option value="large_teams">
-                          Equipos grandes (6+)
-                        </option>
-                      </select>
-                    </div>
+                    {[
+                      {
+                        label: 'Experiencia en Proyectos',
+                        value: formData.project_experience,
+                        options: PROJECT_EXPERIENCE_OPTIONS,
+                        field: 'project_experience',
+                      },
+                      {
+                        label: 'Experiencia con Equipos',
+                        value: formData.team_experience,
+                        options: TEAM_EXPERIENCE_OPTIONS,
+                        field: 'team_experience',
+                      },
+                    ].map((select) => (
+                      <div key={select.field} className="space-y-2">
+                        <label className="text-sm font-semibold text-gray-700">
+                          {select.label}
+                        </label>
+                        <select
+                          value={select.value}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              [select.field]: e.target.value,
+                            }))
+                          }
+                          className="w-full p-3 bg-white border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
+                        >
+                          <option value="">Selecciona...</option>
+                          {select.options.map((opt) => (
+                            <option key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    ))}
                   </div>
 
                   <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
                     <label className="flex items-center gap-3 cursor-pointer">
                       <div
-                        className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${
+                        className={`w-6 h-6 flex-shrink-0 rounded border-2 flex items-center justify-center transition-colors ${
                           formData.has_production_experience
                             ? 'bg-blue-600 border-blue-600'
                             : 'border-gray-400 bg-white'
@@ -684,170 +546,129 @@ const Onboarding: React.FC = () => {
                           }))
                         }
                       />
-                      <span className="font-medium text-gray-700">
+                      <span className="font-medium text-gray-700 flex-1">
                         He desplegado código a producción
                       </span>
+                      <SimpleTooltip text="Significa que tu trabajo ha sido publicado y es usado por personas reales fuera de un entorno de aprendizaje o personal.">
+                        <div className="p-1 hover:bg-black/5 rounded-full transition-colors">
+                          <Info className="w-4 h-4 text-gray-400" />
+                        </div>
+                      </SimpleTooltip>
                     </label>
                   </div>
 
-                  <div className="space-y-4">
-                    <label className="block text-sm font-semibold text-gray-700">
-                      Tecnologías de interés
-                    </label>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={techInput}
-                        onChange={(e) => setTechInput(e.target.value)}
-                        onKeyPress={(e) =>
-                          e.key === 'Enter' &&
-                          (e.preventDefault(),
-                          addTag(
-                            'desired_technologies',
-                            techInput,
-                            setTechInput
-                          ))
-                        }
-                        placeholder="React, Python, AWS..."
-                        className="flex-1 p-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500"
-                      />
-                      <button
-                        onClick={() =>
-                          addTag(
-                            'desired_technologies',
-                            techInput,
-                            setTechInput
-                          )
-                        }
-                        className="px-6 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition-colors"
+                  <div className="flex flex-col gap-6">
+                    {[
+                      {
+                        title: '1. Tecnologías de Interés',
+                        groups: TECHNOLOGY_GROUPS,
+                        field: 'desired_technologies',
+                        icon: Code,
+                        color: 'text-blue-600',
+                        activeClass: 'bg-blue-600 border-blue-600',
+                        hoverClass: 'group-hover:border-blue-300',
+                        gridClass: 'xl:grid-cols-5',
+                      },
+                      {
+                        title: '2. Fortalezas',
+                        groups: STRENGTH_GROUPS,
+                        field: 'strength_areas',
+                        icon: Star,
+                        color: 'text-green-600',
+                        activeClass: 'bg-green-600 border-green-600',
+                        hoverClass: 'group-hover:border-green-300',
+                        gridClass: 'xl:grid-cols-4',
+                      },
+                      {
+                        title: '3. Áreas de Mejora',
+                        groups: IMPROVEMENT_GROUPS,
+                        field: 'improvement_areas',
+                        icon: Zap,
+                        color: 'text-orange-600',
+                        activeClass: 'bg-orange-600 border-orange-600',
+                        hoverClass: 'group-hover:border-orange-300',
+                        gridClass: 'xl:grid-cols-4',
+                      },
+                    ].map((col) => (
+                      <div
+                        key={col.field}
+                        className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm"
                       >
-                        Agregar
-                      </button>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {formData.desired_technologies.map((tech, idx) => (
-                        <span
-                          key={idx}
-                          className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-sm font-medium"
-                        >
-                          {tech}
-                          <button
-                            onClick={() =>
-                              removeTag('desired_technologies', idx)
-                            }
-                            className="hover:text-blue-900"
+                        <div className="flex items-center gap-3 pb-4 border-b border-gray-50">
+                          <div
+                            className={`p-2 rounded-lg ${col.color.replace('text-', 'bg-').replace('-600', '-50')}`}
                           >
-                            <div className="text-xs">✕</div>
-                          </button>
-                        </span>
-                      ))}
-                    </div>
-                  </div>
+                            <col.icon className={`w-6 h-6 ${col.color}`} />
+                          </div>
+                          <h3 className="text-xl font-bold text-gray-900">
+                            {col.title}
+                          </h3>
+                        </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label className="text-sm font-semibold text-gray-700">
-                        Fortalezas
-                      </label>
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          value={strengthInput}
-                          onChange={(e) => setStrengthInput(e.target.value)}
-                          onKeyPress={(e) =>
-                            e.key === 'Enter' &&
-                            (e.preventDefault(),
-                            addTag(
-                              'strength_areas',
-                              strengthInput,
-                              setStrengthInput
-                            ))
-                          }
-                          className="flex-1 p-2 border-2 border-gray-200 rounded-lg text-sm"
-                          placeholder="Añadir fortaleza..."
-                        />
-                        <button
-                          onClick={() =>
-                            addTag(
-                              'strength_areas',
-                              strengthInput,
-                              setStrengthInput
-                            )
-                          }
-                          className="px-3 bg-green-500 text-white rounded-lg"
+                        <div
+                          className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 ${col.gridClass} gap-6 md:gap-8`}
                         >
-                          +
-                        </button>
+                          {col.groups.map((group) => (
+                            <div key={group.label} className="space-y-4">
+                              <h4 className="text-sm font-black uppercase tracking-widest text-gray-500 mb-2">
+                                {group.label}
+                              </h4>
+                              <div className="flex flex-col gap-3">
+                                {group.options.map((option) => {
+                                  const isSelected = (
+                                    formData[
+                                      col.field as keyof StudentOnboardingData
+                                    ] as string[]
+                                  ).includes(option)
+                                  return (
+                                    <label
+                                      key={option}
+                                      onClick={() => {
+                                        setFormData((prev) => ({
+                                          ...prev,
+                                          [col.field]: isSelected
+                                            ? (
+                                                prev[
+                                                  col.field as keyof StudentOnboardingData
+                                                ] as string[]
+                                              ).filter((t) => t !== option)
+                                            : [
+                                                ...(prev[
+                                                  col.field as keyof StudentOnboardingData
+                                                ] as string[]),
+                                                option,
+                                              ],
+                                        }))
+                                      }}
+                                      className="flex items-center gap-3 group cursor-pointer"
+                                    >
+                                      <div
+                                        className={`w-5 h-5 flex-shrink-0 rounded-md border-2 flex items-center justify-center transition-all duration-200 ${
+                                          isSelected
+                                            ? `${col.activeClass} shadow-sm`
+                                            : `border-gray-200 bg-white ${
+                                                col.hoverClass
+                                              }`
+                                        }`}
+                                      >
+                                        {isSelected && (
+                                          <Check className="w-3.5 h-3.5 text-white stroke-[3]" />
+                                        )}
+                                      </div>
+                                      <span
+                                        className={`text-sm transition-colors duration-200 ${isSelected ? 'text-gray-900 font-semibold' : 'text-gray-600 group-hover:text-gray-900'}`}
+                                      >
+                                        {option}
+                                      </span>
+                                    </label>
+                                  )
+                                })}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                      <div className="flex flex-wrap gap-2">
-                        {formData.strength_areas.map((item, idx) => (
-                          <span
-                            key={idx}
-                            className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium flex items-center gap-1"
-                          >
-                            {item}
-                            <button
-                              onClick={() => removeTag('strength_areas', idx)}
-                            >
-                              ×
-                            </button>
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-sm font-semibold text-gray-700">
-                        Áreas de mejora
-                      </label>
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          value={improvementInput}
-                          onChange={(e) => setImprovementInput(e.target.value)}
-                          onKeyPress={(e) =>
-                            e.key === 'Enter' &&
-                            (e.preventDefault(),
-                            addTag(
-                              'improvement_areas',
-                              improvementInput,
-                              setImprovementInput
-                            ))
-                          }
-                          className="flex-1 p-2 border-2 border-gray-200 rounded-lg text-sm"
-                          placeholder="Añadir área..."
-                        />
-                        <button
-                          onClick={() =>
-                            addTag(
-                              'improvement_areas',
-                              improvementInput,
-                              setImprovementInput
-                            )
-                          }
-                          className="px-3 bg-orange-500 text-white rounded-lg"
-                        >
-                          +
-                        </button>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {formData.improvement_areas.map((item, idx) => (
-                          <span
-                            key={idx}
-                            className="px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs font-medium flex items-center gap-1"
-                          >
-                            {item}
-                            <button
-                              onClick={() =>
-                                removeTag('improvement_areas', idx)
-                              }
-                            >
-                              ×
-                            </button>
-                          </span>
-                        ))}
-                      </div>
-                    </div>
+                    ))}
                   </div>
 
                   <div className="space-y-3">
@@ -855,65 +676,27 @@ const Onboarding: React.FC = () => {
                       Áreas de Enfoque (Max 5)
                     </label>
                     <div className="flex flex-wrap gap-2">
-                      {[
-                        'Resolución de problemas técnicos',
-                        'Diseño de sistemas',
-                        'Calidad del código',
-                        'Comunicación',
-                        'Depuración',
-                        'Colaboración en equipo',
-                        'Testing',
-                        'Optimización',
-                      ].map((label, idx) => {
-                        const value = [
-                          'technical_problem_solving',
-                          'system_design',
-                          'code_quality',
-                          'communication',
-                          'debugging',
-                          'team_collaboration',
-                          'testing',
-                          'performance_optimization',
-                        ][idx]
+                      {FOCUS_AREAS_OPTIONS.map((opt) => {
                         const isSelected = formData.focus_areas.includes(
-                          value as FocusArea
+                          opt.value as FocusArea
                         )
                         return (
                           <button
-                            key={value}
-                            onClick={() => toggleFocusArea(value as FocusArea)}
+                            key={opt.value}
+                            onClick={() =>
+                              toggleFocusArea(opt.value as FocusArea)
+                            }
                             className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
                               isSelected
                                 ? 'bg-blue-600 text-white shadow-md'
                                 : 'bg-white border border-gray-200 text-gray-600 hover:border-blue-300'
                             }`}
                           >
-                            {label}
+                            {opt.label}
                           </button>
                         )
                       })}
                     </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold text-gray-700">
-                      Horizonte de Tiempo
-                    </label>
-                    <select
-                      value={formData.time_horizon}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          time_horizon: e.target.value as TimeHorizon,
-                        }))
-                      }
-                      className="w-full p-3 bg-white border-2 border-gray-200 rounded-xl"
-                    >
-                      <option value="">Selecciona...</option>
-                      <option value="short_term">Corto plazo (3 meses)</option>
-                      <option value="medium_term">Medio plazo (6 meses)</option>
-                      <option value="long_term">Largo plazo (1+ año)</option>
-                    </select>
                   </div>
                 </div>
               )}

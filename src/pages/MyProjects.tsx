@@ -6,6 +6,7 @@ import { Layout } from '../components/layout/Layout'
 import { useAuthContext } from '../contexts/AuthContext'
 import { challengesApi, ChallengeApiError } from '../services/challengesApi'
 import type { ChallengeAssignment, Challenge } from '../types/challenge'
+import { capitalizeFirstLetter } from '../utils/textUtils'
 
 interface ProjectWithAssignment {
   challenge: Challenge
@@ -99,7 +100,7 @@ const MyProjects: React.FC = () => {
 
   const getCategoryDisplay = (challenge: Challenge) => {
     if (challenge.category && challenge.category.length > 0) {
-      return challenge.category[0]
+      return capitalizeFirstLetter(challenge.category[0])
     }
     return 'Sin categoría'
   }
@@ -207,7 +208,7 @@ const MyProjects: React.FC = () => {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
 
                     <div className="absolute top-4 right-4">
-                      <span className="inline-flex items-center gap-1.5 text-xs font-bold bg-white/95 text-gray-900 px-4 py-2 rounded-full shadow-xl backdrop-blur-md border border-white/60 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300">
+                      <span className="inline-flex items-center gap-1.5 text-sm font-bold bg-white/95 text-gray-900 px-4 py-2 rounded-full shadow-xl backdrop-blur-md border border-white/60 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300">
                         {getCategoryDisplay(project.challenge)}
                       </span>
                     </div>
@@ -220,17 +221,20 @@ const MyProjects: React.FC = () => {
                       <h3 className="text-xl font-bold text-gray-900 font-montserrat line-clamp-2 mb-3 group-hover:text-blue-600 transition-colors duration-300 leading-tight">
                         {project.challenge.title}
                       </h3>
-                      <p className="text-gray-600 text-sm leading-relaxed line-clamp-3 mb-4">
-                        {project.challenge.description}
-                      </p>
+                      <div
+                        className="text-gray-600 text-sm leading-relaxed mb-4 overflow-hidden max-h-[72px] [&_section]:space-y-1 [&_section]:block [&_h2]:hidden [&_h3]:hidden [&_p]:text-gray-600 [&_p]:text-sm [&_p]:mb-1 [&_p]:line-clamp-2 [&_p]:last:mb-0 [&_strong]:font-semibold [&_strong]:text-gray-700"
+                        dangerouslySetInnerHTML={{
+                          __html: project.challenge.description,
+                        }}
+                      />
                     </div>
 
                     <div className="mb-4">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-medium text-gray-600">
+                        <span className="text-sm font-medium text-gray-600">
                           Progreso
                         </span>
-                        <span className="text-xs font-bold text-gray-900">
+                        <span className="text-sm font-bold text-gray-900">
                           45%
                         </span>
                       </div>

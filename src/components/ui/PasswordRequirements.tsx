@@ -15,7 +15,7 @@ export const PasswordRequirements: React.FC<PasswordRequirementsProps> = ({
   return (
     <div className="mt-2 space-y-1">
       {requirements.map((req, index) => (
-        <div key={index} className="flex items-center text-xs">
+        <div key={index} className="flex items-center text-sm">
           <span
             className={`mr-2 ${req.test ? 'text-green-600' : 'text-red-500'}`}
           >

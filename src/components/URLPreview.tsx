@@ -55,7 +55,7 @@ export const URLPreview: React.FC<URLPreviewProps> = ({ url }) => {
             </p>
             <ExternalLink className="w-3 h-3 text-gray-400 group-hover:text-blue-600 transition-colors flex-shrink-0" />
           </div>
-          <p className="text-xs text-gray-500 truncate mt-0.5">{url}</p>
+          <p className="text-sm text-gray-500 truncate mt-0.5">{url}</p>
         </div>
       </div>
     </a>
