@@ -14,9 +14,9 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://backend-production-7668.up.railway.app',
+        target: 'https://somos-yura-backend-g9q7b.ondigitalocean.app',
         changeOrigin: true,
-        secure: false, // In case of self-signed certs, though Railway is usually valid
+        secure: false,
       },
     },
   },

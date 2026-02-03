@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://backend-production-7668.up.railway.app/api/:path*"
+      "destination": "https://somos-yura-backend-g9q7b.ondigitalocean.app/api/:path*"
     },
     {
       "source": "/(.*)",
