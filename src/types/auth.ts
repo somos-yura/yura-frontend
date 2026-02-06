@@ -5,6 +5,8 @@ export interface LoginForm {
 
 export interface RegisterForm {
   email: string
+  name: string
+  last_name: string
   password: string
   confirmPassword: string
 }
@@ -12,6 +14,8 @@ export interface RegisterForm {
 export interface User {
   id: string
   email: string
+  name?: string
+  last_name?: string
   is_active: boolean
   created_at: string
 }

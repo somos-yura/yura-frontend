@@ -26,6 +26,8 @@ export const authApi = {
         ENDPOINTS.USERS.REGISTER,
         {
           email: userData.email,
+          name: userData.name,
+          last_name: userData.last_name,
           password: userData.password,
         }
       )) as AuthResponse

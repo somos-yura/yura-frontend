@@ -16,6 +16,12 @@ export function Header({
   }
 
   const getUserInitials = (email: string | undefined): string => {
+    if (user?.name && user?.last_name) {
+      return (user.name[0] + user.last_name[0]).toUpperCase()
+    }
+    if (user?.name) {
+      return user.name.substring(0, 2).toUpperCase()
+    }
     if (!email) return 'U'
     const parts = email.split('@')
     const username = parts[0]
@@ -26,6 +32,9 @@ export function Header({
   }
 
   const getUserDisplayName = (email: string | undefined): string => {
+    if (user?.name) {
+      return `${user.name} ${user.last_name || ''}`.trim()
+    }
     if (!email) return 'Usuario'
     const parts = email.split('@')
     return parts[0].charAt(0).toUpperCase() + parts[0].slice(1)

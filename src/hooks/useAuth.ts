@@ -7,6 +7,7 @@ import {
   validatePassword,
   validatePasswordRegister,
   validatePasswordMatch,
+  validateName,
 } from '../utils/validation'
 import type { LoginForm, RegisterForm, AuthState, User } from '../types/auth'
 
@@ -84,6 +85,13 @@ export const useAuth = () => {
       if (passwordError) return passwordError
       return null
     }
+
+    const regForm = form as RegisterForm
+    const nameError = validateName(regForm.name, 'nombre')
+    if (nameError) return nameError
+
+    const lastNameError = validateName(regForm.last_name, 'apellido')
+    if (lastNameError) return lastNameError
 
     const passwordError = validatePasswordRegister(form.password)
     if (passwordError) return passwordError

@@ -6,12 +6,14 @@ import { ChallengeCard } from '../components/ChallengeCard'
 import { useChallenges } from '../hooks/useChallenges'
 import { useDashboardFilters } from '../hooks/useDashboardFilters'
 import type { Challenge } from '../types/challenge'
+import { useAuthContext } from '../contexts/AuthContext'
 import { useMemo, useRef, useEffect } from 'react'
 import { capitalizeFirstLetter } from '../utils/textUtils'
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate()
   const inputRef = useRef<HTMLInputElement>(null)
+  const { user } = useAuthContext()
   const { searchQuery, setSearchQuery, selectedCategory, setSelectedCategory } =
     useDashboardFilters()
 
@@ -61,9 +63,15 @@ const Dashboard: React.FC = () => {
   // Get current time greeting
   const getGreeting = () => {
     const hour = new Date().getHours()
-    if (hour < 12) return '¡Buenos días!'
-    if (hour < 18) return '¡Buenas tardes!'
-    return '¡Buenas noches!'
+    let greeting = ''
+    if (hour < 12) greeting = '¡Buenos días'
+    else if (hour < 18) greeting = '¡Buenas tardes'
+    else greeting = '¡Buenas noches'
+
+    if (user?.name) {
+      return `${greeting}, ${user.name}!`
+    }
+    return `${greeting}!`
   }
 
   if (challengesLoading) {

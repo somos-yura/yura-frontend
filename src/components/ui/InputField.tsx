@@ -9,6 +9,7 @@ interface InputFieldProps {
   label: string
   icon: React.ReactNode
   focusColor?: string
+  maxLength?: number
   onKeyDown?: (e: React.KeyboardEvent) => void
 }
 
@@ -21,6 +22,7 @@ export const InputField: React.FC<InputFieldProps> = ({
   label,
   icon,
   focusColor = 'electricBlue',
+  maxLength,
   onKeyDown,
 }) => (
   <div>
@@ -41,6 +43,7 @@ export const InputField: React.FC<InputFieldProps> = ({
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={onKeyDown}
         placeholder={placeholder}
+        maxLength={maxLength}
         className={`w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-${focusColor} focus:border-transparent transition-all placeholder-gray-400`}
       />
     </div>
