@@ -86,6 +86,7 @@ const Login: React.FC = () => {
                   onChange={handleInputChange('email')}
                   placeholder="tu@email.com"
                   label="Email"
+                  maxLength={100}
                   onKeyDown={(e) => handleKeyDown(e, 'password')}
                   icon={
                     <svg
@@ -136,6 +137,7 @@ const Login: React.FC = () => {
                       }
                       onKeyDown={(e) => handleKeyDown(e)}
                       placeholder="••••••••"
+                      maxLength={100}
                       className="w-full pl-10 pr-12 py-3 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-electricBlue focus:border-transparent transition-all placeholder-gray-400"
                     />
                     <button

@@ -12,6 +12,7 @@ export const getPasswordRequirements = (password: string) => {
 
 export const validateEmail = (email: string): string | null => {
   if (!email.trim()) return 'El email es requerido'
+  if (email.length > 100) return 'El email es demasiado largo'
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   if (!emailRegex.test(email)) return 'Formato de email inválido'
   return null
@@ -19,6 +20,7 @@ export const validateEmail = (email: string): string | null => {
 
 export const validatePassword = (password: string): string | null => {
   if (!password) return 'La contraseña es requerida'
+  if (password.length > 100) return 'La contraseña es demasiado larga'
   return null
 }
 
@@ -40,5 +42,16 @@ export const validatePasswordMatch = (
 ): string | null => {
   if (!confirmPassword) return 'Confirma tu contraseña'
   if (password !== confirmPassword) return 'Las contraseñas no coinciden'
+  return null
+}
+
+export const validateName = (
+  name: string,
+  fieldName: string
+): string | null => {
+  if (!name.trim()) return `El ${fieldName} es obligatorio`
+  if (name.trim().length < 2)
+    return `El ${fieldName} debe tener al menos 2 caracteres`
+  if (name.length > 50) return `El ${fieldName} es demasiado largo`
   return null
 }

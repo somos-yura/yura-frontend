@@ -13,6 +13,8 @@ const Register: React.FC = () => {
   const navigate = useNavigate()
   const [form, setForm] = useState<RegisterForm>({
     email: '',
+    name: '',
+    last_name: '',
     password: '',
     confirmPassword: '',
   })
@@ -94,6 +96,60 @@ const Register: React.FC = () => {
                 </div>
               )}
               <form onSubmit={handleSubmit} className="space-y-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <InputField
+                    id="name"
+                    type="text"
+                    value={form.name}
+                    onChange={handleInputChange('name')}
+                    placeholder="Tu nombre"
+                    label="Nombre"
+                    maxLength={50}
+                    focusColor="white"
+                    onKeyDown={(e) => handleKeyDown(e, 'last_name')}
+                    icon={
+                      <svg
+                        className="h-5 w-5 text-gray-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                        />
+                      </svg>
+                    }
+                  />
+                  <InputField
+                    id="last_name"
+                    type="text"
+                    value={form.last_name}
+                    onChange={handleInputChange('last_name')}
+                    placeholder="Tu apellido"
+                    label="Apellido"
+                    maxLength={50}
+                    focusColor="white"
+                    onKeyDown={(e) => handleKeyDown(e, 'email')}
+                    icon={
+                      <svg
+                        className="h-5 w-5 text-gray-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                        />
+                      </svg>
+                    }
+                  />
+                </div>
                 <InputField
                   id="email"
                   type="email"
@@ -101,6 +157,7 @@ const Register: React.FC = () => {
                   onChange={handleInputChange('email')}
                   placeholder="tu@email.com"
                   label="Email"
+                  maxLength={100}
                   focusColor="white"
                   onKeyDown={(e) => handleKeyDown(e, 'password')}
                   icon={
@@ -151,6 +208,7 @@ const Register: React.FC = () => {
                       }
                       onKeyDown={(e) => handleKeyDown(e, 'confirmPassword')}
                       placeholder="Mínimo 6 caracteres"
+                      maxLength={100}
                       className="w-full pl-10 pr-12 py-3 bg-white/10 border border-white/30 rounded-md focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent transition-all placeholder-gray-400 text-white"
                     />
                     <button
@@ -229,6 +287,7 @@ const Register: React.FC = () => {
                       }
                       onKeyDown={(e) => handleKeyDown(e)}
                       placeholder="Repite tu contraseña"
+                      maxLength={100}
                       className="w-full pl-10 pr-12 py-3 bg-white/10 border border-white/30 rounded-md focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent transition-all placeholder-gray-400 text-white"
                     />
                     <button
