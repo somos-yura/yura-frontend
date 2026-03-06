@@ -63,8 +63,6 @@ export interface ChatResponse {
   }
   diagrams?: Diagram[]
   current_agent?: string
-  google_calendar_linked?: boolean
-  needs_google_auth?: boolean
   status?: ResponseStatus
   error_code?: ErrorCode | null
   error_message?: string | null
@@ -108,7 +106,6 @@ export interface Milestone {
   due_date: string
   status: string
   url: string | null
-  google_calendar_event_id: string | null
   deliverables?: Deliverable[]
 }
 
@@ -252,23 +249,6 @@ export const chatApi = {
         throw new ChatApiError(error.message, error.status, error.details)
       }
       throw new ChatApiError('Error al obtener los hitos', 500, error)
-    }
-  },
-
-  async saveGoogleAuthCode(code: string): Promise<GoogleAuthApiResponse> {
-    try {
-      const endpoint = ENDPOINTS.USERS.GOOGLE_AUTH
-      return (await apiClient.post<GoogleAuthResponse>(
-        endpoint,
-        { code },
-        { requireAuth: true }
-      )) as GoogleAuthApiResponse
-    } catch (error) {
-      Sentry.captureException(error)
-      if (error instanceof ApiError) {
-        throw new ChatApiError(error.message, error.status, error.details)
-      }
-      throw new ChatApiError('Error al vincular con Google', 500, error)
     }
   },
 

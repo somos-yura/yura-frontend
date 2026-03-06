@@ -1,7 +1,6 @@
 import type React from 'react'
 import { useRef, useEffect, useState } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
-import { useGoogleAuth } from '../hooks/useGoogleAuth'
 import { Layout } from '../components/layout/Layout'
 import { useChat } from '../hooks/useChat'
 import { challengesApi, ChallengeApiError } from '../services/challengesApi'
@@ -16,7 +15,6 @@ import { ChatHeader } from '../components/chat/ChatHeader'
 import { ChatSidebar } from '../components/chat/ChatSidebar'
 import { MessageList } from '../components/chat/MessageList'
 import { ChatInput } from '../components/chat/ChatInput'
-import { GoogleAuthModal } from '../components/chat/GoogleAuthModal'
 
 type TabType = 'chat' | 'files' | 'participants' | 'milestones'
 
@@ -37,10 +35,7 @@ const ChallengeChat: React.FC = () => {
   const [error, setError] = useState<string | null>(null)
   const [diagrams, setDiagrams] = useState<Diagram[]>([])
   const [activeTab, setActiveTab] = useState<TabType>('chat')
-  const [isGoogleAuthModalOpen, setIsGoogleAuthModalOpen] = useState(false)
   const [showRightSidebar, setShowRightSidebar] = useState(false)
-  const [googleCalendarLinked, setGoogleCalendarLinked] =
-    useState<boolean>(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   // Generate or retrieve session ID
@@ -55,18 +50,6 @@ const ChallengeChat: React.FC = () => {
   }
 
   const sessionId = getSessionId()
-
-  const { initiateAuth: googleLogin } = useGoogleAuth({
-    challengeAssignmentId: challengeAssignment?.id || null,
-    onSuccess: async () => {
-      await refreshHistory()
-      setGoogleCalendarLinked(true)
-      setIsGoogleAuthModalOpen(false)
-    },
-    onError: (errorMessage) => {
-      console.warn('Google Auth Debug Info:', errorMessage)
-    },
-  })
 
   const getAvatarInitials = (challenge: Challenge | null): string => {
     if (!challenge) return '?'
@@ -100,7 +83,6 @@ const ChallengeChat: React.FC = () => {
     handleSendMessage,
     handleSuggestedPrompt,
     loadMoreMessages,
-    refreshHistory,
     isAvailable,
   } = useChat({
     challengeAssignmentId: challengeAssignment?.id || null,
@@ -112,12 +94,6 @@ const ChallengeChat: React.FC = () => {
       const newDiagrams = data.diagrams
       if (newDiagrams && newDiagrams.length > 0) {
         setDiagrams((prev) => [...newDiagrams, ...prev])
-      }
-      if (data.google_calendar_linked !== undefined) {
-        setGoogleCalendarLinked(data.google_calendar_linked)
-      }
-      if (data.needs_google_auth) {
-        setIsGoogleAuthModalOpen(true)
       }
     },
   })
@@ -136,24 +112,6 @@ const ChallengeChat: React.FC = () => {
     }
     fetchDiagrams()
   }, [challengeAssignment])
-
-  useEffect(() => {
-    const fetchStatus = async () => {
-      if (!challengeAssignment) return
-      try {
-        const response = await chatApi.getStatus(
-          challengeAssignment.id,
-          sessionId
-        )
-        if (response.success && response.data) {
-          setGoogleCalendarLinked(response.data.google_calendar_linked)
-        }
-      } catch (err) {
-        console.error('Error fetching status:', err)
-      }
-    }
-    fetchStatus()
-  }, [challengeAssignment, sessionId])
 
   useEffect(() => {
     const fetchData = async () => {
@@ -359,15 +317,6 @@ const ChallengeChat: React.FC = () => {
             challengeAssignment={challengeAssignment}
             getAvatarInitials={getAvatarInitials}
             getFullName={getFullName}
-            onLinkGoogleCalendar={googleLogin}
-            isGoogleCalendarLinked={googleCalendarLinked}
-          />
-        )}
-
-        {isGoogleAuthModalOpen && (
-          <GoogleAuthModal
-            onLogin={googleLogin}
-            onClose={() => setIsGoogleAuthModalOpen(false)}
           />
         )}
       </div>

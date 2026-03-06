@@ -7,23 +7,16 @@ import {
   Edit2,
 } from 'lucide-react'
 import { chatApi, type Milestone } from '../services/chatApi'
-import { EXTERNAL_URLS } from '../config/externalUrls'
 import { URLPreview } from './URLPreview'
 
 interface ProjectMilestonesProps {
   challengeAssignmentId: string
-  onLinkGoogleCalendar?: () => void
-  isGoogleCalendarLinked?: boolean
   onMilestonesCountChange?: (count: number) => void
-  showControls?: boolean
 }
 
 export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({
   challengeAssignmentId,
-  onLinkGoogleCalendar,
-  isGoogleCalendarLinked = false,
   onMilestonesCountChange,
-  showControls = true,
 }) => {
   const [milestones, setMilestones] = useState<Milestone[]>([])
   const [loading, setLoading] = useState(true)
@@ -100,26 +93,6 @@ export const ProjectMilestones: React.FC<ProjectMilestonesProps> = ({
         <Calendar className="w-5 h-5 text-electricBlue" />
         Hitos Próximos
       </h3>
-
-      {showControls && (
-        <div className="mb-8 pb-6 border-b border-gray-100 flex flex-col gap-3">
-          <button
-            onClick={onLinkGoogleCalendar}
-            className="w-full py-3 px-4 rounded-xl bg-blue-600 text-sm font-semibold text-white hover:bg-blue-700 transition-all flex items-center justify-center gap-2 shadow-sm"
-          >
-            {isGoogleCalendarLinked
-              ? 'Cambiar Google Calendar'
-              : 'Vincular mi Google Calendar'}
-          </button>
-
-          <button
-            onClick={() => window.open(EXTERNAL_URLS.GOOGLE.CALENDAR, '_blank')}
-            className="w-full py-3 px-4 rounded-xl bg-gray-50 border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-100 hover:border-gray-300 transition-all flex items-center justify-center gap-2"
-          >
-            Ver en mi Google Calendar
-          </button>
-        </div>
-      )}
 
       <div className="space-y-6 relative">
         {milestones.length > 0 ? (

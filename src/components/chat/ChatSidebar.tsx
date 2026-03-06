@@ -24,8 +24,6 @@ interface ChatSidebarProps {
   challengeAssignment: ChallengeAssignment | null
   getAvatarInitials: (challenge: Challenge | null) => string
   getFullName: (challenge: Challenge | null) => string
-  onLinkGoogleCalendar: () => void
-  isGoogleCalendarLinked: boolean
 }
 
 export const ChatSidebar: React.FC<ChatSidebarProps> = ({
@@ -36,8 +34,6 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
   challengeAssignment,
   getAvatarInitials,
   getFullName,
-  onLinkGoogleCalendar,
-  isGoogleCalendarLinked,
 }) => {
   if (!challenge) return null
 
@@ -257,11 +253,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
 
         {activeTab === 'milestones' && challengeAssignment && (
           <div className="animate-fade-in">
-            <ProjectMilestones
-              challengeAssignmentId={challengeAssignment.id}
-              onLinkGoogleCalendar={onLinkGoogleCalendar}
-              isGoogleCalendarLinked={isGoogleCalendarLinked}
-            />
+            <ProjectMilestones challengeAssignmentId={challengeAssignment.id} />
           </div>
         )}
       </div>

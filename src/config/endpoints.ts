@@ -5,7 +5,6 @@ export const ENDPOINTS = {
     LOGOUT: '/api/v1/users/logout',
     REFRESH: '/api/v1/users/refresh',
     ME: '/api/v1/users/me',
-    GOOGLE_AUTH: '/api/v1/users/google-auth',
   },
   AI: {
     CHAT: {
