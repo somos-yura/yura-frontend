@@ -9,7 +9,6 @@ import ChallengeDetail from './pages/ChallengeDetail'
 import ChallengeChat from './pages/ChallengeChat'
 import Onboarding from './pages/Onboarding'
 import MyProjects from './pages/MyProjects'
-import GoogleAuthCallback from './pages/GoogleAuthCallback'
 
 export function AppRouter() {
   return (
@@ -17,10 +16,6 @@ export function AppRouter() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route
-            path="/auth/google/callback"
-            element={<GoogleAuthCallback />}
-          />
           <Route
             path="/login"
             element={

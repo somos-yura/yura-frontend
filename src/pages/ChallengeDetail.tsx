@@ -554,7 +554,6 @@ const ChallengeDetail: React.FC = () => {
                 <ProjectMilestones
                   challengeAssignmentId={currentAssignment.id}
                   onMilestonesCountChange={setMilestoneCount}
-                  showControls={false}
                 />
               </aside>
             )}
@@ -564,7 +563,6 @@ const ChallengeDetail: React.FC = () => {
                 <ProjectMilestones
                   challengeAssignmentId={currentAssignment.id}
                   onMilestonesCountChange={setMilestoneCount}
-                  showControls={false}
                 />
               </div>
             )}
