@@ -1,9 +1,41 @@
+import { useState, useRef, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { navigationItems } from './navigationItems'
-import { Crown } from 'lucide-react'
+import { LogOut, Settings, User as UserIcon } from 'lucide-react'
+import { useAuthContext } from '../../contexts/AuthContext'
+import { getUserInitials, getUserDisplayName } from '../../utils/userUtils'
 
 export function AppSidebar() {
   const location = useLocation()
+  const [showUserMenu, setShowUserMenu] = useState(false)
+  const userMenuRef = useRef<HTMLDivElement>(null)
+  const { user, logout } = useAuthContext()
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        userMenuRef.current &&
+        !userMenuRef.current.contains(event.target as Node)
+      ) {
+        setShowUserMenu(false)
+      }
+    }
+
+    if (showUserMenu) {
+      document.addEventListener('mousedown', handleClickOutside)
+    } else {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showUserMenu])
+
+  const handleLogout = () => {
+    logout()
+    setShowUserMenu(false)
+  }
 
   return (
     <div className="flex h-full w-64 flex-col border-r border-gray-200 bg-white">
@@ -59,22 +91,74 @@ export function AppSidebar() {
         </div>
       </div>
 
-      {/* Subscription Badge */}
-      <div className="p-4 border-t border-gray-200">
-        <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-4 border-2 border-amber-200">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
-              <Crown className="w-5 h-5 text-white" />
+      {/* Profile and Subscription */}
+      <div className="p-4 border-t border-gray-200 space-y-4">
+        {/* User Profile Button */}
+        <div className="relative" ref={userMenuRef}>
+          <button
+            onClick={() => setShowUserMenu(!showUserMenu)}
+            className="w-full flex items-center gap-3 hover:bg-gray-50 rounded-xl p-2 transition-all cursor-pointer group"
+          >
+            <div className="relative">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-50 to-purple-50 text-blue-700 font-bold flex items-center justify-center shadow-sm ring-2 ring-white border border-blue-100 group-hover:ring-blue-100 transition-all">
+                {getUserInitials(user)}
+              </div>
+              <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+            </div>
+            <div className="text-left overflow-hidden">
+              <p className="text-sm font-semibold text-gray-900 truncate">
+                {getUserDisplayName(user)}
+              </p>
+              <p className="text-xs text-gray-500 truncate">
+                {user?.email || 'usuario@example.com'}
+              </p>
+            </div>
+          </button>
+
+          {showUserMenu && (
+            <div className="absolute bottom-full left-0 mb-2 w-full bg-white rounded-xl shadow-xl border border-gray-200 z-[110] overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
+              <div className="p-3 border-b border-gray-100 bg-gray-50/50">
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                  Mi Cuenta
+                </p>
+              </div>
+              <div className="p-1">
+                <button className="w-full flex items-center gap-2 p-2 hover:bg-gray-50 rounded-lg text-sm text-gray-700 cursor-pointer transition-colors">
+                  <UserIcon className="w-4 h-4" />
+                  Ver Perfil
+                </button>
+                <button className="w-full flex items-center gap-2 p-2 hover:bg-gray-50 rounded-lg text-sm text-gray-700 cursor-pointer transition-colors">
+                  <Settings className="w-4 h-4" />
+                  Configuración
+                </button>
+              </div>
+              <div className="p-1 border-t border-gray-100">
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-2 p-2 hover:bg-red-50 rounded-lg text-sm text-red-600 font-medium cursor-pointer transition-colors"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Cerrar Sesión
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Subscription Badge */}
+        {/* <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-3 border border-amber-200/50">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-sm">
+              <Crown className="w-4 h-4 text-white" />
             </div>
             <div>
-              <p className="text-sm font-bold text-gray-900">Plan Gratuito</p>
-              <p className="text-sm text-gray-600">Actualiza tu plan</p>
+              <p className="text-sm font-bold text-gray-900 leading-tight">Plan Gratuito</p>
+              <button className="text-xs text-amber-600 font-semibold hover:text-amber-700 transition-colors">
+                Actualizar ahora
+              </button>
             </div>
           </div>
-          <button className="w-full mt-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-bold py-2 px-3 rounded-lg hover:from-amber-600 hover:to-orange-600 transition-all shadow-md hover:shadow-lg">
-            Mejorar a Premium
-          </button>
-        </div>
+        </div> */}
       </div>
     </div>
   )
